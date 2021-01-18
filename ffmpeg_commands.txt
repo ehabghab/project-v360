@@ -1,0 +1,6 @@
+ffmpeg -f rawvideo -pix_fmt yuv420p -s:v 3840x1920 -r 25 -i raw_vID1.yuv -g 25 -crf 9 -c:v libx264 out.mp4
+
+(No B frames) ffmpeg -f rawvideo -pix_fmt yuv420p -s:v 3840x1920 -r 25 -i raw_vID1.yuv -g 25 -crf 24 -bf 0 -c:v libx264 out_P.mp4
+
+
+ffprobe vID1_scaled_30I.mp4 -show_frames | grep -E 'pict_type' > framesType.txt 
