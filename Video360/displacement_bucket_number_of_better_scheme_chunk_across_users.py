@@ -1032,7 +1032,7 @@ def main():
 			plt.bar(x_axis,number_better_scheme[scheme],label=scheme,color = colors[c],hatch=hatches[c],width = .5)
 		else:
 			plt.bar(x_axis,number_better_scheme[scheme],bottom=number_better_scheme[prev_scheme],label=scheme,color = colors[c],hatch=hatches[c],width = .5)
-			number_better_scheme[scheme] =[x + y for x, y in zip(number_better_scheme[prev_scheme], perc_better_scheme[scheme])]
+			number_better_scheme[scheme] =[x + y for x, y in zip(number_better_scheme[prev_scheme], number_better_scheme[scheme])]
 		c += 1
 		prev_scheme = scheme
 
@@ -1041,8 +1041,8 @@ def main():
 	plt.xlabel('Displacement over yaw',fontweight="bold",size=10)
 	plt.xticks(x_axis,x_label,fontweight="bold",size=10)
 	plt.legend(loc='best',ncol = 3,prop={'size': 10,'weight':'bold'})
-	plt.ylim(0,110)
-	#plt.xlim(0,100)
+	plt.ylim(0)
+	plt.xlim(-1,2.5)
 
 	#plt.title("Video id:"+str(video_id),size=12,fontweight="bold")
 	plt.savefig("graphs/displacement_bucket_number_of_better_scheme_bar_median_max.png",dpi=300,bbox_inches='tight',pad_inches=.05)
