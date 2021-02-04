@@ -837,6 +837,59 @@ def sum_displacement_over_1sec(displacement):
 																																					  ,displacement[chunk_length][user_id][chunkId][disp])
 	return disp_1sec
 
+def  median_displacement_over_1sec(displacement_1sec):
+	displacement_1sec_temp = {} #key chunk length, chunk id, list of yaws
+	for chunk_length in displacement_1sec:
+		displacement_1sec_temp[chunk_length] = {}
+		for user_id in displacement_1sec[chunk_length]:
+			for chunk_id in displacement_1sec[chunk_length][user_id]:
+				if displacement_1sec_temp[chunk_length].get(chunk_id) is None:
+					displacement_1sec_temp[chunk_length][chunk_id] = []
+				disp = displacement_1sec[chunk_length][user_id][chunk_id]['left']\
+					   + displacement_1sec[chunk_length][user_id][chunk_id]['right']
+				displacement_1sec_temp[chunk_length][chunk_id].append(disp)
+	
+	displacement_1sec_median = {}
+	for chunk_length in displacement_1sec_temp:
+		displacement_1sec_median[chunk_length] = {}
+		for chunk_id in displacement_1sec_temp[chunk_length]:
+			displacement_1sec_median[chunk_length][chunk_id] = np.percentile(displacement_1sec_temp[chunk_length][chunk_id],50)
+
+	return displacement_1sec_median
+
+def scheme_per_chunk(total_bytes):
+
+	total_bytes_list = {}
+	for res in total_bytes:
+		total_bytes_list[res] = {}
+		for user_id in total_bytes[res]:
+			for chunk_id in total_bytes[res][user_id]:
+				if total_bytes_list[res].get(chunk_id) is None:
+					total_bytes_list[res][chunk_id] = []
+				total_bytes_list[res][chunk_id].append(total_bytes[res][user_id][chunk_id])
+	
+
+	#user_id, chunk_id,scheme.
+	total_bytes_median_reordered = {}
+	for res in total_bytes_list:
+		for chunk_id in total_bytes_list[res]:
+			if total_bytes_median_reordered.get(chunk_id) is None:
+				total_bytes_median_reordered[chunk_id] = {}
+			total_bytes_median_reordered[chunk_id][res] = np.percentile(total_bytes_list[res][chunk_id],50)
+
+
+	displacement_bucket_better_scheme= {} #key is chunk_id, value is the scheme.
+	for chunk_id in total_bytes_median_reordered:
+		resolution = ""
+		val = -1
+		for res in total_bytes_median_reordered[chunk_id]:
+			if val == -1 or val > total_bytes_median_reordered[chunk_id][res]:
+				val = total_bytes_median_reordered[chunk_id][res]
+				resolution = res
+		displacement_bucket_better_scheme[chunk_id] = resolution
+
+	return displacement_bucket_better_scheme
+
 def get_raw_data(video_id,user_id):
 	files = list()
 	data = {}
@@ -866,25 +919,30 @@ def get_raw_data(video_id,user_id):
 	#print data
 	return data
 
+
 def main():
 
-	size_threshold = {'6x6':1,'12x12':1.10,'24x18':1.29}
+	size_threshold = {'6x6':1,'12x12':1.10,'24x18':1.25}
 	disp_bucket = [10,30,60,100,150,360]
-	displacement_bucket_better_scheme = {} #key is disp_bucket, res, value is the number of times.
-	displacement_bucket_better_scheme_count = {} #key is disp_bucket, total number of chunks.
+	better_scheme_median_displacement_median_total_bytes = {}
+	better_scheme_median_displacement_median_total_bytes_count = {}
+
 	for video_id in range(1,31):
 		if video_id == 15 or video_id ==16:
 			continue		
 		print("Video:"+str(video_id))
 		data = get_raw_data(video_id,-1)
+
+		#STEP 1, find the displacement on median per chunk id
 		Lengths = [1000]
 		displacement = {}
 		for chunk_length in Lengths:
 			displacement[chunk_length] = getDisplacements(chunk_length,data)
 		#chunk_length, user_id, chunk_id, direction --> value.
 		displacement_1sec = sum_displacement_over_1sec(displacement)
+		displacement_1sec_median = median_displacement_over_1sec(displacement_1sec)
 
-
+		#STEP 2, find the total bytes per chunk
 		chunkLength = 1000 #chunk length in millisecond
 		widths = [60,30,15]
 		heights = [30,15,10]
@@ -906,78 +964,73 @@ def main():
 	 			getWaste(watched_frames_in_tiles, wasted_area_in_watched_frame, \
 				num_frames_in_tile, tileFrameSizes,chunkLength,tileWidth,tileHeight)
 
+		
+		#STEP 3, which scheme has the lowest total bytes overall.
+		#key is chunk_id, value is the scheme.
+		displacement_bucket_better_scheme = scheme_per_chunk(total_bytes)
+		for chunk_id in displacement_bucket_better_scheme:
+			resolution = displacement_bucket_better_scheme[chunk_id]
+			disp = displacement_1sec_median[Lengths[0]][chunk_id]
+			idx = 0
+			for idx in range(0, len(disp_bucket)):
+				if disp <= disp_bucket[idx]:
+					break 
+
+			if better_scheme_median_displacement_median_total_bytes.get(disp_bucket[idx]) is None:
+				better_scheme_median_displacement_median_total_bytes[disp_bucket[idx]] = {}
+			if better_scheme_median_displacement_median_total_bytes[disp_bucket[idx]].get(resolution) is None:
+				better_scheme_median_displacement_median_total_bytes[disp_bucket[idx]][resolution] = 0.
+
+			if better_scheme_median_displacement_median_total_bytes_count.get(disp_bucket[idx]) is None:
+				better_scheme_median_displacement_median_total_bytes_count[disp_bucket[idx]] = 0.
+
+			better_scheme_median_displacement_median_total_bytes[disp_bucket[idx]][resolution] += 1
+			better_scheme_median_displacement_median_total_bytes_count[disp_bucket[idx]] += 1
+
 	
-		#user_id, chunk_id,scheme.
-		total_bytes_reordered = {}
-		for res in total_bytes:
-			for user_id in total_bytes[res]:
-				if total_bytes_reordered.get(user_id) is None:
-					total_bytes_reordered[user_id] = {}
-				for chunk_id in total_bytes[res][user_id]:
-					if total_bytes_reordered[user_id].get(chunk_id) is None:
-						total_bytes_reordered[user_id][chunk_id] = {}
-					total_bytes_reordered[user_id][chunk_id][res] = total_bytes[res][user_id][chunk_id]
-
-		#chunk_length, user_id, chunk_id, direction --> value.
-		for user_id in total_bytes_reordered:
-			for chunk_id in total_bytes_reordered[user_id]:
-				val = -1
-				resolution = ""
-				for res in total_bytes_reordered[user_id][chunk_id]:
-					if val == -1 or val > total_bytes_reordered[user_id][chunk_id][res]:
-						val = total_bytes_reordered[user_id][chunk_id][res]
-						resolution = res 
-
-
-				disp = displacement_1sec[Lengths[0]][user_id][chunk_id]['left'] + displacement_1sec[Lengths[0]][user_id][chunk_id]['right']
-				idx = 0
-				for idx in range(0, len(disp_bucket)):
-					if disp <= disp_bucket[idx]:
-						break 
-
-				if displacement_bucket_better_scheme.get(disp_bucket[idx]) is None:
-					displacement_bucket_better_scheme[disp_bucket[idx]] = {}
-				
-				if displacement_bucket_better_scheme[disp_bucket[idx]].get(resolution) is None:
-					displacement_bucket_better_scheme[disp_bucket[idx]][resolution] = 0.
-
-				if displacement_bucket_better_scheme_count.get(disp_bucket[idx]) is None:
-					displacement_bucket_better_scheme_count[disp_bucket[idx]] = 0.
-				
-				
-				displacement_bucket_better_scheme[disp_bucket[idx]][resolution] += 1.
-				displacement_bucket_better_scheme_count[disp_bucket[idx]] += 1.
-
-
+	x_axis = []
+	x_label = []
+	x_c = 0
 	perc_better_scheme = {} #key is scheme, list of perc of chunks at which scheme is better [sorted to match bucket]
-	for disp_bucket_val in sorted(displacement_bucket_better_scheme):
+	num_better_scheme = {}
+	for disp_bucket_val in sorted(better_scheme_median_displacement_median_total_bytes):
+		
+		idx = 0
+		x_axis.append(x_c)
+		for idx in range(0,len(disp_bucket)):
+			if disp_bucket_val == disp_bucket[idx]:
+				break
+		label = ""
+		if idx == 0:
+			label = "[0-"+str(disp_bucket[idx])+"]"
+		else:
+			label = "["+str(disp_bucket[idx-1])+"-"+str(disp_bucket[idx])+"]"
+		x_label.append(label)
+ 
+
 		for tileWidth,tileHeight in zip((widths),(heights)):
 			scheme = str(360/tileWidth)+"x"+str(180/tileHeight)
 			if perc_better_scheme.get(scheme) is None:
 				perc_better_scheme[scheme] = []
+				num_better_scheme[scheme] = []
 			frac = 0
-			if displacement_bucket_better_scheme[disp_bucket_val].get(scheme) is not None:
-				frac = displacement_bucket_better_scheme[disp_bucket_val][scheme] / displacement_bucket_better_scheme_count[disp_bucket_val]
+			num = 0
+			if better_scheme_median_displacement_median_total_bytes[disp_bucket_val].get(scheme) is not None:
+				frac = better_scheme_median_displacement_median_total_bytes[disp_bucket_val][scheme] / better_scheme_median_displacement_median_total_bytes_count[disp_bucket_val]
+				num = better_scheme_median_displacement_median_total_bytes[disp_bucket_val][scheme]
 			perc_better_scheme[scheme].append(frac*100)
+			num_better_scheme[scheme].append(num)
+		x_c += 1
 
 
+
+
+	## Percentage###
 	plt.figure(figsize=(10,6))
 	plt.subplot(111)
 	#plt.grid(zorder=0)
 	colors = ['g','r','b','magenta']
 	hatches = ['x','//','']
-	#print(perc_better_scheme)
-	x_axis = []
-	x_label = []
-	for i in range(0,len(disp_bucket)):
-		x_axis.append(i)
-		label = ""
-		if i == 0:
-			label = "[0-"+str(disp_bucket[i])+"]"
-		else:
-			label = "["+str(disp_bucket[i-1])+"-"+str(disp_bucket[i])+"]"
-		x_label.append(label)
-
 	prev_scheme = ""
 	c = 0
 	for tileWidth,tileHeight in zip((widths),(heights)):
@@ -999,7 +1052,36 @@ def main():
 	#plt.xlim(0,100)
 
 	#plt.title("Video id:"+str(video_id),size=12,fontweight="bold")
-	plt.savefig("graphs/displacement_bucket_perc_of_better_scheme_bar.png",dpi=300,bbox_inches='tight',pad_inches=.05)
+	plt.savefig("graphs/perc_of_better_scheme_bar_median_max.png",dpi=300,bbox_inches='tight',pad_inches=.05)
+	plt.close()
+
+
+
+	############################Number###
+	plt.figure(figsize=(10,6))
+	plt.subplot(111)
+	#plt.grid(zorder=0)
+	colors = ['g','r','b','magenta']
+	hatches = ['x','//','']
+
+	prev_scheme = ""
+	c = 0
+	for tileWidth,tileHeight in zip((widths),(heights)):
+		scheme = str(360/tileWidth)+"x"+str(180/tileHeight)
+		if tileWidth == widths[0]:
+			plt.bar(x_axis,num_better_scheme[scheme],label=scheme,color = colors[c],hatch=hatches[c],width = .5)
+		else:
+			plt.bar(x_axis,num_better_scheme[scheme],bottom=num_better_scheme[prev_scheme],label=scheme,color = colors[c],hatch=hatches[c],width = .5)
+			num_better_scheme[scheme] =[x + y for x, y in zip(num_better_scheme[prev_scheme], num_better_scheme[scheme])]
+		c += 1
+		prev_scheme = scheme
+
+	plt.yticks(fontweight="bold",size=10)
+	plt.ylabel('Number of chunks',fontweight="bold",size=10)
+	plt.xlabel('Displacement over yaw',fontweight="bold",size=10)
+	plt.xticks(x_axis,x_label,fontweight="bold",size=10)
+	plt.legend(loc='best',ncol = 3,prop={'size': 10,'weight':'bold'})
+	plt.savefig("graphs/number_of_better_scheme_bar_median_max.png",dpi=300,bbox_inches='tight',pad_inches=.05)
 	plt.close()
 
 
