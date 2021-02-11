@@ -714,6 +714,7 @@ def getWaste(watched_frames_in_tiles, wasted_area_in_watched_frame, num_frames_i
 	area_waste = {}
 	drop_frame_waste = {}
 	total_bytes = {}
+	#print(num_frames_in_tile)
 	for uID in watched_frames_in_tiles:
 		waste[uID] = {}
 		area_waste[uID] = {}
@@ -723,40 +724,45 @@ def getWaste(watched_frames_in_tiles, wasted_area_in_watched_frame, num_frames_i
 		for chunkID in watched_frames_in_tiles[uID]:
 			waste[uID][chunkID] = 0
 			area_waste[uID][chunkID] = 0
-			drop_frame_waste[uID][chunkID] = 0
-			total_bytes[uID][chunkID] = 0
+			
+			
 			dropped_frames_in_tiles = 0 # total number of wasted frames in a chunk
 			wastedAreInTileFrames = 0
 			if chunkID % IPerSec == 0:
 				baseFrameNum = ((chunkID/IPerSec)*25)
 			else:
 				baseFrameNum += IFrameDist
-
 			#print(baseFrameNum)
 				#size of un-watched frames in all tiles.
-
 			for tile in watched_frames_in_tiles[uID][chunkID]:
 				for fId in range(1,num_frames_in_tile[uID][chunkID]+1): #loop over all frames ids in tile.
 
 					if tileFrameSizes[tile].get(baseFrameNum+fId,None) != None:# if we have the size of it (rare cases where this is maybe false)
+						if total_bytes[uID].get(chunkID) is None:
+							total_bytes[uID][chunkID] = 0
 						total_bytes[uID][chunkID] += tileFrameSizes[tile][baseFrameNum+fId] # size of all frames in tile watched and unwatched.
 
 
 					if fId not in watched_frames_in_tiles[uID][chunkID][tile]:# if frame id not the watched subset.
 						if tileFrameSizes[tile].get(baseFrameNum+fId,None) != None:# if we have the size of it (rare cases where this is maybe false)
-							dropped_frames_in_tiles += tileFrameSizes[tile][baseFrameNum+fId]
+							if drop_frame_waste[uID].get(chunkID) is None:
+								drop_frame_waste[uID][chunkID] = 0
+							drop_frame_waste[uID][chunkID] += tileFrameSizes[tile][baseFrameNum+fId]
 
 
 
 			for tile in wasted_area_in_watched_frame[uID][chunkID]:
 				for fovNum in wasted_area_in_watched_frame[uID][chunkID][tile]:
 					if tileFrameSizes[tile].get(baseFrameNum+fovNum,None) != None:
+						if area_waste[uID].get(chunkID) is None:
+							area_waste[uID][chunkID] = 0
 						tileframeSize = tileFrameSizes[tile][baseFrameNum+fovNum]
 						extraArea = wasted_area_in_watched_frame[uID][chunkID][tile][fovNum]
-						wastedAreInTileFrames += tileframeSize * (extraArea/(tileWidth*tileHeight))
-			area_waste[uID][chunkID] =  wastedAreInTileFrames
-			drop_frame_waste[uID][chunkID] = dropped_frames_in_tiles
-			waste[uID][chunkID] = dropped_frames_in_tiles + wastedAreInTileFrames
+						area_waste[uID][chunkID] += tileframeSize * (extraArea/(tileWidth*tileHeight))
+
+			if area_waste[uID].get(chunkID) is not None and drop_frame_waste[uID].get(chunkID) is not None:
+				waste[uID][chunkID] = dropped_frames_in_tiles + wastedAreInTileFrames
+
 	return area_waste, drop_frame_waste,waste,total_bytes
 
 def sum_over_users(total_bytes):
@@ -898,41 +904,29 @@ def get_raw_data(video_id,user_id):
 	#print data
 	return data
 
-def median_of_medians_displacement(displacement):
+def median_of_displacement(displacement):
 
 	#STEP 1
-	#Get median of displacement over 1 sec period. 
-	#if chunk has length of 200ms, then get the median for every 5 consecutive chunks.
+	#Sum over all users.	
 	A_median_disp = {}
 	for chunk_length in displacement:
 		A_median_disp[chunk_length] = {}
-		sum_over = int(1000.0/chunk_length)
 		for user_id in displacement[chunk_length]:
-			chunk_id_c = -1
-			temp = []
 			for chunk_id in displacement[chunk_length][user_id]:
-				if chunk_id % sum_over == 0:
-					if chunk_id_c != -1:
-						if A_median_disp[chunk_length].get(chunk_id_c) is None:
-							A_median_disp[chunk_length][chunk_id_c] = {}
-						A_median_disp[chunk_length][chunk_id_c][user_id] = np.percentile(temp,50)
-					chunk_id_c += 1
-					temp = []
-				temp.append(displacement[chunk_length][user_id][chunk_id]['left']+\
-							displacement[chunk_length][user_id][chunk_id]['right'])
-
+				if A_median_disp[chunk_length].get(chunk_id) is None:
+					A_median_disp[chunk_length][chunk_id] = []
+				disp = displacement[chunk_length][user_id][chunk_id]['left'] + \
+						displacement[chunk_length][user_id][chunk_id]['right']
+				A_median_disp[chunk_length][chunk_id].append(disp)
 	#STEP 2
 	#Get the median of displacement for all users per chunk.
-
-	#chunk_length, chunk_id, median of medians.
+	#chunk_length, chunk_id, median of displacement.
 	B_median_disp = {}	
 	for chunk_length in A_median_disp:
 		B_median_disp[str(chunk_length)] = {}
-		for chunk_id in A_median_disp[chunk_length]:
-			temp = []
-			for user_id in A_median_disp[chunk_length][chunk_id]:
-				temp.append(A_median_disp[chunk_length][chunk_id][user_id])
-			B_median_disp[str(chunk_length)][chunk_id] = np.percentile(temp,50)
+		for chunk_id in A_median_disp[chunk_length]:		
+			B_median_disp[str(chunk_length)][chunk_id] = \
+					np.percentile(A_median_disp[chunk_length][chunk_id],50)
 		
 
 	
@@ -1032,8 +1026,8 @@ def main():
 					  '24x18_1000':1.25,'24x18_500':1.41,'24x18_200':2.37}
 
 	disp_bucket = [10,30,60,100,150,360]
-	widths = [15]#[60,30,15]
-	heights = [10]#[30,15,10]
+	widths = [60]#[60,30,15]
+	heights = [30]#[30,15,10]
 	chunk_lengths = [1000,500,200]
 
 	displacement_bucket_better_scheme = {} #key is disp_bucket, chunk_length, value is the number of times.
@@ -1047,10 +1041,11 @@ def main():
 		displacement = {}
 		for chunk_length in chunk_lengths:
 			#chunk_length, user_id, chunk_id, direction --> value.
-			displacement[chunk_length] = getDisplacements(chunk_length,data) 
+			#length 1000. for all chunks, so that we comparing apples to apples.
+			displacement[str(chunk_length)] = getDisplacements(1000.,data) 
 
 		#chunk_length, chunk_id --> median of medians disp over 1 sec.
-		median_of_medians_displacement_1_sec = median_of_medians_displacement(displacement)
+		median_of_medians_displacement_1_sec = median_of_displacement(displacement)
 		area_waste = {} #K1: tile resolution, K2:user id, K3:chunk id --> V: area wasted among watched frames within tiles.
 		drop_frame_waste = {}
 		waste = {}
@@ -1160,12 +1155,6 @@ def main():
 	plt.title(kt,size=12,fontweight="bold")
 	plt.savefig("graphs/perc_of_better_chunk_length_bar_"+kt+"_across_users.png",dpi=300,bbox_inches='tight',pad_inches=.05)
 	plt.close()
-
-
-
-
-
-
 
 
 

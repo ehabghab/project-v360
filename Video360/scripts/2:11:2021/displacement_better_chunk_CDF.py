@@ -1,4 +1,5 @@
 
+from numpy.lib.function_base import median
 from pyquaternion import Quaternion
 import math
 import matplotlib.pyplot as plt
@@ -7,8 +8,28 @@ from os import walk
 import os
 import matplotlib.patches as mpatches
 import    faulthandler
-videos = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26]
+import sys
+from collections import OrderedDict
+
 FOV = 100
+linestyles = OrderedDict(
+		[('solid',               (0, ())),
+		('loosely dotted',      (0, (1, 10))),
+		('dotted',              (0, (1, 5))),
+		('densely dotted',      (0, (1, 1))),
+
+		('loosely dashed',      (0, (5, 10))),
+		('dashed',              (0, (5, 5))),
+		('densely dashed',      (0, (5, 1))),
+
+		('loosely dashdotted',  (0, (3, 10, 1, 10))),
+		('dashdotted',          (0, (3, 5, 1, 5))),
+		('densely dashdotted',  (0, (3, 1, 1, 1))),
+
+		('loosely dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
+		('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
+		('densely dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))])
+
 def modifybox(boxplot,data,whis=None,linewidth=None,color=None,medianColor=None,style=None):
 
 
@@ -433,12 +454,43 @@ def generateMAP(tileWidth,tileHeight):
 			blockNum += 1
 	return map
 
-def get_tile_frame_sizes_threshold(tile_width,tile_height,chunk_length,size_threshold):
+def get_tile_frame_sizes(tile_width,tile_height,chunk_length):
 	if chunk_length == 200:
-		dir = "../split/Width6_Height6/EXP4"
+		dir = "../split/Width"+str(tile_width)+"_Height"+str(tile_height)+"/EXP4"
 	elif chunk_length == 1000:
-		dir = "../split/Width6_Height6/EXP2"
+		dir = "../split/Width"+str(tile_width)+"_Height"+str(tile_height)+"/EXP2"
 
+	tile_frame_sizes = {} #key1 = tile, key2 = frameNum, value size
+	count = 1
+	for i in range(0,tile_height): #row
+		for j in range(0,tile_width):
+			tile_frame_sizes[count] = {} # new tile
+			dirTile = dir+"/encoded_payloadExtract/"+str(i+1)+"_c_"+str(j+1)
+			fList = os.listdir(dirTile)
+			for f in fList:
+				frame_num = int(f.split(".")[0])
+				tile_frame_size = os.path.getsize(dirTile+"/"+f)
+				tile_frame_sizes[count][frame_num] = tile_frame_size
+			count +=1
+
+	return tile_frame_sizes
+
+def get_tile_frame_sizes_threshold(tile_width,tile_height,chunk_length,size_threshold):
+	'''
+		scheme, chunk length, avg frame size
+		6X6,	1000,	41069.216			(1.00X)
+		12X12,	1000,	43643.12			(1.06X)
+		24X18,	1000,	50023.6653333		(1.18X)
+		6X6,	200,	83872.566			(2.04X)					
+		12X12,	200,	87577.0086667		(2.13X)
+		24X18,	200,	98263.8193333		(2.39X)
+	'''
+	'''
+		6x6,	500, 	xxxx				(1.07)
+		12x12,	500,	xxxx				(1.13)
+		24x18,	500,	xxxx				(1.26)
+	'''
+	dir = "../split/Width6_Height6/EXP4"
 	tile_frame_sizes = {} #key1 = tile, key2 = frameNum, value size
 	count = 1
 	for i in range(0,6): #row
@@ -452,19 +504,22 @@ def get_tile_frame_sizes_threshold(tile_width,tile_height,chunk_length,size_thre
 				tile_frame_sizes[count][frame_num] = tile_frame_size
 			count +=1
 
+
+
 	frame_sizes = {} #get the 6x6 frame size.
 	for tile in tile_frame_sizes:
 		for frame_num in tile_frame_sizes[tile]:
 			if frame_sizes.get(frame_num) is None:
 				frame_sizes[frame_num] = 0
-			frame_sizes[frame_num] = 41070# avg 6x6 frame size.     #tile_frame_sizes[tile][frame_num] * 1.
+			frame_sizes[frame_num] = 41070# avg 6x6 frame size.
 
 	num_of_tiles = tile_width * tile_height * 1.
 
 	tile_frame_sizes_w_threshold = {}
 	for frame_num in frame_sizes:
 		tile_frame_size = (frame_sizes[frame_num] / num_of_tiles) \
-							* size_threshold[str(tile_width)+"x"+str(tile_height)]
+							* size_threshold[str(int(tile_width))+"x"+str(int(tile_height))\
+								+"_"+str(chunk_length)]
 		for i in range(1,int(num_of_tiles)+1):
 				if tile_frame_sizes_w_threshold.get(i) is None:
 					tile_frame_sizes_w_threshold[i] = {}
@@ -681,6 +736,7 @@ def getWaste(watched_frames_in_tiles, wasted_area_in_watched_frame, num_frames_i
 	area_waste = {}
 	drop_frame_waste = {}
 	total_bytes = {}
+	#print(num_frames_in_tile)
 	for uID in watched_frames_in_tiles:
 		waste[uID] = {}
 		area_waste[uID] = {}
@@ -690,40 +746,45 @@ def getWaste(watched_frames_in_tiles, wasted_area_in_watched_frame, num_frames_i
 		for chunkID in watched_frames_in_tiles[uID]:
 			waste[uID][chunkID] = 0
 			area_waste[uID][chunkID] = 0
-			drop_frame_waste[uID][chunkID] = 0
-			total_bytes[uID][chunkID] = 0
+			
+			
 			dropped_frames_in_tiles = 0 # total number of wasted frames in a chunk
 			wastedAreInTileFrames = 0
 			if chunkID % IPerSec == 0:
 				baseFrameNum = ((chunkID/IPerSec)*25)
 			else:
 				baseFrameNum += IFrameDist
-
 			#print(baseFrameNum)
 				#size of un-watched frames in all tiles.
-
 			for tile in watched_frames_in_tiles[uID][chunkID]:
 				for fId in range(1,num_frames_in_tile[uID][chunkID]+1): #loop over all frames ids in tile.
 
 					if tileFrameSizes[tile].get(baseFrameNum+fId,None) != None:# if we have the size of it (rare cases where this is maybe false)
+						if total_bytes[uID].get(chunkID) is None:
+							total_bytes[uID][chunkID] = 0
 						total_bytes[uID][chunkID] += tileFrameSizes[tile][baseFrameNum+fId] # size of all frames in tile watched and unwatched.
 
 
 					if fId not in watched_frames_in_tiles[uID][chunkID][tile]:# if frame id not the watched subset.
 						if tileFrameSizes[tile].get(baseFrameNum+fId,None) != None:# if we have the size of it (rare cases where this is maybe false)
-							dropped_frames_in_tiles += tileFrameSizes[tile][baseFrameNum+fId]
+							if drop_frame_waste[uID].get(chunkID) is None:
+								drop_frame_waste[uID][chunkID] = 0
+							drop_frame_waste[uID][chunkID] += tileFrameSizes[tile][baseFrameNum+fId]
 
 
 
 			for tile in wasted_area_in_watched_frame[uID][chunkID]:
 				for fovNum in wasted_area_in_watched_frame[uID][chunkID][tile]:
 					if tileFrameSizes[tile].get(baseFrameNum+fovNum,None) != None:
+						if area_waste[uID].get(chunkID) is None:
+							area_waste[uID][chunkID] = 0
 						tileframeSize = tileFrameSizes[tile][baseFrameNum+fovNum]
 						extraArea = wasted_area_in_watched_frame[uID][chunkID][tile][fovNum]
-						wastedAreInTileFrames += tileframeSize * (extraArea/(tileWidth*tileHeight))
-			area_waste[uID][chunkID] =  wastedAreInTileFrames
-			drop_frame_waste[uID][chunkID] = dropped_frames_in_tiles
-			waste[uID][chunkID] = dropped_frames_in_tiles + wastedAreInTileFrames
+						area_waste[uID][chunkID] += tileframeSize * (extraArea/(tileWidth*tileHeight))
+
+			if area_waste[uID].get(chunkID) is not None and drop_frame_waste[uID].get(chunkID) is not None:
+				waste[uID][chunkID] = dropped_frames_in_tiles + wastedAreInTileFrames
+
 	return area_waste, drop_frame_waste,waste,total_bytes
 
 def sum_over_users(total_bytes):
@@ -817,7 +878,6 @@ def getNumberOfTiles(dis,tileWidth,tileHeight):
 	#print numOfTiles
 	return numOfTiles
 
-def sum_displacement_over_1sec(displacement):
 	disp_1sec = {} #chunk_length, user_id, chunk_id, direction --> value.
 	for chunk_length in displacement:
 			count = 1000.0/chunk_length
@@ -836,59 +896,6 @@ def sum_displacement_over_1sec(displacement):
 									disp_1sec[chunk_length][user_id][chunk_id_1sec][disp] = max(disp_1sec[chunk_length][user_id][chunk_id_1sec][disp]\
 																																					  ,displacement[chunk_length][user_id][chunkId][disp])
 	return disp_1sec
-
-def  median_displacement_over_1sec(displacement_1sec):
-	displacement_1sec_temp = {} #key chunk length, chunk id, list of yaws
-	for chunk_length in displacement_1sec:
-		displacement_1sec_temp[chunk_length] = {}
-		for user_id in displacement_1sec[chunk_length]:
-			for chunk_id in displacement_1sec[chunk_length][user_id]:
-				if displacement_1sec_temp[chunk_length].get(chunk_id) is None:
-					displacement_1sec_temp[chunk_length][chunk_id] = []
-				disp = displacement_1sec[chunk_length][user_id][chunk_id]['left']\
-					   + displacement_1sec[chunk_length][user_id][chunk_id]['right']
-				displacement_1sec_temp[chunk_length][chunk_id].append(disp)
-	
-	displacement_1sec_median = {}
-	for chunk_length in displacement_1sec_temp:
-		displacement_1sec_median[chunk_length] = {}
-		for chunk_id in displacement_1sec_temp[chunk_length]:
-			displacement_1sec_median[chunk_length][chunk_id] = np.percentile(displacement_1sec_temp[chunk_length][chunk_id],50)
-
-	return displacement_1sec_median
-
-def scheme_per_chunk(total_bytes):
-
-	total_bytes_list = {}
-	for res in total_bytes:
-		total_bytes_list[res] = {}
-		for user_id in total_bytes[res]:
-			for chunk_id in total_bytes[res][user_id]:
-				if total_bytes_list[res].get(chunk_id) is None:
-					total_bytes_list[res][chunk_id] = []
-				total_bytes_list[res][chunk_id].append(total_bytes[res][user_id][chunk_id])
-	
-
-	#user_id, chunk_id,scheme.
-	total_bytes_median_reordered = {}
-	for res in total_bytes_list:
-		for chunk_id in total_bytes_list[res]:
-			if total_bytes_median_reordered.get(chunk_id) is None:
-				total_bytes_median_reordered[chunk_id] = {}
-			total_bytes_median_reordered[chunk_id][res] = np.percentile(total_bytes_list[res][chunk_id],50)
-
-
-	displacement_bucket_better_scheme= {} #key is chunk_id, value is the scheme.
-	for chunk_id in total_bytes_median_reordered:
-		resolution = ""
-		val = -1
-		for res in total_bytes_median_reordered[chunk_id]:
-			if val == -1 or val > total_bytes_median_reordered[chunk_id][res]:
-				val = total_bytes_median_reordered[chunk_id][res]
-				resolution = res
-		displacement_bucket_better_scheme[chunk_id] = resolution
-
-	return displacement_bucket_better_scheme
 
 def get_raw_data(video_id,user_id):
 	files = list()
@@ -919,169 +926,152 @@ def get_raw_data(video_id,user_id):
 	#print data
 	return data
 
+def displacement_over_yaw(displacement):
+
+	A_median_disp = {}
+	for chunk_length in displacement:
+		A_median_disp[chunk_length] = {}
+		for user_id in displacement[chunk_length]:
+			A_median_disp[chunk_length][user_id] = {}
+			for chunk_id in displacement[chunk_length][user_id]:
+				disp = displacement[chunk_length][user_id][chunk_id]['left'] + \
+						displacement[chunk_length][user_id][chunk_id]['right']
+				A_median_disp[chunk_length][user_id][chunk_id] = disp
+
+	return A_median_disp	
+
+
+
+def total_bytes_sum_1sec(total_bytes):
+	
+	total_bytes_1_sec = {}
+	for key in total_bytes:
+		chunk_length = int(key.split('_')[1])
+		num_of_chunks_to_sum = int(1000/chunk_length)
+		total_bytes_1_sec[key] = {}
+		for user_id in total_bytes[key]:
+			total_bytes_1_sec[key][user_id] = {}
+			chunk_id_c = -1
+			for chunk_id in total_bytes[key][user_id]:
+				if chunk_id % num_of_chunks_to_sum == 0:
+					chunk_id_c += 1
+				if total_bytes_1_sec[key][user_id].get(chunk_id_c) is None:
+					total_bytes_1_sec[key][user_id][chunk_id_c] = 0
+				total_bytes_1_sec[key][user_id][chunk_id_c] += total_bytes[key][user_id][chunk_id]
+	
+	total_bytes_reordered = {}
+	for res in total_bytes_1_sec:
+		for user_id in total_bytes_1_sec[res]:
+			if total_bytes_reordered.get(user_id) is None:
+				total_bytes_reordered[user_id] = {}
+			for chunk_id in total_bytes_1_sec[res][user_id]:
+				if total_bytes_reordered[user_id].get(chunk_id) is None:
+					total_bytes_reordered[user_id][chunk_id] = {}
+				total_bytes_reordered[user_id][chunk_id][res] = total_bytes_1_sec[res][user_id][chunk_id]
+
+	return total_bytes_reordered
 
 def main():
+	'''
+		scheme, chunk length, avg frame size
+		6X6,	1000,	41069.216			(1.00X)
+		12X12,	1000,	43643.12			(1.06X)
+		24X18,	1000,	50023.6653333		(1.18X)
+		6X6,	200,	83872.566			(2.04X)					
+		12X12,	200,	87577.0086667		(2.13X)
+		24X18,	200,	98263.8193333		(2.39X)
+	'''
+	size_threshold = {'6x6_1000':1,'6x6_500':1.15,'6x6_200':1.95,\
+					  '12x12_1000':1.10,'12x12_500':1.26,'12x12_200':2.05,\
+					  '24x18_1000':1.25,'24x18_500':1.41,'24x18_200':2.37}
 
-	size_threshold = {'6x6':1,'12x12':1.10,'24x18':1.25}
-	disp_bucket = [10,30,60,100,150,360]
-	better_scheme_median_displacement_median_total_bytes = {}
-	better_scheme_median_displacement_median_total_bytes_count = {}
+	widths = [30]#[60,30,15]
+	heights = [15]#[30,15,10]
+	chunk_lengths = [1000,500,200]
 
+	displacements_per_scheme = {} #key is scheme, value: list of displacement when this scheme was better.
 	for video_id in range(1,31):
 		if video_id == 15 or video_id ==16:
 			continue		
 		print("Video:"+str(video_id))
 		data = get_raw_data(video_id,-1)
 
-		#STEP 1, find the displacement on median per chunk id
-		Lengths = [1000]
-		displacement = {}
-		for chunk_length in Lengths:
-			displacement[chunk_length] = getDisplacements(chunk_length,data)
-		#chunk_length, user_id, chunk_id, direction --> value.
-		displacement_1sec = sum_displacement_over_1sec(displacement)
-		displacement_1sec_median = median_displacement_over_1sec(displacement_1sec)
-
-		#STEP 2, find the total bytes per chunk
-		chunkLength = 1000 #chunk length in millisecond
-		widths = [60,30,15]
-		heights = [30,15,10]
+		displacement_ = {}
+		for chunk_length in chunk_lengths:
+			#chunk_length, user_id, chunk_id, direction --> value.
+			#length 1000. for all chunks, so that we comparing apples to apples.
+			displacement_[str(chunk_length)] = getDisplacements(1000.,data) 
+		displacement = displacement_over_yaw(displacement_)
+		
 		area_waste = {} #K1: tile resolution, K2:user id, K3:chunk id --> V: area wasted among watched frames within tiles.
 		drop_frame_waste = {}
 		waste = {}
 		total_bytes = {}
 		for tileWidth,tileHeight in zip((widths),(heights)):
-			#print (str(tileWidth)+","+str(tileHeight))
-			key = str(360/tileWidth)+"x"+str(180/tileHeight)
-			tileFrameSizes = get_tile_frame_sizes_threshold((360/tileWidth),(180/tileHeight),chunkLength,size_threshold)
-			tileMap = generateMAP(tileWidth,tileHeight)
+			for chunk_length in chunk_lengths:
+				key = str(360/tileWidth)+"x"+str(180/tileHeight)+"_"+str(chunk_length)
+				tileFrameSizes = get_tile_frame_sizes_threshold((360/tileWidth),(180/tileHeight),chunk_length,size_threshold)
+				tileMap = generateMAP(tileWidth,tileHeight)
 
-			watched_frames_in_tiles, num_frames_in_tile, num_tiles_in_FOV,\
-	 			wasted_area_in_watched_frame = getData(data,video_id,chunkLength,\
-				tileWidth,tileHeight,tileMap)
+				watched_frames_in_tiles, num_frames_in_tile, num_tiles_in_FOV,\
+					wasted_area_in_watched_frame = getData(data,video_id,chunk_length,\
+					tileWidth,tileHeight,tileMap)
 
-			area_waste[key], drop_frame_waste[key], waste[key],total_bytes[key] =\
-	 			getWaste(watched_frames_in_tiles, wasted_area_in_watched_frame, \
-				num_frames_in_tile, tileFrameSizes,chunkLength,tileWidth,tileHeight)
+				area_waste[key], drop_frame_waste[key], waste[key],total_bytes[key] =\
+					getWaste(watched_frames_in_tiles, wasted_area_in_watched_frame, \
+					num_frames_in_tile, tileFrameSizes,chunk_length,tileWidth,tileHeight)
+		# user_id, chunk_id, scheme_chunkLength -> total_bytes over 1sec.
+		total_bytes_reordered_sum_1sec = total_bytes_sum_1sec(total_bytes)
 
-		
-		#STEP 3, which scheme has the lowest total bytes overall.
-		#key is chunk_id, value is the scheme.
-		displacement_bucket_better_scheme = scheme_per_chunk(total_bytes)
-		for chunk_id in displacement_bucket_better_scheme:
-			resolution = displacement_bucket_better_scheme[chunk_id]
-			disp = displacement_1sec_median[Lengths[0]][chunk_id]
-			idx = 0
-			for idx in range(0, len(disp_bucket)):
-				if disp <= disp_bucket[idx]:
-					break 
-
-			if better_scheme_median_displacement_median_total_bytes.get(disp_bucket[idx]) is None:
-				better_scheme_median_displacement_median_total_bytes[disp_bucket[idx]] = {}
-			if better_scheme_median_displacement_median_total_bytes[disp_bucket[idx]].get(resolution) is None:
-				better_scheme_median_displacement_median_total_bytes[disp_bucket[idx]][resolution] = 0.
-
-			if better_scheme_median_displacement_median_total_bytes_count.get(disp_bucket[idx]) is None:
-				better_scheme_median_displacement_median_total_bytes_count[disp_bucket[idx]] = 0.
-
-			better_scheme_median_displacement_median_total_bytes[disp_bucket[idx]][resolution] += 1
-			better_scheme_median_displacement_median_total_bytes_count[disp_bucket[idx]] += 1
-
-	
-	x_axis = []
-	x_label = []
-	x_c = 0
-	perc_better_scheme = {} #key is scheme, list of perc of chunks at which scheme is better [sorted to match bucket]
-	num_better_scheme = {}
-	for disp_bucket_val in sorted(better_scheme_median_displacement_median_total_bytes):
-		
-		idx = 0
-		x_axis.append(x_c)
-		for idx in range(0,len(disp_bucket)):
-			if disp_bucket_val == disp_bucket[idx]:
-				break
-		label = ""
-		if idx == 0:
-			label = "[0-"+str(disp_bucket[idx])+"]"
-		else:
-			label = "["+str(disp_bucket[idx-1])+"-"+str(disp_bucket[idx])+"]"
-		x_label.append(label)
- 
-
-		for tileWidth,tileHeight in zip((widths),(heights)):
-			scheme = str(360/tileWidth)+"x"+str(180/tileHeight)
-			if perc_better_scheme.get(scheme) is None:
-				perc_better_scheme[scheme] = []
-				num_better_scheme[scheme] = []
-			frac = 0
-			num = 0
-			if better_scheme_median_displacement_median_total_bytes[disp_bucket_val].get(scheme) is not None:
-				frac = better_scheme_median_displacement_median_total_bytes[disp_bucket_val][scheme] / better_scheme_median_displacement_median_total_bytes_count[disp_bucket_val]
-				num = better_scheme_median_displacement_median_total_bytes[disp_bucket_val][scheme]
-			perc_better_scheme[scheme].append(frac*100)
-			num_better_scheme[scheme].append(num)
-		x_c += 1
+		for user_id in total_bytes_reordered_sum_1sec:
+			for chunk_id in total_bytes_reordered_sum_1sec[user_id]:
+				val = -1
+				resolution = ""
+				for key in total_bytes_reordered_sum_1sec[user_id][chunk_id]:
+					if val == -1 or val > total_bytes_reordered_sum_1sec[user_id][chunk_id][key]:
+						val = total_bytes_reordered_sum_1sec[user_id][chunk_id][key]
+						resolution = key 
+				chunk_length = str(resolution.split("_")[1])
+				if displacement[chunk_length][user_id].get(chunk_id) is None:
+					continue
+				disp = displacement[chunk_length][user_id][chunk_id]
+				if displacements_per_scheme.get(chunk_length) is None:
+					displacements_per_scheme[chunk_length] = []
+				displacements_per_scheme[chunk_length].append(disp)
 
 
-
-
-	## Percentage###
-	plt.figure(figsize=(10,6))
+	##PERCENTAGE##
+	plt.figure(figsize=(6,4))
 	plt.subplot(111)
-	#plt.grid(zorder=0)
+	plt.grid(zorder=0)
 	colors = ['g','r','b','magenta']
-	hatches = ['x','//','']
-	prev_scheme = ""
+	styles = ['solid','dashed','densely dotted']
 	c = 0
-	for tileWidth,tileHeight in zip((widths),(heights)):
-		scheme = str(360/tileWidth)+"x"+str(180/tileHeight)
-		if tileWidth == widths[0]:
-			plt.bar(x_axis,perc_better_scheme[scheme],label=scheme,color = colors[c],hatch=hatches[c],width = .5)
-		else:
-			plt.bar(x_axis,perc_better_scheme[scheme],bottom=perc_better_scheme[prev_scheme],label=scheme,color = colors[c],hatch=hatches[c],width = .5)
-			perc_better_scheme[scheme] =[x + y for x, y in zip(perc_better_scheme[prev_scheme], perc_better_scheme[scheme])]
+	for chunk_length in chunk_lengths:
+
+		cl = str(chunk_length)
+		if displacements_per_scheme.get(cl) is None:
+			continue
+		print(cl)
+		print(len(displacements_per_scheme[cl]))
+
+		sorted_data = np.sort(displacements_per_scheme[cl])
+		yvals=np.arange(len(sorted_data))/float(len(sorted_data)-1)
+		plt.plot(sorted_data,yvals,linewidth=3,color=colors[c],linestyle=linestyles[styles[c]],label=chunk_length,zorder = 3)
 		c += 1
-		prev_scheme = scheme
+
 
 	plt.yticks(fontweight="bold",size=10)
-	plt.ylabel('Perc. of chunks',fontweight="bold",size=10)
+	plt.ylabel('Frac. of chunks',fontweight="bold",size=10)
 	plt.xlabel('Displacement over yaw',fontweight="bold",size=10)
-	plt.xticks(x_axis,x_label,fontweight="bold",size=10)
+	plt.xticks(fontweight="bold",size=10)
 	plt.legend(loc='best',ncol = 3,prop={'size': 10,'weight':'bold'})
-	plt.ylim(0,110)
-	#plt.xlim(0,100)
+	plt.ylim(0,1)
 
-	#plt.title("Video id:"+str(video_id),size=12,fontweight="bold")
-	plt.savefig("graphs/perc_of_better_scheme_bar_median_max.png",dpi=300,bbox_inches='tight',pad_inches=.05)
-	plt.close()
-
-
-
-	############################Number###
-	plt.figure(figsize=(10,6))
-	plt.subplot(111)
-	#plt.grid(zorder=0)
-	colors = ['g','r','b','magenta']
-	hatches = ['x','//','']
-
-	prev_scheme = ""
-	c = 0
-	for tileWidth,tileHeight in zip((widths),(heights)):
-		scheme = str(360/tileWidth)+"x"+str(180/tileHeight)
-		if tileWidth == widths[0]:
-			plt.bar(x_axis,num_better_scheme[scheme],label=scheme,color = colors[c],hatch=hatches[c],width = .5)
-		else:
-			plt.bar(x_axis,num_better_scheme[scheme],bottom=num_better_scheme[prev_scheme],label=scheme,color = colors[c],hatch=hatches[c],width = .5)
-			num_better_scheme[scheme] =[x + y for x, y in zip(num_better_scheme[prev_scheme], num_better_scheme[scheme])]
-		c += 1
-		prev_scheme = scheme
-
-	plt.yticks(fontweight="bold",size=10)
-	plt.ylabel('Number of chunks',fontweight="bold",size=10)
-	plt.xlabel('Displacement over yaw',fontweight="bold",size=10)
-	plt.xticks(x_axis,x_label,fontweight="bold",size=10)
-	plt.legend(loc='best',ncol = 3,prop={'size': 10,'weight':'bold'})
-	plt.savefig("graphs/number_of_better_scheme_bar_median_max.png",dpi=300,bbox_inches='tight',pad_inches=.05)
+	plt.xlim(0,150)
+	kt = key = str(360/widths[0])+"x"+str(180/heights[0])
+	plt.title(kt,size=12,fontweight="bold")
+	plt.savefig("graphs/displacement_better_chunk_CDF.png",dpi=300,bbox_inches='tight',pad_inches=.05)
 	plt.close()
 
 

@@ -681,6 +681,7 @@ def getWaste(watched_frames_in_tiles, wasted_area_in_watched_frame, num_frames_i
 	area_waste = {}
 	drop_frame_waste = {}
 	total_bytes = {}
+	#print(num_frames_in_tile)
 	for uID in watched_frames_in_tiles:
 		waste[uID] = {}
 		area_waste[uID] = {}
@@ -690,40 +691,45 @@ def getWaste(watched_frames_in_tiles, wasted_area_in_watched_frame, num_frames_i
 		for chunkID in watched_frames_in_tiles[uID]:
 			waste[uID][chunkID] = 0
 			area_waste[uID][chunkID] = 0
-			drop_frame_waste[uID][chunkID] = 0
-			total_bytes[uID][chunkID] = 0
+			
+			
 			dropped_frames_in_tiles = 0 # total number of wasted frames in a chunk
 			wastedAreInTileFrames = 0
 			if chunkID % IPerSec == 0:
 				baseFrameNum = ((chunkID/IPerSec)*25)
 			else:
 				baseFrameNum += IFrameDist
-
 			#print(baseFrameNum)
 				#size of un-watched frames in all tiles.
-
 			for tile in watched_frames_in_tiles[uID][chunkID]:
 				for fId in range(1,num_frames_in_tile[uID][chunkID]+1): #loop over all frames ids in tile.
 
 					if tileFrameSizes[tile].get(baseFrameNum+fId,None) != None:# if we have the size of it (rare cases where this is maybe false)
+						if total_bytes[uID].get(chunkID) is None:
+							total_bytes[uID][chunkID] = 0
 						total_bytes[uID][chunkID] += tileFrameSizes[tile][baseFrameNum+fId] # size of all frames in tile watched and unwatched.
 
 
 					if fId not in watched_frames_in_tiles[uID][chunkID][tile]:# if frame id not the watched subset.
 						if tileFrameSizes[tile].get(baseFrameNum+fId,None) != None:# if we have the size of it (rare cases where this is maybe false)
-							dropped_frames_in_tiles += tileFrameSizes[tile][baseFrameNum+fId]
+							if drop_frame_waste[uID].get(chunkID) is None:
+								drop_frame_waste[uID][chunkID] = 0
+							drop_frame_waste[uID][chunkID] += tileFrameSizes[tile][baseFrameNum+fId]
 
 
 
 			for tile in wasted_area_in_watched_frame[uID][chunkID]:
 				for fovNum in wasted_area_in_watched_frame[uID][chunkID][tile]:
 					if tileFrameSizes[tile].get(baseFrameNum+fovNum,None) != None:
+						if area_waste[uID].get(chunkID) is None:
+							area_waste[uID][chunkID] = 0
 						tileframeSize = tileFrameSizes[tile][baseFrameNum+fovNum]
 						extraArea = wasted_area_in_watched_frame[uID][chunkID][tile][fovNum]
-						wastedAreInTileFrames += tileframeSize * (extraArea/(tileWidth*tileHeight))
-			area_waste[uID][chunkID] =  wastedAreInTileFrames
-			drop_frame_waste[uID][chunkID] = dropped_frames_in_tiles
-			waste[uID][chunkID] = dropped_frames_in_tiles + wastedAreInTileFrames
+						area_waste[uID][chunkID] += tileframeSize * (extraArea/(tileWidth*tileHeight))
+
+			if area_waste[uID].get(chunkID) is not None and drop_frame_waste[uID].get(chunkID) is not None:
+				waste[uID][chunkID] = dropped_frames_in_tiles + wastedAreInTileFrames
+
 	return area_waste, drop_frame_waste,waste,total_bytes
 
 def sum_over_users(total_bytes):
