@@ -1,0 +1,16 @@
+python3 main.py --user 1 --height 1 --width 2 --heatmap 1
+python3 main.py --user 1 --height 30 --width 60 --heatmap 1 
+python3 main.py --user 1 --height 15 --width 30 --heatmap 1
+python3 main.py --user 1 --height 10 --width 15 --heatmap 1
+python3 main.py --user 5 --height 1 --width 2 --heatmap 1
+python3 main.py --user 5 --height 30 --width 60 --heatmap 1
+python3 main.py --user 5 --height 15 --width 30 --heatmap 1
+python3 main.py --user 5 --height 10 --width 15 --heatmap 1
+python3 main.py --user 1 --height 1 --width 2 --heatmap 2
+python3 main.py --user 1 --height 30 --width 60 --heatmap 2 
+python3 main.py --user 1 --height 15 --width 30 --heatmap 2
+python3 main.py --user 1 --height 10 --width 15 --heatmap 2
+python3 main.py --user 5 --height 1 --width 2 --heatmap 2
+python3 main.py --user 5 --height 30 --width 60 --heatmap 2
+python3 main.py --user 5 --height 15 --width 30 --heatmap 2
+python3 main.py --user 5 --height 10 --width 15 --heatmap 2
