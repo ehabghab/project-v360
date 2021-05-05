@@ -1,0 +1,190 @@
+tcp::socket listenToSocket()
+{
+	boost::asio::io_service io_service;
+
+	//listen for new connection
+	tcp::acceptor acceptor_(io_service, tcp::endpoint(tcp::v4(), PORT ));
+
+	//socket creation
+	tcp::socket socket_(io_service);
+
+	//waiting for connection.
+	acceptor_.accept(socket_);
+
+	return socket_;
+	//start two threads
+	//std::thread readThread_(read,socket_);
+	//
+	//	std::thread writeThread_(send, socket_);
+	//
+	//	readThread_.join();
+	//	writeThread_.join();
+}
+
+void Server::recv(tcp::socket &socket, std::vector<string> &requestsVec) {
+
+	//this is the stream buffer holds data received at socket.
+	boost::asio::streambuf buf;
+
+	//holds the requests coming from stream buffer.
+	string requests;
+
+	char * data = (char *) malloc(sizeof(char) * 17);
+	//make sure you don't read incomplete request.
+	//this may have multiple requests.
+	int y = socket.read_some(boost::asio::buffer(data, 17));
+	cout<<y<<endl;
+	//read request from stream buffer or string.
+
+	//	std::string x(leftstring+data);
+	//	cout<<x<<endl<<"==="<<endl;
+	//	leftstring = "";
+	//free buffer.
+	//split requests if there is multiple ones by delimiter "\r\n\r\n\".
+	//	boost::algorithm::split_regex(requestsVec, x,
+	//			boost::regex("\r\n\r\n"));
+
+	//cout<<leftstring<<endl;
+	//cout<<"==="<<endl;
+	//left over buffer
+	//parent == leftover + buffer.
+
+	//	for (int i = 0; i< requestsVec.size();i++)
+	//	{
+	//		if(leftover)
+	//		{
+	//			//cout<<"I AM A LEFT OVERI AM A LEFT OVERI AM A LEFT OVERI AM A LEFT OVERI AM A LEFT OVER "<<endl;
+	//
+	//			if(requestsVec[i].size() != 0 && i != requestsVec.size()-1)//last piece
+	//			{
+	//				//cout<<leftstring<<requestsVec[i]<<endl<<"====="<<endl;
+	//				leftstring = "";
+	//				leftover = false;
+	//				continue;
+	//			}
+	//			else
+	//			{
+	//				leftstring += requestsVec[i];
+	//			}
+	//
+	//		}
+	//		else if(i == requestsVec.size()-1 && requestsVec[i].size() != 0)
+	//		{
+	//			leftstring += requestsVec[i];
+	//			leftover = true;
+	//		}
+	//		else if(requestsVec[i].size() != 0)
+	//		{
+	//			cout<<requestsVec[i]<<endl<<"====="<<endl;
+	//		}
+	//
+	//	}
+
+
+
+}
+
+void Server::serve(tcp::socket & socket) {
+
+	//contains all requests in packet.
+	std::vector<string> requestsVec;
+
+	std::vector<string> headers;
+
+	std::vector<string> getHeader;
+
+	while(true)
+	{
+		//block until you receive request.
+		recv(socket, requestsVec);
+
+		for(auto& req : requestsVec)
+		{
+			//std::cout<<req<<endl<<"===="<<endl;
+			//the split_regex function will have one last empty request.
+			//more about split_regex function, if interested:
+			//https://www.boost.org/doc/libs/1_51_0/doc/html/boost/algorithm/split_regex.html
+			if(req.size() == 0)
+			{
+				continue;
+			}
+			//cout<<req<<endl;
+			//cout<<"==="<<endl;
+			//do the sending.
+			boost::algorithm::split_regex(headers, req,
+					boost::regex("\r\n"));
+
+			//check headers.
+
+			//get header.
+			//check whether it is a GET and what HTTP protocol used.
+			boost::algorithm::split_regex(getHeader, headers[0],
+					boost::regex(" "));
+
+			string path = "/1/40.h264";
+			//cout<< req<<endl<<"==="<<endl;
+			continue;
+
+			//send file.
+			//cout<<path<<endl;
+
+			const char * filePath = (this->videoRootDir_+path).c_str();
+
+			FILE *p_file = NULL;
+			p_file = fopen(filePath,"r");
+
+			if (!p_file)
+			{
+				//ToDo check error code.
+				//send to user 404 or other error status.
+				continue;
+			}
+			else
+			{
+				//To get the file size skip to its EOF.
+				//ToDo check time performance.
+				fseek(p_file,0,SEEK_END);
+				int size = ftell(p_file);
+				fseek(p_file,0,SEEK_SET);
+				// Enough memory for the file
+
+				uint8_t * buffer = (uint8_t *) malloc((size+4) * sizeof(uint8_t));
+				if(buffer == NULL)
+				{
+					cout<<"Failed"<<endl;
+					continue;
+				}
+				// Read in the entire file.
+				//std::cout<<size<<std::endl;
+				//fread(buffer, 1, size, p_file);
+				// Close the file
+
+				buffer[size] = '\r';
+				buffer[size+1] = '\n';
+				buffer[size+2] = '\r';
+				buffer[size+3] = '\n';
+
+
+				//ToDo Make sure they don't get out of order.
+				//send HTTP header.
+				//std::string header(getResponseHeader("1.1","200 OK","Bytes",size,"video/m4s",path));
+				//boost::asio::write(socket, boost::asio::buffer(header) );
+
+				//send HTTP file.
+				//boost::asio::write(socket, boost::asio::buffer(buffer,size+4) );
+				free(buffer);
+				fclose(p_file);
+			}
+
+
+
+			//boost::asio::write(socket, boost::asio::buffer("Hello") );
+
+		}
+
+	}
+
+
+
+
+}
