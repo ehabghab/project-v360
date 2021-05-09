@@ -4,6 +4,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
+../src/ABR.cpp \
 ../src/Client.cpp \
 ../src/ClientNetworkLayer.cpp \
 ../src/Decoder.cpp \
@@ -11,6 +12,7 @@ CPP_SRCS += \
 ../src/VideoPlayer.cpp 
 
 OBJS += \
+./src/ABR.o \
 ./src/Client.o \
 ./src/ClientNetworkLayer.o \
 ./src/Decoder.o \
@@ -18,6 +20,7 @@ OBJS += \
 ./src/VideoPlayer.o 
 
 CPP_DEPS += \
+./src/ABR.d \
 ./src/Client.d \
 ./src/ClientNetworkLayer.d \
 ./src/Decoder.d \

@@ -46,7 +46,7 @@ public:
 
 	Decoder();
 	virtual ~Decoder();
-	void decode(uint8_t* encodedFrame, uint32_t size, std::vector<AVFrame *>& decodedTileFrames);
+	void decode(uint8_t* encodedFrame, uint32_t size, std::vector<uint8_t *>& decodedTileFrames);
 
 
 

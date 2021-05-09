@@ -46,7 +46,6 @@ ClientNetworkLayer::ClientNetworkLayer(VideoPlayer* vp) {
 		pos = line.find(":");
 		sec = std::stoi(line.substr(0,pos));
 		tiles = line.substr(pos+2,line.size()-(pos+3));
-
 		boost::algorithm::split(tilesVec, tiles, boost::is_any_of(","));
 		predTemp_.insert(std::pair< int,std::vector<std::string> >(sec,tilesVec));
 	}
@@ -133,7 +132,7 @@ void ClientNetworkLayer::sender(ClientNetworkLayer * client)
 
 		if(etime - time >= 1000)
 		{
-			if(chunkId + 1 == 60)
+			if(chunkId + 1 == 61)
 			{
 				return;
 			}

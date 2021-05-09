@@ -57,7 +57,8 @@ Decoder::~Decoder() {
 
 }
 
-void Decoder::decode(uint8_t* encodedFrame, uint32_t size, std::vector<AVFrame *>& decodedTileFrames)
+int fId = 1;
+void Decoder::decode(uint8_t* encodedFrame, uint32_t size, std::vector<uint8_t *>& decodedTileFrames)
 {
 	av_log_set_level(AV_LOG_PANIC);
 	int ret = -1;
@@ -188,15 +189,17 @@ void Decoder::decode(uint8_t* encodedFrame, uint32_t size, std::vector<AVFrame *
 				0,
 				avCodecContext->height,
 				pFrameARGB->data,
-				pFrameARGB->linesize
-		);
+				pFrameARGB->linesize);
 
-		decodedTileFrames.push_back(pFrameARGB);
 
-		free(buffer2);
+
+
+		decodedTileFrames.push_back(buffer2);
+
+//		free(buffer2);
 		av_packet_unref(avPacket);
 		av_frame_free(&avFrame);
-		//av_frame_free(&pFrameARGB);
+		av_frame_free(&pFrameARGB);
 	}
 	avformat_close_input(&formatContext);
 	avformat_free_context(formatContext);
@@ -204,6 +207,22 @@ void Decoder::decode(uint8_t* encodedFrame, uint32_t size, std::vector<AVFrame *
 	av_freep(&avioContext);
 	sws_freeContext(sws_ctx);
 
+//	for(auto frame : decodedTileFrames){
+//			std::ofstream myfile;
+//			std::string filename = std::to_string(fId++);
+//			const char* c = filename.c_str();
+//			std::cout<<"Decoding"<<std::endl;
+//			myfile.open(c,std::fstream::out);
+//			int idx;
+//			for(idx=0; idx < 320 * 160 * 4;idx++)
+//			{
+//				myfile << frame->data[0][idx];
+//
+//			}
+//
+//			myfile.close();
+//			std::cout<<filename<<" Done"<<std::endl;
+//	}
 	//	ofstream myfile;
 	//	myfile.open ("Frame.ARGB");
 	//

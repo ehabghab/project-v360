@@ -16,23 +16,27 @@ Client::Client()
 	videoPlayer_ = new VideoPlayer(decoder_);
 
 	clientNetworkLayer_ = new ClientNetworkLayer(videoPlayer_);
-
+	std::cout<<"A";
 	std::thread videoPlayerThread(VideoPlayer::start, videoPlayer_);
+	std::cout<<"B";
 
 	std::thread videoPlayerDecoderThread(VideoPlayer::decode, videoPlayer_);
+	std::cout<<"C";
 
 	std::thread senderThread(ClientNetworkLayer::sender,clientNetworkLayer_);
+	std::cout<<"D";
 
 	std::thread recvThread(ClientNetworkLayer::receiver,clientNetworkLayer_);
+	std::cout<<"E"<<std::endl;
 
 
 	senderThread.join();
 
 	recvThread.join();
 
-	videoPlayerThread.join();
+	//videoPlayerThread.join();
 
-	videoPlayerDecoderThread.join();
+	//videoPlayerDecoderThread.join();
 }
 
 Client::~Client()

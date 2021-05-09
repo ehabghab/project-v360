@@ -40,9 +40,9 @@ class VideoPlayer {
 	std::map <uint32_t, std::vector<uint16_t>> groundTruth_;
 
 	//per presentation time "chunk", per tile-index, the decode tile-frames.
-	std::map <uint32_t, std::map<uint16_t,std::vector<AVFrame*>>> decodedTileChunks_;
+	std::map <uint32_t, std::map<uint16_t,std::vector<uint8_t*>>> decodedTileChunks_;
 
-	uint8_t* stitchTileFrames(std::map<uint16_t,AVFrame *>& viewport);
+	uint8_t* stitchTileFrames(std::map<uint16_t,uint8_t *>& viewport);
 
 
 public:

@@ -7,8 +7,9 @@
 
 #include "VideoPlayer.h"
 
+#include <stdio.h>
+
 #include <chrono>
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -71,7 +72,7 @@ void VideoPlayer::addChunk(uint8_t* chunkPointer, uint32_t chunkSize, std::strin
 	//which part of the viewport this tile corresponds to.
 	uint16_t tileIdx = static_cast<uint32_t>(stoi(tileInfo[1]));
 
-	//std::cout<<timestamp<<std::endl;
+	//std::cout<<timestamp<<","<<tileIdx<<std::endl;
 	//We take 4 bytes to exclude the "\r\n\r\n" out of chunk bytes.
 	Chunk chunk = {chunkPointer, chunkSize - 4};
 
@@ -102,15 +103,14 @@ void VideoPlayer::decode(VideoPlayer* videoPlayer)
 	//TODO clear chunks of previous second from map.
 	//videoPlayer->frameId_ += videoPlayer->FPS_*50;
 	uint32_t startChunk = (videoPlayer->frameId_ / videoPlayer->FPS_) + 1;
-
+	std::vector<std::string> chunksDecoded;
 	while(true)
 	{
 		sleep(2);
-
-		std::vector<AVFrame *> rawTileFrames;
+		startChunk = (videoPlayer->frameId_ / videoPlayer->FPS_) + 1;
 		for(uint32_t idx = startChunk; idx < startChunk+2; idx++)
 		{
-			//std::cout<<idx<<std::endl;
+
 			//chunks have presentation time first, and map<tile index, encoded tile frames> second.
 			auto chunks = videoPlayer->chunks_.find(idx);
 			if(chunks != videoPlayer->chunks_.end())
@@ -119,44 +119,47 @@ void VideoPlayer::decode(VideoPlayer* videoPlayer)
 				while(chunks->second.size()!=0)//for(auto& tileInfo : chunks->second)
 				{
 					auto tileInfo = chunks->second.begin();
+					std::vector<uint8_t *> rawTileFrames;
+
 					//std::cout<<tileInfo->first<<std::endl;
 					//call decoder
 					videoPlayer->decoder_->decode(tileInfo->second.chunk,tileInfo->second.chunkSize,
 							rawTileFrames);
-//					std::cout<<rawTileFrames.size()<<std::endl;
-//					for(auto& frame : rawTileFrames)
-//					{
-//							std::ofstream myfile;
-//							myfile.open (std::to_string(chunks->first)+"_"+std::to_string(tileInfo->first));
-//
-//							for(int idx=0; idx<320*160*4;idx++)
-//							{
-//								myfile << frame->data[0][idx];
-//							}
-//							myfile.close();
-//
-//						free(frame->data[0]);
-//						av_frame_free(&frame);
-//					}
+
+					//std::cout<<idx<<":"<<tileInfo->first<<":"<<rawTileFrames.size()<<std::endl;
+					//					for(auto& frame : rawTileFrames)
+					//					{
+					//							std::ofstream myfile;
+					//							myfile.open (std::to_string(chunks->first)+"_"+std::to_string(tileInfo->first));
+					//
+					//							for(int idx=0; idx<320*160*4;idx++)
+					//							{
+					//								myfile << frame->data[0][idx];
+					//							}
+					//							myfile.close();
+					//
+					//						free(frame->data[0]);
+					//						av_frame_free(&frame);
+					//					}
 					//insert to decodedTileChunks_
 					videoPlayer->decodedTileChunksMutex_.lock();
 					if (videoPlayer->decodedTileChunks_.find(chunks->first)
 							!= videoPlayer->decodedTileChunks_.end())
 					{
 						videoPlayer->decodedTileChunks_.find(chunks->first)->second.insert(
-								std::pair<uint16_t, std::vector<AVFrame *>>(tileInfo->first
+								std::pair<uint16_t, std::vector<uint8_t *>>(tileInfo->first
 										, rawTileFrames));
-						//std::cout<<"Added"<<tileInfo->first<<std::endl;
+						//std::cout<<"Added,"<<chunks->first<<":"<<tileInfo->first<<std::endl;
 					}
 					else
 					{
-						std::map<uint16_t,std::vector<AVFrame*>> temp;
-						temp.insert(std::pair<uint16_t,std::vector<AVFrame*>>(tileInfo->first
+						std::map<uint16_t,std::vector<uint8_t*>> temp;
+						temp.insert(std::pair<uint16_t,std::vector<uint8_t*>>(tileInfo->first
 								, rawTileFrames));
 
 						videoPlayer->decodedTileChunks_.insert(std::pair<uint32_t
-								, std::map<uint16_t,std::vector<AVFrame*>>>(chunks->first, temp));
-						//std::cout<<"AddedF"<<tileInfo->first<<std::endl;
+								, std::map<uint16_t,std::vector<uint8_t*>>>(chunks->first, temp));
+						//std::cout<<"Added,"<<chunks->first<<":"<<tileInfo->first<<std::endl;
 						//return;
 					}
 					videoPlayer->decodedTileChunksMutex_.unlock();
@@ -167,7 +170,7 @@ void VideoPlayer::decode(VideoPlayer* videoPlayer)
 					chunks->second.erase(tileInfo->first);
 				}
 			}
-			std::cout<<"-----"<<std::endl;
+			//std::cout<<"-----"<<std::endl;
 
 
 		}
@@ -192,10 +195,11 @@ void VideoPlayer::start(VideoPlayer* videoPlayer)
 	long etime;
 
 	uint8_t frameGap = 1000 / videoPlayer->FPS_;
+	int frm = 1;
 
 	uint32_t playSecond;
 	//tileIndex, raw-tile-frame.
-	std::map<uint16_t,AVFrame *> viewport;
+	std::map<uint16_t,uint8_t *> viewport;
 	while(true)
 	{
 		stime = std::chrono::duration_cast<std::chrono::milliseconds>
@@ -211,19 +215,19 @@ void VideoPlayer::start(VideoPlayer* videoPlayer)
 			//no more frames;
 			break;
 		}
-		//std::cout<<videoPlayer->frameId_<<std::endl;
+
+		//		std::cout<<videoPlayer->frameId_<<std::endl;
 
 		//for each tile.
 		for(auto tileIdx : tiles->second)
 		{
 
 			playSecond = ((videoPlayer->frameId_-1)/videoPlayer->FPS_) + 1;
-
 			while(check1)
 			{
 				videoPlayer->decodedTileChunksMutex_.lock();
 				if(videoPlayer->decodedTileChunks_.find(playSecond)
-									!= videoPlayer->decodedTileChunks_.end())
+						!= videoPlayer->decodedTileChunks_.end())
 				{
 					check1 = false;
 				}
@@ -240,7 +244,7 @@ void VideoPlayer::start(VideoPlayer* videoPlayer)
 				auto& rawTilesChunks = videoPlayer->decodedTileChunks_.find(playSecond)->second;
 
 				//get all frames of chunk.
-				std::cout<<"stitch:"<<tileIdx<<std::endl;
+				//std::cout<<"stitch:"<<playSecond<<":"<<videoPlayer->frameId_<<","<<tileIdx<<std::endl;
 				while(check2)
 				{
 					videoPlayer->decodedTileChunksMutex_.lock();
@@ -257,15 +261,14 @@ void VideoPlayer::start(VideoPlayer* videoPlayer)
 
 				if (rawTilesChunks.find(tileIdx) != rawTilesChunks.end())
 				{
-					std::cout<<rawTilesChunks.find(tileIdx)->first<<" Found!"<<std::endl;
+					//std::cout<<rawTilesChunks.find(tileIdx)->first<<" Found!"<<std::endl;
 					auto& frame = rawTilesChunks.find(tileIdx)->second[videoPlayer->frameId_ % videoPlayer->FPS_];
-					viewport.insert(std::pair<uint16_t,AVFrame *>(tileIdx,frame));
+					viewport.insert(std::pair<uint16_t,uint8_t *>(tileIdx,frame));
 				}
 				else
 				{
 
 					std::cout<<"MISSSSSSSSSSSSS:"<<rawTilesChunks.find(tileIdx)->first<<std::endl;
-
 					//tile is missing. or not decoded.
 				}
 
@@ -279,155 +282,173 @@ void VideoPlayer::start(VideoPlayer* videoPlayer)
 			}
 
 		}
-		//std::cout<<"===="<<std::endl;
+		//std::cout<<videoPlayer->frameId_<<","<<viewport.size()<<std::endl;
 
-//		for(auto& pair: viewport)
-//		{
-//			std::cout<<pair.first<<std::endl;
-//		}
-//		std::cout<<"==00=="<<std::endl;
 		//ToDo
 		//stichFrames.
-//		auto rawViewPort = videoPlayer->stitchTileFrames(viewport);
-//		free(rawViewPort);
 
+		auto rawViewPort = videoPlayer->stitchTileFrames(viewport);
+		free(rawViewPort);
+
+		//free all tile-frames belonging to current frameId
+		if(videoPlayer->frameId_ % videoPlayer->FPS_ == 0){
+
+			for(auto& pair:  videoPlayer->decodedTileChunks_.find(playSecond)->second)
+			{
+				for(auto& pointer : pair.second)
+				{
+					free(pointer);
+				}
+			}
+
+		}
+
+		viewport.clear();
 
 		etime = std::chrono::duration_cast<std::chrono::milliseconds>
 		(std::chrono::system_clock::now().time_since_epoch()).count();
 
 		std::this_thread::sleep_for(std::chrono::milliseconds((stime + frameGap) - etime));
 		videoPlayer->frameId_++;
-
 	}
 
 
 }
-
-//int cc = 1;
-uint8_t* VideoPlayer::stitchTileFrames(std::map<uint16_t,AVFrame *>& viewport)
+int frm = 1;
+uint8_t* VideoPlayer::stitchTileFrames(std::map<uint16_t,uint8_t *>& viewport)
 {
 
 
 	//assume that tile scheme is 12x12.
-	uint8_t width = 360 / 12;
-	uint8_t height = 180 / 12;
-
-	uint32_t tileSize = width * height * 4;
+	uint32_t tileSize = 320 * 160 * 4;
 	//assume that frame is in ARGB format.
 	uint8_t * rawViewPort = (uint8_t *) malloc(sizeof(uint8_t) * viewport.size() * tileSize);
 
-	//we need to make sure that overlapping is resolved.
-	int sRow = -1;
-	int eRow = -1;
-	int sCol = -1;
-	int eCol = -1;
 
-	// strow --> enrow
-	//		stcol --> encol
 
+	// number of tiles in col.
+	// number of rows.
+	// start index.
+
+	int tileWidth = 360/30;
+	int tileHeight = 180/15;
+
+	uint16_t startIdx;
 	int row;
 	int col;
+	int prevRow = -1;
+	int prevCol = -1;
+	int numOfRows = 1;
+	int numOfCols = 1;
 	bool colScanned = false;
+	std::string _all;
 	for(auto& pair : viewport)
 	{
-		row = ((pair.first - 1) / 12) + 1;
-		col = ((pair.first - 1) % 12) + 1;
-
-		std::cout<<pair.first<<"|"<<row<<","<<col<<std::endl;
-
-		continue;
-
-
-
-		if(row != eRow && eRow != -1)
+		row = ((pair.first - 1) / tileHeight) + 1; //1--> 12 same row.
+		col = ((pair.first - 1) % tileWidth) + 1; // 1--> 12
+		_all += std::to_string(pair.first)+",";
+		if(prevRow == -1 && prevCol == -1)
 		{
-			//finished scanning one row
-			//there is no need to update column start and end.
-			colScanned = true;
+			startIdx = pair.first;
 		}
 
-
-		if (sCol == -1)
+		if (prevRow != row && prevRow != -1)
 		{
-			sCol = col;
-			eCol = col;
-		}
-		else if(eCol != -1  && (eCol != col - 1) && !colScanned)
-		{
-			eCol = sCol;
-			sCol = col;
-			colScanned = true;
-		}
-		else if(!colScanned)
-		{
-			eCol = col;
-		}
-
-
-		if(sRow == -1)
-		{
-			//start of scan
-			sRow = row;
-			eRow = row;
-		}
-		else if(eRow != -1 && (eRow != row -1))
-		{
-			// if this is not the first scan and there is a gap between rows
-			// then the viewport is wrapped over.
-			eRow = sRow;
-			sRow = row;
-			break;
-		}
-		else
-		{
-			//conventional case.
-			eRow = row;
-		}
-
-	}
-	uint32_t pointerTrack = 0;
-	uint8_t sColTemp;
-
-	std::cout<<sRow<<"-->"<<eRow<<std::endl<<sCol<<"-->"<<eCol<<std::endl<<"====="<<std::endl;
-
-	while(sRow != eRow+1)
-	{
-		sColTemp = sCol;
-		while(sColTemp != eCol + 1)
-		{
-
-
-			memcpy(rawViewPort+pointerTrack,
-					viewport.find((sRow-1) * 12 + sCol)->second->data[0], tileSize);
-			free(viewport.find((sRow-1) * 12 + sCol)->second->data[0]);
-			av_frame_free(&viewport.find((sRow-1) * 12 + sCol)->second);
-			sColTemp++;
-			if(sColTemp > 12)
+			if(prevRow != row - 1)
 			{
-				sColTemp = 1;
+				startIdx = pair.first;
+				colScanned = false;
+
 			}
+			else
+			{
+				colScanned = true;
+			}
+			numOfRows++;
 		}
-
-		sRow++;
-		if(sRow > 12)
+		else if(prevCol != -1)
 		{
-			sRow = 1;
+			if(prevCol != col - 1 && !colScanned)
+			{
+				startIdx = pair.first;
+			}
+			numOfCols = colScanned? numOfCols : numOfCols+1;
 		}
-
-
+		prevRow = row;
+		prevCol = col;
 	}
 
-//	std::ofstream myfile;
-//	myfile.open (std::to_string(cc++));
-//
-//	for(int idx=0; idx < viewport.size() * tileSize;idx++)
-//	{
-//		myfile << rawViewPort[idx];
-//	}
-//	myfile.close();
+//	std::cout<<frm<<"["<<_all<<"]"<<std::endl;
+//	std::cout<< startIdx<<std::endl;
+//	std::cout<<numOfCols<<","<<numOfRows<<std::endl<<std::endl;
 
+	std::string _order = "";
+	int t1= std::chrono::duration_cast<std::chrono::milliseconds>
+			(std::chrono::system_clock::now().time_since_epoch()).count();
+	int tileIdx;
+	int currRow;
+	//row is 160 * 4.
+	//loop from 0 to 320
+	//row * 320 * 160 * 4. is my base.
+	int baseBytes;
+	int colBytes;
+	int count = 0;
+	int stepSize = 320 * 4;
+	for(int row = 0; row < numOfRows; row++)
+	{
+		baseBytes = tileSize * count;
+		if(startIdx + tileWidth * row > tileWidth * tileHeight)
+		{
+			startIdx = ((startIdx -1) % tileWidth) + 1;
+			numOfRows -= row;
+			row = 0;
+		}
+		tileIdx =  startIdx + tileWidth * row ;
 
+		for(int col = 0; col < numOfCols; col++)
+		{
+			colBytes = baseBytes + stepSize * col;
+			int tempRow = ((tileIdx + col - 1) / tileHeight) + 1;
+			if(col != 0 && tempRow != currRow)
+			{
+				_order+=std::to_string(tileIdx + col - tileWidth)+" ,";
+				for(int ij = 0 ; ij < 160; ij++)
+				{
+					memcpy(rawViewPort + (colBytes + ij * numOfCols * stepSize) ,
+							viewport.find(tileIdx + col - tileWidth)->second + (ij * stepSize),stepSize);
+				}
 
+			}
+			else
+			{
+				for(int ij = 0 ; ij < 160; ij++)
+				{
+					memcpy(rawViewPort + (colBytes + ij * numOfCols * stepSize) ,
+							viewport.find(tileIdx + col)->second + (ij * stepSize),stepSize);
+				}
+				_order+=std::to_string(tileIdx + col)+" ,";
+				currRow = tempRow;
+
+			}
+
+			count++;
+		}
+		//check if I went outside.
+	}
+
+	int t2= std::chrono::duration_cast<std::chrono::milliseconds>
+			(std::chrono::system_clock::now().time_since_epoch()).count();
+
+	std::cout<<frm<<":"<<t2-t1<<std::endl;
+	FILE * myfile;
+
+	std::string filename = std::to_string(frm++);
+
+	myfile = fopen(filename.c_str(),"wb");
+
+	fwrite (rawViewPort , sizeof(uint8_t), viewport.size() * tileSize, myfile);
+
+	fclose(myfile);
 
 	return rawViewPort;
 
