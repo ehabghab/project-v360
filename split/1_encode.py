@@ -39,7 +39,7 @@ def main():
             #no B frames
             #command = "ffmpeg -f rawvideo -pix_fmt yuv420p -s:v "+str(w)+"x"+str(h)+" -r 25 -i "+f +" -g 5 -crf 24 -bf 0 -c:v libx264 "+o
 
-            command = "ffmpeg -f rawvideo -pix_fmt yuv420p -s:v "+str(w)+"x"+str(h)+" -r 25 -i "+f +" -g 5 -crf 35 -c:v libx264 "+o
+            command = "ffmpeg -f rawvideo -pix_fmt yuv420p -s:v "+str(w)+"x"+str(h)+" -r 25 -i "+f +" -x264opts 'keyint=25:min-keyint=25:no-scenecut' -crf 18 -bf 0 -c:v libx264 "+o
 
             process = subprocess.Popen(command,stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
             stdout, stderr = process.communicate()
