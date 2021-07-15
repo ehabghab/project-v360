@@ -1,0 +1,70 @@
+/*
+ * ClientNetworkLayer.h
+ *
+ *  Created on: May 1, 2021
+ *      Author: eghabash
+ */
+
+#ifndef CLIENTNETWORKLAYER_H_
+#define CLIENTNETWORKLAYER_H_
+
+#include <boost/functional/hash.hpp>
+#include <map>
+#include <mutex>
+#include <unordered_set>
+#include <vector>
+
+#include "BandwidthPredictor.h"
+#include "VideoPlayer.h"
+
+#define RESPONSE_MAX_LENGTH 100
+#define PORT 7717
+#define PRIORITY_LEVELS 10
+
+class ClientNetworkLayer {
+  // set of tiles to be requests, filled by ABR algorithm.
+  std::string request_;
+
+  // Newest request will have higher counters.
+  int requestCounter_;
+
+  // To synchronize read and write the request List.
+  std::mutex reqMutex_;
+
+  // This is temp until we have our own predictor.
+  std::map<int, std::vector<std::string>> predTemp_;
+
+  // TODO document what each function does.
+
+  int socket_;
+
+  std::unordered_set<std::pair<int, uint16_t>,
+                     boost::hash<std::pair<int, uint16_t>>>
+      receivedTileChunks_;
+
+  int connectToServer();
+
+  std::string getRequest();
+
+  std::string getRequestHeader(std::string request);
+
+  std::map<std::string, std::string> parseHeader(std::string responseHeader);
+
+  void readGroundTruth();
+
+ public:
+  ClientNetworkLayer();
+
+  void static sender(ClientNetworkLayer* client);
+
+  void static receiver(ClientNetworkLayer* client, VideoPlayer* videoPlayer,
+                       BandwidthPredictor* bandwidthPredictor);
+
+  bool isReceived(int chunkId, uint16_t tileId);
+
+  void setRequest(std::string requestList);
+
+  virtual ~ClientNetworkLayer();
+};
+
+#endif /* CLIENTNETWORKLAYER_H_ */
