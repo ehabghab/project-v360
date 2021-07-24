@@ -23,7 +23,7 @@ VideoPlayer::VideoPlayer() {
   // read ground truth.
   std::string tracePath =
       "/Users/eghabash/Desktop/360 Video/Project-V360"
-      "/split/tiles_per_frame_user_3.txt";
+      "/split/tiles_per_frame_synthetic_user_1.txt";
   std::ifstream infile(tracePath);
 
   std::string line;
@@ -55,7 +55,7 @@ VideoPlayer::VideoPlayer() {
 
   tracePath =
       "/Users/eghabash/Desktop/360 Video/Project-V360"
-      "/split/vp_corr_per_frame_user_3.txt";
+      "/split/vp_corr_per_frame_synthetic_user_1.txt";
   std::ifstream infile2(tracePath);
   while (std::getline(infile2, line)) {
     auto pos = line.find(",");
@@ -94,6 +94,7 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
 
   uint32_t startChunk;
   std::vector<std::string> chunksDecoded;
+  bool first = true;
   while (true) {
     bool decode_frame = false;
     startChunk = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
@@ -108,9 +109,22 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
           std::vector<uint8_t *> rawTileFrames;
 
           // call decoder
+          auto xs = Util::getTime();
           decoder->decode(tileInfo->second.chunk, tileInfo->second.chunkSize,
                           rawTileFrames);
 
+          // std::cout << chunks->first << ":" << tileInfo->first << ":"
+          //        << Util::getTime() - xs << std::endl;
+
+          /*if (first) {
+            auto xs = Util::getTime();
+            first = false;
+            rawTileFrames.clear();
+            decoder->decode(tileInfo->second.chunk, tileInfo->second.chunkSize,
+                            rawTileFrames);
+            std::cout << chunks->first << ":" << tileInfo->first << ":"
+                      << Util::getTime() - xs << std::endl;
+          }*/
           // insert to decodedTileChunks_
           videoPlayer->decodedTileChunksMutex_.lock();
           if (videoPlayer->decodedTileChunks_.find(chunks->first) !=

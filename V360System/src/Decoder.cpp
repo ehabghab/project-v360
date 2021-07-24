@@ -188,7 +188,6 @@ void Decoder::decode(uint8_t* encodedFrame, uint32_t size,
     for (idx = 0; idx < 320 * 160 * 4; idx++) {
       myfile << frame[idx];
     }
-
     myfile.close();
     std::cout << filename << " Done" << std::endl;
   }*/

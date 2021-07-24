@@ -160,7 +160,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
       allCombinations.insert(std::make_pair(chunkSet.first, qualityComb));
     }
 
-    float predictedBw = 6.0 * 1e6 / 8.0;  // 5mpbs to bytes/second.
+    float predictedBw = 1000.0 * 1e6 / 8.0;  // 5mpbs to bytes/second.
     // bandwidthPredictor->getMpcBandwidthPrediction();
 
     int qIdx = 2;

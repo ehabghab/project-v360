@@ -10,49 +10,49 @@
 
 extern "C" {
 
+#include <inttypes.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-#include <libavutil/avutil.h>
-#include <libswscale/swscale.h>
-#include <libavutil/pixdesc.h>
-#include <libavutil/hwcontext.h>
-#include <libavutil/opt.h>
-#include <libavutil/avassert.h>
-#include <libavutil/imgutils.h>
-#include <inttypes.h>
 #include <libavformat/avio.h>
+#include <libavutil/avassert.h>
+#include <libavutil/avutil.h>
 #include <libavutil/file.h>
-
+#include <libavutil/hwcontext.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/opt.h>
+#include <libavutil/pixdesc.h>
+#include <libswscale/swscale.h>
 }
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <vector>
 
 struct BufferReader {
-    uint8_t *ptr;
-    size_t size; ///< size left in the buffer
+  uint8_t* ptr;
+  size_t size;  ///< size left in the buffer
 };
 
-
 class Decoder {
-public:
-	AVFormatContext* formatContext;
-	AVCodec* avCodec;
-	AVCodecContext* avCodecContext;
-	AVIOContext* avioContext;
+ public:
+  AVFormatContext* formatContext;
+  AVCodec* avCodec;
+  AVCodecContext* avCodecContext;
+  AVIOContext* avioContext;
 
-	struct BufferReader bufferReader;
+  struct BufferReader bufferReader;
 
-	Decoder();
-	virtual ~Decoder();
-	void decode(uint8_t* encodedFrame, uint32_t size, std::vector<uint8_t *>& decodedTileFrames);
+  Decoder();
+  virtual ~Decoder();
+  void decode(uint8_t* encodedFrame, uint32_t size,
+              std::vector<uint8_t*>& decodedTileFrames);
 
+  void dec(uint8_t* encodedFrame, uint32_t size,
+           std::vector<uint8_t*>& decodedTileFrames);
 
-
-private:
-	void initAVCodec();
-	void initCustomFormatContext();
+ private:
+  void initAVCodec();
+  void initCustomFormatContext();
 };
 
 #endif /* DECODER_H_ */
