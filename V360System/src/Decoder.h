@@ -39,19 +39,24 @@ class Decoder {
   AVCodec* avCodec;
   AVCodecContext* avCodecContext;
   AVIOContext* avioContext;
-
   struct BufferReader bufferReader;
 
   Decoder();
+
   virtual ~Decoder();
-  void decode(uint8_t* encodedFrame, uint32_t size,
-              std::vector<uint8_t*>& decodedTileFrames);
+
+  void decodeOptimized(uint8_t* encodedFrame, uint32_t size,
+                       std::vector<AVFrame*>& decodedAVFrames);
+
+  void decodeNotOptimized(uint8_t* encodedFrame, uint32_t size,
+                          std::vector<uint8_t*>& decodedTileFrames);
 
   void dec(uint8_t* encodedFrame, uint32_t size,
            std::vector<uint8_t*>& decodedTileFrames);
 
  private:
   void initAVCodec();
+
   void initCustomFormatContext();
 };
 

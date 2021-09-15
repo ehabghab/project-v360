@@ -304,21 +304,20 @@ TilePredictor::getPredictedTiles() {
       tileClass++;
     }
   }
-  if (frameId_ == 1600) {
-    if (VLOG_IS_ON(0)) {
-      for (auto const &chunkSet : tileClassAllFrames) {
-        for (auto const &setTiles : chunkSet.second) {
-          LOG(INFO) << static_cast<int>(chunkSet.first) << ":"
-                    << static_cast<int>(setTiles.first);
-          std::string tiles;
-          for (auto const &tile : setTiles.second) {
-            tiles += std::to_string(tile) + ",";
-          }
-          LOG(INFO) << tiles;
+  // print tiles in sets
+  if (VLOG_IS_ON(1)) {
+    for (auto const &chunkSet : tileClassAllFrames) {
+      for (auto const &setTiles : chunkSet.second) {
+        LOG(INFO) << static_cast<int>(chunkSet.first) << ":"
+                  << static_cast<int>(setTiles.first);
+        std::string tiles;
+        for (auto const &tile : setTiles.second) {
+          tiles += std::to_string(tile) + ",";
         }
+        LOG(INFO) << tiles;
       }
-      LOG(INFO) << "==================";
     }
+    LOG(INFO) << "==================";
   }
 
   return tileClassAllFrames;

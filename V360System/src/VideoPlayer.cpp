@@ -23,7 +23,7 @@ VideoPlayer::VideoPlayer() {
   // read ground truth.
   std::string tracePath =
       "/Users/eghabash/Desktop/360 Video/Project-V360"
-      "/split/tiles_per_frame_synthetic_user_1.txt";
+      "/split/tiles_per_frame_user_3.txt";
   std::ifstream infile(tracePath);
 
   std::string line;
@@ -55,7 +55,7 @@ VideoPlayer::VideoPlayer() {
 
   tracePath =
       "/Users/eghabash/Desktop/360 Video/Project-V360"
-      "/split/vp_corr_per_frame_synthetic_user_1.txt";
+      "/split/vp_corr_per_frame_user_3.txt";
   std::ifstream infile2(tracePath);
   while (std::getline(infile2, line)) {
     auto pos = line.find(",");
@@ -77,6 +77,7 @@ void VideoPlayer::addChunk(uint8_t *chunkPointer, uint32_t chunkSize,
   // We take 4 bytes to exclude the "\r\n\r\n" out of chunk bytes.
   Chunk chunk = {chunkPointer, chunkSize - 4};
 
+  // comment to turn off decoder.
   auto pair = chunks_.find(tileChunkIdx);
   if (pair != chunks_.end()) {
     pair->second.insert(std::make_pair(tileIdx, chunk));
@@ -85,13 +86,23 @@ void VideoPlayer::addChunk(uint8_t *chunkPointer, uint32_t chunkSize,
     tileIdxChunkMap.insert(std::make_pair(tileIdx, chunk));
     chunks_.insert(std::make_pair(tileChunkIdx, tileIdxChunkMap));
   }
+
+  // uncomment to turn off decoder.
+  /*auto pair = decodedTileChunks_.find(tileChunkIdx);
+  std::vector<uint8_t *> temp;
+  if (pair != decodedTileChunks_.end()) {
+    pair->second.insert(std::make_pair(tileIdx, temp));
+  } else {
+    std::map<uint16_t, std::vector<uint8_t *>> tileIdxChunkMap;
+    tileIdxChunkMap.insert(std::make_pair(tileIdx, temp));
+    decodedTileChunks_.insert(std::make_pair(tileChunkIdx, tileIdxChunkMap));
+  }*/
 }
 
 void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
   // TODO clear chunks of previous second from map.
   // TODO decode based on priority
   // TODO use list/set instead of map. Not sure!
-
   uint32_t startChunk;
   std::vector<std::string> chunksDecoded;
   bool first = true;
@@ -107,39 +118,40 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
         while (chunks->second.size() != 0) {
           auto tileInfo = chunks->second.begin();
           std::vector<uint8_t *> rawTileFrames;
+          // std::vector<AVFrame *> rawTileFrames;
 
-          // call decoder
-          auto xs = Util::getTime();
-          decoder->decode(tileInfo->second.chunk, tileInfo->second.chunkSize,
-                          rawTileFrames);
-
-          // std::cout << chunks->first << ":" << tileInfo->first << ":"
-          //        << Util::getTime() - xs << std::endl;
-
-          /*if (first) {
-            auto xs = Util::getTime();
+          if (first) {
             first = false;
             rawTileFrames.clear();
-            decoder->decode(tileInfo->second.chunk, tileInfo->second.chunkSize,
-                            rawTileFrames);
-            std::cout << chunks->first << ":" << tileInfo->first << ":"
-                      << Util::getTime() - xs << std::endl;
-          }*/
+            decoder->decodeNotOptimized(tileInfo->second.chunk,
+                                        tileInfo->second.chunkSize,
+                                        rawTileFrames);
+          }
+
+          // call decoder
+          std::cout << "------\n"
+                    << "decoding time [" << chunks->first << "_"
+                    << tileInfo->first << "]\n";
+          auto decodeStart = Util::getTime();
+          decoder->decodeNotOptimized(tileInfo->second.chunk,
+                                      tileInfo->second.chunkSize,
+                                      rawTileFrames);
+          std::cout << "Total Decoding :" << Util::getTime() - decodeStart
+                    << "\n";
+
           // insert to decodedTileChunks_
           videoPlayer->decodedTileChunksMutex_.lock();
           if (videoPlayer->decodedTileChunks_.find(chunks->first) !=
               videoPlayer->decodedTileChunks_.end()) {
             videoPlayer->decodedTileChunks_.find(chunks->first)
                 ->second.insert(std::make_pair(tileInfo->first, rawTileFrames));
-            // std::cout<<"Added,"<<chunks->first<<":"<<tileInfo->first<<std::endl;
+
           } else {
             std::map<uint16_t, std::vector<uint8_t *>> temp;
             temp.insert(std::make_pair(tileInfo->first, rawTileFrames));
 
             videoPlayer->decodedTileChunks_.insert(
                 std::make_pair(chunks->first, temp));
-            // std::cout<<"Added,"<<chunks->first<<":"<<tileInfo->first<<std::endl;
-            // return;
           }
           videoPlayer->decodedTileChunksMutex_.unlock();
 
@@ -154,15 +166,8 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
       if (decode_frame) {
         break;
       }
-      // std::cout<<"-----"<<std::endl;
     }
-    // startChunk += 2;
-    // videoPlayer->frameId_ += videoPlayer->FPS_*2;
-    // sleep(100);
   }
-
-  // FPS
-  // 1000 second.
 }
 
 void VideoPlayer::start(VideoPlayer *videoPlayer,
@@ -176,7 +181,7 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
   std::map<uint16_t, uint8_t *> viewport;
   while (true) {
     long pt = Util::getTime();
-    LOG(INFO) << "Playing Frame#" << videoPlayer->frameId_;
+    // LOG(INFO) << "Playing Frame#" << videoPlayer->frameId_;
     bool check1 = true;
     bool check2 = true;
     tilePredictor->addVpCoordinate(
@@ -235,14 +240,13 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
       }
     }
     if ((Util::getTime() - pt) > 5) {
-      LOG(INFO) << "-------------";
+      // LOG(INFO) << "-------------";
     }
-    LOG(INFO) << "Stitching F#" << videoPlayer->frameId_ << "\n===";
+    // LOG(INFO) << "Stitching F#" << videoPlayer->frameId_ << "\n====";
 
     // stichFrames.
     stime = Util::getTime();
-    auto rawViewPort = videoPlayer->stitchTileFrames(viewport);
-    free(rawViewPort);
+    // videoPlayer->stitchTileFrames(viewport);
 
     // free all tile-frames belonging to current frameId
     if (videoPlayer->frameId_ % videoPlayer->FPS_ == 0) {
@@ -259,7 +263,6 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
       LOG(INFO) << "Video Ended!";
     }
     Util::sleep(stime, frameGap);
-    // stime += frameGap;
     videoPlayer->frameId_++;
   }
 }
@@ -345,6 +348,7 @@ uint8_t *VideoPlayer::stitchTileFrames(
       int tempRow = ((tileIdx + col - 1) / tileHeight) + 1;
       if (col != 0 && tempRow != currRow) {
         _order += std::to_string(tileIdx + col - tileWidth) + " ,";
+        // std::cout << tileIdx + col - tileWidth << std::endl;
         for (int ij = 0; ij < 160; ij++) {
           memcpy(rawViewPort + (colBytes + ij * numOfCols * stepSize),
                  viewport.find(tileIdx + col - tileWidth)->second +
@@ -353,6 +357,7 @@ uint8_t *VideoPlayer::stitchTileFrames(
         }
 
       } else {
+        // std::cout << tileIdx + col << std::endl;
         for (int ij = 0; ij < 160; ij++) {
           memcpy(rawViewPort + (colBytes + ij * numOfCols * stepSize),
                  viewport.find(tileIdx + col)->second + (ij * stepSize),
@@ -371,8 +376,7 @@ uint8_t *VideoPlayer::stitchTileFrames(
                std::chrono::system_clock::now().time_since_epoch())
                .count();
 
-  // std::cout<<frm<<":"<<t2-t1<<std::endl;
-  FILE *myfile;
+  /*FILE *myfile;
 
   std::string filename = std::to_string(frm++) + ".yuv";
 
@@ -380,9 +384,161 @@ uint8_t *VideoPlayer::stitchTileFrames(
 
   fwrite(rawViewPort, sizeof(uint8_t), viewport.size() * tileSize, myfile);
 
-  fclose(myfile);
+  fclose(myfile);*/
 
   return rawViewPort;
+}
+
+void VideoPlayer::orderTilesToLinkedList(
+    std::map<uint16_t, AVFrame *> &viewport,
+    std::vector<Node *> &viewportLinkedList) {
+  int tileWidth = 360 / 30;
+  int tileHeight = 180 / 15;
+  int prevRow = -1;
+  int prevCol = -1;
+  // this points to where to place next tiles in the linkedlist.
+  Node *nextTile;
+  // this points to the first frame in row.
+  Node *head;
+
+  // loop over all tiles
+  for (auto tilePair : viewport) {
+    int tileRow = ((tilePair.first - 1) / tileHeight) + 1;  // 1--> 12 same row.
+    int tileCol = ((tilePair.first - 1) % tileWidth) + 1;   // 1--> 12
+    if (tileRow != prevRow) {
+      // first tile in the row, then create row linkedlist.
+      Node *tileNode = new Node;
+      tileNode->tile = tilePair.second;
+      tileNode->nextTile = nullptr;
+      nextTile = tileNode;
+      head = tileNode;
+      viewportLinkedList.push_back(tileNode);
+
+    } else if (tileRow == prevRow && tileCol - 1 != prevCol) {
+      // An overlap in row-tiles.
+      Node *tileNode = new Node;
+      tileNode->tile = tilePair.second;
+      tileNode->nextTile = head;
+      nextTile = tileNode;
+      viewportLinkedList.pop_back();
+      viewportLinkedList.push_back(tileNode);
+    } else {
+      // Another tile in the row.
+      Node *tileNode = new Node;
+      tileNode->tile = tilePair.second;
+      tileNode->nextTile = nullptr;
+      if (nextTile->nextTile != nullptr) {
+        // there is an overlap in this row.
+        tileNode->nextTile = nextTile->nextTile;
+        nextTile->nextTile = tileNode;
+        nextTile = tileNode;
+      } else {
+        // there is no overlap yet.
+        nextTile->nextTile = tileNode;
+        nextTile = tileNode;
+      }
+    }
+    prevRow = tileRow;
+    prevCol = tileCol;
+  }
+}
+
+void VideoPlayer::stitchTileFramesYUV(std::map<uint16_t, AVFrame *> &viewport) {
+  std::vector<Node *> viewportLinkedList;
+  orderTilesToLinkedList(viewport, viewportLinkedList);
+  if (viewportLinkedList.size() == 0) {
+    LOG(ERROR) << "NO tiles to stitch!";
+    return;
+  }
+  // the number of tiles in a single row.
+  int tilesInRow = 0;
+  // the total number of tiles in stitched frame.
+  int numberOfTiles = 0;
+
+  auto rowHead = viewportLinkedList[0];
+  while (rowHead != nullptr) {
+    rowHead = rowHead->nextTile;
+    tilesInRow++;
+  }
+  numberOfTiles = tilesInRow * viewportLinkedList.size();
+  // size of raw tile in YUV420P format.
+  uint32_t tileSize = (320 * 160 * 12) / 8;
+
+  // size of raw viewport.
+  uint8_t *rawViewPort =
+      (uint8_t *)malloc(sizeof(uint8_t) * viewport.size() * tileSize);
+
+  // the length of a single row in Y plane
+  int rowLengthY = 320 * tilesInRow;
+  int rowLengthUV = 160 * tilesInRow;
+
+  // Where is the first U value address in stitched frame.
+  int uBaseAddressInFrame = 320 * 160 * numberOfTiles;
+  int vBaseAddressInFrame = uBaseAddressInFrame + uBaseAddressInFrame / 4;
+
+  // Y loc
+  // number of rows * tiles per row.
+  // loc of tile in row.
+  int numOfRows = 0;
+  for (auto &row : viewportLinkedList) {  // start of stitching loop
+    if (row == nullptr) {
+      LOG(ERROR) << "Row of tiles starts with null";
+      return;
+    }
+    int tileCountInRow = 0;
+    while (row != nullptr) {
+      // Y-plane
+      // The base memory location of the tile Y values.
+      // This mainly equals to the number of tiles in all previous rows
+      // [tileInRow * numOfRows * 320 * 160] + number of pixels in the same row
+      // [tileCountInRow * 320]
+      int yBaseTileAddress =
+          (tilesInRow * numOfRows * 320 * 160) + (tileCountInRow * 320);
+      for (int c = 0; c < 160; c++) {
+        auto destAddress = rawViewPort + yBaseTileAddress + (rowLengthY * c);
+        auto srcAddress = (row->tile->data[0] + (384 * c));
+        memcpy(destAddress, srcAddress, 320);
+      }
+
+      // U-plane
+      // The base memory location of the tile U values.
+      int uTileBaseAddress = uBaseAddressInFrame +
+                             ((tilesInRow * numOfRows * 320 * 160) / 4) +
+                             tileCountInRow * 160;
+      for (int c = 0; c < 80; c++) {
+        auto destAddress = rawViewPort + uTileBaseAddress + (rowLengthUV * c);
+        auto srcAddress = (row->tile->data[1] + (192 * c));
+        memcpy(destAddress, srcAddress, 160);
+      }
+
+      // V-plane
+      // The base memory location of the tile V values.
+      int vTileBaseAddress = vBaseAddressInFrame +
+                             ((tilesInRow * numOfRows * 320 * 160) / 4) +
+                             tileCountInRow * 160;
+      for (int c = 0; c < 80; c++) {
+        auto destAddress = rawViewPort + vTileBaseAddress + (rowLengthUV * c);
+        auto srcAddress = (row->tile->data[2] + (192 * c));
+        memcpy(destAddress, srcAddress, 160);
+      }
+
+      row = row->nextTile;
+      tileCountInRow++;
+    }
+    numOfRows++;
+  }  // end of stitching loop
+
+  FILE *myfile;
+
+  std::string filename =
+      std::to_string(frm++) + "_" + std::to_string(tilesInRow * 320) + "X" +
+      std::to_string(viewportLinkedList.size() * 160) + ".yuv";
+
+  myfile = fopen(filename.c_str(), "wb");
+
+  fwrite(rawViewPort, sizeof(uint8_t), numberOfTiles * tileSize, myfile);
+
+  fclose(myfile);
 }
 
 VideoPlayer::~VideoPlayer() {

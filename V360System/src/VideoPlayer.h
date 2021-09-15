@@ -24,6 +24,12 @@ class VideoPlayer {
     uint32_t chunkSize;
   };
 
+  // linked list to order the tiles in stitched frame.
+  struct Node {
+    AVFrame *tile;
+    Node *nextTile;
+  };
+
   std::mutex decodedTileChunksMutex_;
 
   uint8_t FPS_;
@@ -42,6 +48,15 @@ class VideoPlayer {
       decodedTileChunks_;
 
   uint8_t *stitchTileFrames(std::map<uint16_t, uint8_t *> &viewport);
+
+  void stitchTileFramesYUV(std::map<uint16_t, AVFrame *> &viewport);
+
+  // This function will take viewport map as input which contains
+  // the tiles to construct the viewport frame. And,
+  // returns vector of linkedlist. The nodes in the vector
+  // correspond to the first tiles in each row.
+  void orderTilesToLinkedList(std::map<uint16_t, AVFrame *> &viewport,
+                              std::vector<Node *> &viewportLinkedList);
 
  public:
   static void start(VideoPlayer *videoPlayer, TilePredictor *tilePredictor);
