@@ -13,9 +13,9 @@ using std::endl; using std::string;
 using std::vector; using std::pair;
 using std::make_pair;
 
-std::vector<std::pair<float, float>> LinearRegression::Model(std::vector<std::pair<float, float>> input){
+std::vector<std::pair<float, float>> LinearRegression::Model(std::vector<std::pair<float, float>> input, int length){
 	
-	size_t length = input.size();
+	//size_t length = input.size();
 	
 	/*Intialization Phase*/
 	for (size_t i = 1; i<hw_; i++) {
