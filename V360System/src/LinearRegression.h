@@ -54,5 +54,5 @@ public:
 
 	std::vector<std::pair<float, float>> lrPredictions;
 	
-	std::vector<std::pair<float, float>> Model(std::vector<std::pair<float, float>> input);
+	std::vector<std::pair<float, float>> Model(std::vector<std::pair<float, float>> input, int length);
 };
