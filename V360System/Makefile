@@ -1,6 +1,11 @@
 
-system: Client.o Server.o Decoder.o VideoPlayer.o AbrAlgorithm.o BandwidthPredictor.o ClientNetworkLayer.o TilePredictor.o Util.o
-	g++ -lboost_regex -lfolly -lglog  -lavutil -lavformat -lavcodec -lswscale  -o ./build/system  ./build/AbrAlgorithm.o ./build/BandwidthPredictor.o ./build/Client.o ./build/ClientNetworkLayer.o ./build/Decoder.o ./build/Server.o ./build/TilePredictor.o ./build/VideoPlayer.o  ./build/Util.o   
+all: client server
+
+client: Client.o  Decoder.o VideoPlayer.o AbrAlgorithm.o BandwidthPredictor.o ClientNetworkLayer.o TilePredictor.o Util.o
+	g++ -lboost_regex -lfolly -lglog  -lavutil -lavformat -lavcodec -lswscale  -o ./build/client  ./build/AbrAlgorithm.o ./build/BandwidthPredictor.o ./build/Client.o ./build/ClientNetworkLayer.o ./build/Decoder.o ./build/TilePredictor.o ./build/VideoPlayer.o  ./build/Util.o   
+
+server: Server.o
+	g++ -lboost_regex -lglog -o ./build/server ./build/Server.o
 
 Client.o: ./src/Client.cpp ./src/Client.h
 	g++ -g -std=c++14 -D__GXX_EXPERIMENTAL_CXX0X__ -O0 -g3 -Wall -c -fmessage-length=0 ./src/Client.cpp -o ./build/Client.o
@@ -32,4 +37,6 @@ ClientNetworkLayer.o: ./src/ClientNetworkLayer.cpp ./src/ClientNetworkLayer.h
 
 clean:
 	rm ./build/*.o
-	rm ./build/system
+	rm ./build/client
+	rm ./build/server
+	rm *.yuv

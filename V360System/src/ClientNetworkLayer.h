@@ -34,6 +34,8 @@ class ClientNetworkLayer {
   // This is temp until we have our own predictor.
   std::map<int, std::vector<std::string>> predTemp_;
 
+  std::string recvLogTimestamp_;
+
   // TODO document what each function does.
 
   int socket_;
@@ -63,6 +65,8 @@ class ClientNetworkLayer {
   bool isReceived(int chunkId, uint16_t tileId);
 
   void setRequest(std::string requestList);
+
+  void setRecvLogTimestamp(std::string recvLogTimestamp);
 
   virtual ~ClientNetworkLayer();
 };

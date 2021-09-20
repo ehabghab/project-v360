@@ -26,9 +26,6 @@
 #include <thread>
 #include <vector>
 
-#include "Client.h"
-#include "TilePredictor.h"
-
 Server::Server() {
   videoRootDir_ =
       "/Users/eghabash/Desktop/360 Video/Project-V360"
@@ -324,7 +321,7 @@ void Server::sender(Server *server, uint8_t socket) {
     // send header
     std::string header(server->getResponseHeader(
         "1.1", "200 OK", "Bytes", fileSize, "video/m4s",
-        tileInfo[0] + "_" + tileInfo[2]));
+        tileInfo[0] + "_" + tileInfo[2], qualityPathIdx));
     send(socket, header.c_str(), header.size(), 0);
 
     // send file.
@@ -335,7 +332,8 @@ void Server::sender(Server *server, uint8_t socket) {
 
 std::string Server::getResponseHeader(
     std::string httpVersion, std::string statusCode, std::string acceptRange,
-    int contentLength, std::string contentType, std::string tileIdx) {
+    int contentLength, std::string contentType, std::string tileIdx,
+    std::string quality) {
   std::stringstream header;
 
   time_t now = time(0);
@@ -344,6 +342,7 @@ std::string Server::getResponseHeader(
 
   header << boost::format("HTTP%s %s\r\n") % httpVersion % statusCode;
   header << boost::format("Tile-Index: %s\r\n") % tileIdx;
+  header << boost::format("Tile-Quality:%s\r\n") % quality;
   header << boost::format("Date: %s\r\n") % dt.erase(dt.size() - 1);
   header << boost::format("Accept-Ranges: %s\r\n") % acceptRange;
   header << boost::format("Content-Length: %d\r\n") % contentLength;
@@ -371,9 +370,6 @@ std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
     boost::algorithm::split_regex(tempVec2, tileSet, boost::regex(":"));
     std::string chunkSetId = tempVec2[0] + "_" + tempVec2[1] + "_";
     boost::algorithm::split_regex(tempVec1, tempVec2[2], boost::regex(","));
-    /*if (tempVec2[0] == "31") {
-      LOG(INFO) << tempVec2[2];
-    }*/
 
     for (auto const &tileId : tempVec1) {
       tiles.push_back(chunkSetId + tileId);
@@ -393,27 +389,19 @@ uint8_t Server::parseRequestIntoQuality(std::string request) {
   } catch (std::invalid_argument &e) {
     LOG(ERROR) << "Error: failed to extract quality:\n"
                << tempVec[1] << std::endl;
+    return 100;
   }
 }
 
 void Server::addTileList(std::vector<std::string> tiles, uint8_t quality) {
   reqMutex_.lock();
   request_ = std::make_pair(quality, tiles);
-  /*request_.first = quality;
-  request_.second = {};
-  for (auto const &tile : tiles) {
-    request_.second.push_back(tile);
-  }*/
   reqMutex_.unlock();
 }
 
 std::pair<uint8_t, std::vector<std::string>> Server::getTileList() {
   std::pair<uint8_t, std::vector<std::string>> requestToReturn;
   reqMutex_.lock();
-  /*requestToReturn.first = request_.first;
-  for (auto const &tile : request_.second) {
-    requestToReturn.second.push_back(tile);
-  }*/
   requestToReturn = request_;
   request_.second = {};
   reqMutex_.unlock();
@@ -426,23 +414,12 @@ Server::~Server() {
 
 void start() {
   Server *server = new Server();
-  // waiting for connection
+  // to suppress warning
+  assert(server != nullptr);
 }
-
-std::map<int, std::map<int, std::string>> mm;
 
 int main(int argc, const char **argv) {
   std::thread serverThread(start);
-  // sleep(2);
-  Client *client = new Client();
-  // serverThread.join();
-
-  //	TilePredictor* predictor = new TilePredictor();
-  //
-  //	std::pair<float,float> viewportCenter(90,80);
-  //	std::map<std::string,std::pair<float,float>> x1;
-  //	std::map<std::string,std::pair<float,float>> x2;
-  //	predictor->getTilesRanks(viewportCenter, x1, x2);
-
+  serverThread.join();
   return 0;
 }

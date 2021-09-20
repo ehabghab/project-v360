@@ -23,6 +23,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "Util.h"
 #include "glog/logging.h"
 
 std::pair<uint32_t, uint16_t> extractTileInfo(std::string tileIndex) {
@@ -160,8 +161,18 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
   // this contains the bandwidth while downloading the tile chunk.
   float bandwidth;
 
+  FILE *recvLog;
+  std::string filename = "recv_log_" + client->recvLogTimestamp_ + ".txt";
+  recvLog = fopen(filename.c_str(), "wb");
+  fputs("chunk_id\t\ttile_idx\t\tquality\t\tchunk_size\t\trecv_time\n",
+        recvLog);
+  // fwrite(rawViewPort, sizeof(uint8_t), viewport.size() * tileSize,
+  // myfile);
+
+  // fclose(recvLog);
+
   while (true) {
-    // each response contains header followed by file.
+    // each response contains header followed by a file.
     // both header and file end with \r\n\r\n.
     // RESPONSE_MAX_LENGTH must be less than header.
 
@@ -253,11 +264,18 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
                   .count();
 
       // tileIndex == /<tile index>/<presentation time>.h264
+      // tileInfo-->first(chunk id)/second(tile id)
       auto tileInfo = extractTileInfo(respHeader["Tile-Index"]);
       client->receivedTileChunks_.insert(
           std::make_pair(tileInfo.first, tileInfo.second));
       videoPlayer->addChunk(chunk, chunkSize, tileInfo.first, tileInfo.second);
-
+      std::string tileLog = std::to_string(tileInfo.first) + "\t\t" +
+                            std::to_string(tileInfo.second) + "\t\t" +
+                            respHeader["Tile-Quality"] + "\t\t" +
+                            std::to_string(chunkSize) + "\t\t\t" +
+                            std::to_string(etime - stime) + "\n";
+      fputs(tileLog.c_str(), recvLog);
+      fflush(recvLog);
       // bandwidth =
       //  ((chunkSize * 8.0) / 1e6) / ((etime - stime) / 1000.0);  // mbps
 
@@ -322,6 +340,10 @@ bool ClientNetworkLayer::isReceived(int chunkId, uint16_t tileId) {
     return false;
   }
   return true;
+}
+
+void ClientNetworkLayer::setRecvLogTimestamp(std::string recvLogTimestamp) {
+  recvLogTimestamp_ = recvLogTimestamp;
 }
 
 ClientNetworkLayer::~ClientNetworkLayer() {

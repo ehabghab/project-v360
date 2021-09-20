@@ -2,6 +2,15 @@
 
 #include <chrono>
 
+const std::string Util::getCurrentDateTime() {
+  time_t now = time(0);
+  struct tm tstruct;
+  char buf[80];
+  tstruct = *localtime(&now);
+  strftime(buf, sizeof(buf), "%Y-%m-%d_%H_%M_%S", &tstruct);
+  return buf;
+}
+
 long Util::getTime() {
   return std::chrono::duration_cast<std::chrono::milliseconds>(
              std::chrono::system_clock::now().time_since_epoch())

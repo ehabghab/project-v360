@@ -40,7 +40,8 @@ class Server {
 
   std::string getResponseHeader(std::string httpVersion, std::string statusCode,
                                 std::string acceptRange, int contentLength,
-                                std::string contentType, std::string tileIdx);
+                                std::string contentType, std::string tileIdx,
+                                std::string quality);
 
   /**
    * This function takes as input the request as one string, and returns

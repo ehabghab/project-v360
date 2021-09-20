@@ -233,22 +233,22 @@ void Decoder::decodeNotOptimized(uint8_t* encodedFrame, uint32_t size,
   uint8_t* buffer2 = NULL;
 
   // Timer A
-  long tTemp = Util::getTime();
+  // long tTemp = Util::getTime();
   int numBytes = av_image_get_buffer_size(
       AV_PIX_FMT_YUV420P, avCodecContext->width, avCodecContext->height, 1);
-  long sumTime = Util::getTime() - tTemp;
+  // long sumTime = Util::getTime() - tTemp;
 
   while (av_read_frame(formatContext, avPacket) >= 0) {
     avFrame = av_frame_alloc();
 
     // Timer B
-    tTemp = Util::getTime();
+    // tTemp = Util::getTime();
     pFrameARGB = av_frame_alloc();
     buffer2 = static_cast<uint8_t*>(av_malloc(numBytes));
     av_image_fill_arrays(pFrameARGB->data, pFrameARGB->linesize, buffer2,
                          AV_PIX_FMT_YUV420P, avCodecContext->width,
                          avCodecContext->height, 1);
-    sumTime += Util::getTime() - tTemp;
+    // sumTime += Util::getTime() - tTemp;
 
     frameId++;
     ret1 = avcodec_send_packet(avCodecContext, avPacket);
@@ -267,10 +267,10 @@ void Decoder::decodeNotOptimized(uint8_t* encodedFrame, uint32_t size,
     }
 
     // Timer C
-    tTemp = Util::getTime();
+    // tTemp = Util::getTime();
     sws_scale(sws_ctx, avFrame->data, avFrame->linesize, 0,
               avCodecContext->height, pFrameARGB->data, pFrameARGB->linesize);
-    sumTime += Util::getTime() - tTemp;
+    // sumTime += Util::getTime() - tTemp;
 
     decodedTileFrames.push_back(buffer2);
 
@@ -278,7 +278,7 @@ void Decoder::decodeNotOptimized(uint8_t* encodedFrame, uint32_t size,
     av_frame_free(&avFrame);
     av_frame_free(&pFrameARGB);
   }
-  std::cout << "Sws time :" << sumTime << "\n";
+  // std::cout << "Sws time :" << sumTime << "\n";
 
   avformat_close_input(&formatContext);
   avformat_free_context(formatContext);
