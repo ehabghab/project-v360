@@ -12,8 +12,8 @@ def main():
     size = sys.argv[1].split("_")
     frameWidth = 3840
     frameHeight = 1920
-    widthTiles = int(size[0].split("Width")[1])
-    heightTiles = int(size[1].split("Height")[1])
+    widthTiles = 12
+    heightTiles = 12
     heightRange = frameHeight/heightTiles
     widthRange = frameWidth/widthTiles
     try:
@@ -32,13 +32,13 @@ def main():
                 enWidthRange = frameWidth
             w = enWidthRange-stWidthRange
             h = enHeightRange-stHeightRange
-            f = dir+"/encoded/"+str(i+1)+"_c_"+str(j+1)+".mp4"
+            f = dir+"/encoded/"+str(i*12+(j+1))+".mp4"
             try:
-                os.mkdir(dir+"/encoded_payloadExtract/"+str(i+1)+"_c_"+str(j+1))
+                os.mkdir(dir+"/encoded_payloadExtract/"+str(i*12+(j+1)))
             except OSError as error:
                 True#print "error"
 
-            o =dir+"/encoded_payloadExtract/"+str(i+1)+"_c_"+str(j+1)
+            o =dir+"/encoded_payloadExtract/"+str(i*12+(j+1))
             command = ("ffmpeg -i "+f+" -f image2 -vcodec copy -bsf h264_mp4toannexb "+o+"/%d.h264")
             #print command
             process = subprocess.Popen(command,stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)

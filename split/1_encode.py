@@ -8,12 +8,11 @@ def main():
         print "Error: python encode.py <dir>"
         sys.exit(1)
     dir = sys.argv[1].replace("./","").replace("/","")
-    size = sys.argv[1].split("_")
-    print size
+
     frameWidth = 3840
-    frameHeight = 2160
-    widthTiles = int(size[0].split("Width")[1])
-    heightTiles = int(size[1].split("Height")[1])
+    frameHeight = 1920
+    widthTiles = int(24)
+    heightTiles = int(18)
     heightRange = frameHeight/heightTiles
     widthRange = frameWidth/widthTiles
     try:
@@ -34,12 +33,17 @@ def main():
             h = enHeightRange-stHeightRange
 
             f = dir+"/raw_tiles/r_"+str(i+1)+"_c_"+str(j+1)+".yuv"
-            o = dir+"/encoded/"+str(i+1)+"_c_"+str(j+1)+".mp4"
+            #o = dir+"/encoded/"+str(i+1)+"_c_"+str(j+1)+".mp4"
+            o = dir+"/encoded/"+str(i*24+(j+1))+".mp4"
 
             #no B frames
             #command = "ffmpeg -f rawvideo -pix_fmt yuv420p -s:v "+str(w)+"x"+str(h)+" -r 25 -i "+f +" -g 5 -crf 24 -bf 0 -c:v libx264 "+o
 
+<<<<<<< HEAD
+            command = "ffmpeg -f rawvideo -pix_fmt yuv420p -s:v "+str(w)+"x"+str(h)+" -r 25 -i "+f +" -x264opts 'keyint=100:min-keyint=100:no-scenecut' -crf 18 -bf 0 -c:v libx264 "+o
+=======
             command = "ffmpeg -f rawvideo -pix_fmt yuv420p -s:v "+str(w)+"x"+str(h)+" -r 25 -i "+f +" -x264opts 'keyint=25:min-keyint=25:no-scenecut' -crf 18 -bf 0 -c:v libx264 "+o
+>>>>>>> f3a316188b7a7e58c5d4fbc8cbede79838a9d87a
 
             process = subprocess.Popen(command,stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
             stdout, stderr = process.communicate()

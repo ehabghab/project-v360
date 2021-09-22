@@ -9,15 +9,15 @@ def main():
         print "Error: python encode.py <dir>"
         sys.exit(1)
     dir = sys.argv[1].replace("./","").replace("/","")
-    
+    size = sys.argv[1].split("_")
     frameWidth = 3840
     frameHeight = 1920
-    widthTiles = int(12)
-    heightTiles = int(12)
+    widthTiles = 12
+    heightTiles = 12
     heightRange = frameHeight/heightTiles
     widthRange = frameWidth/widthTiles
     try:
-        os.mkdir(dir+"/encoded_type/")
+        os.mkdir(dir+"/encoded_dashed/")
     except OSError as error:
         True#print "error"
     for i in range(0,heightTiles): #row
@@ -32,15 +32,21 @@ def main():
                 enWidthRange = frameWidth
             w = enWidthRange-stWidthRange
             h = enHeightRange-stHeightRange
-            f = dir+"/encoded/"+str(i*12+(j+1))+".mp4"
-            o =dir+"/encoded_type/"+str(i*12+(j+1))+".txt"
-            command = ("ffprobe "+f+" -show_frames | grep -E 'pict_type' > "+o)
+            idx = (i) * 12 + (j+1)
+
+            f = dir+"/encoded/"+str(i+1)+"_c_"+str(j+1)+".mp4"
+            try:
+                os.mkdir(dir+"/encoded_dashed/"+str(idx))
+            except OSError as error:
+                True#print "error"
+
+            o =dir+"/encoded_dashed/"+str(idx)
+            command = ("MP4Box -dash 834 -segment-name "+o+"/ "+f)
+            #print command
             process = subprocess.Popen(command,stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
 
             stdout, stderr = process.communicate()
             #print stderr
-
-
 
 
 if __name__ == "__main__":

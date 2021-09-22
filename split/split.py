@@ -1,17 +1,17 @@
 import numpy as np
 import os
 def main():
-    video = open("video.yuv",'rb')
+    video = open("video_original.yuv",'rb')
     #1920x960
     frameWidth = 3840
-    frameHeight = 2160
+    frameHeight = 1920
 
     widthTiles = 24
     heightTiles = 18
     heightRange = frameHeight/heightTiles
     widthRange = frameWidth/widthTiles
 
-    dir = "YuvW"+str(widthTiles)+"H"+str(heightTiles)
+    dir = "YuvW"+str(widthTiles)+"H"+str(heightTiles)+"_1"
     try:
         os.mkdir(dir)
     except OSError as error:
@@ -24,7 +24,7 @@ def main():
             files[i][j] = open(dir+"/r_"+str(i+1)+"_c_"+str(j+1)+".yuv","w")
 
     startFrame = 0
-    endFrame = 724
+    endFrame = 499
     video.seek(frameWidth* frameHeight* 1.5 * startFrame,0)
     for frame in range(startFrame,endFrame+1):
         print "Splitting frame #"+str(frame)

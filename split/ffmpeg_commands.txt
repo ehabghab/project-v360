@@ -1,3 +1,9 @@
+ffmpeg -ss 00:00:40.0 -i vID1_Original.webm -c copy -t 00:01:00.0 vID1_Original.mp4
+
+ffmpeg -i vID1_Original.mp4 -c:v rawvideo -pixel_format yuv420p video_original.yuv
+
+ffmpeg -i video_org_cut.mp4 -filter:v "crop=3840:1920:0:0" o.mp4
+
 ffmpeg -f rawvideo -pix_fmt yuv420p -s:v 3840x1920 -r 25 -i raw_vID1.yuv -g 25 -crf 9 -c:v libx264 out.mp4
 
 (No B frames) ffmpeg -f rawvideo -pix_fmt yuv420p -s:v 3840x1920 -r 25 -i raw_vID1.yuv -g 25 -crf 24 -bf 0 -c:v libx264 out_P.mp4
