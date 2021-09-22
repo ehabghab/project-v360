@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/Cellar/boost/1.75.0_2/include",
+                "/usr/local/Cellar/ffmpeg/4.4_1/include/",
+                "/usr/local/Cellar/glog/0.4.0/include/",
+                "/usr/local/Cellar/gflags/2.2.2/include/",
+                "/usr/local/Cellar/folly/2021.06.14.00/include/"
+            ],
+            "defines": [],
+            "macFrameworkPath": [],
+            "compilerPath": "/usr/local/bin/gcc-10",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "macos-gcc-x64",
+            "browse": {
+                "path": []
+            }
+        }
+    ],
+    "version": 4
+}
