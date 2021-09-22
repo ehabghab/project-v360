@@ -641,11 +641,16 @@ def getData(data,video,chunkLength,tileWidth,tileHeight,tileMap):
 			num_frames_in_tile[uID] = {}
 			num_tiles_in_FOV[uID] = {}
 			wasted_area_in_watched_frame[uID] = {}
+			c = 0
 			for row in data[vID][uID]:
 				timestamp = row[0]      #sec.msec
 				yaw = math.degrees(row[1]) + 180
 				pitch = math.degrees(row[2]) + 90
 				roll = math.degrees(row[3])
+				#if uID == 62 and vID == 1 and c>=970 and c<=980:
+				#	print(str(yaw)+","+str(pitch))
+					
+
 				if startTime == -1: #first frame in first chunk of the video.
 					startTime = timestamp * 1000
 					chunkID = 0
@@ -658,9 +663,10 @@ def getData(data,video,chunkLength,tileWidth,tileHeight,tileMap):
 					chunkID +=1
 					FOVNum = 1
 
-				#frames are 33msec apart (30FPS).
-				if (timestampCal - prevFrameTime) >=33 or prevFrameTime == 0:
-					prevFrameTime += 33
+				#frames are 40msec apart (25FPS).
+				if (timestampCal - prevFrameTime) >=40 or prevFrameTime == 0:
+					c+=1
+					prevFrameTime += 40
 					tiles,wastage = getTiles(tileMap,yaw,pitch,tileWidth,tileHeight)
 
 					if  watched_frames_in_tiles[uID].get(chunkID,None) == None:
@@ -687,137 +693,40 @@ def getData(data,video,chunkLength,tileWidth,tileHeight,tileMap):
 
 	return watched_frames_in_tiles, num_frames_in_tile, num_tiles_in_FOV, wasted_area_in_watched_frame
 
-def getWaste(watched_frames_in_tiles, wasted_area_in_watched_frame, num_frames_in_tile, tileFrameSizes,chunkLength,tileWidth,tileHeight):
+def get_num_switch(watched_frames_in_tiles, chunkLength):
 	IPerSec = int(round(1000.0/chunkLength)) #number of I-frames in a sec.
 	IFrameDist = int(round(25.0/IPerSec)) # Distance between two I-frames
-	waste = {}
-	area_waste = {}
-	drop_frame_waste = {}
-	total_bytes = {}
+	switches = {}
+	tiles_per_switch = {}
 	for uID in watched_frames_in_tiles:
-		waste[uID] = {}
-		area_waste[uID] = {}
-		drop_frame_waste[uID] = {}
-		total_bytes[uID] = {}
+		switches[uID] = set()
+		tiles_per_switch[uID] = {}
 		baseFrameNum = 0
 		for chunkID in watched_frames_in_tiles[uID]:
-			waste[uID][chunkID] = 0
-			area_waste[uID][chunkID] = 0
-			drop_frame_waste[uID][chunkID] = 0
-			total_bytes[uID][chunkID] = 0
-			dropped_frames_in_tiles = 0 # total number of wasted frames in a chunk
-			wastedAreInTileFrames = 0
 			if chunkID % IPerSec == 0:
 				baseFrameNum = ((chunkID/IPerSec)*25)
 			else:
 				baseFrameNum += IFrameDist
 
-			#print(baseFrameNum)
-				#size of un-watched frames in all tiles.
-
-			for tile in watched_frames_in_tiles[uID][chunkID]:
-				for fId in range(1,num_frames_in_tile[uID][chunkID]+1): #loop over all frames ids in tile.
-
-					if tileFrameSizes[tile].get(baseFrameNum+fId,None) != None:# if we have the size of it (rare cases where this is maybe false)
-						total_bytes[uID][chunkID] += tileFrameSizes[tile][baseFrameNum+fId] # size of all frames in tile watched and unwatched.
-
-
-					if fId not in watched_frames_in_tiles[uID][chunkID][tile]:# if frame id not the watched subset.
-						if tileFrameSizes[tile].get(baseFrameNum+fId,None) != None:# if we have the size of it (rare cases where this is maybe false)
-							dropped_frames_in_tiles += tileFrameSizes[tile][baseFrameNum+fId]
-
-
-
-			for tile in wasted_area_in_watched_frame[uID][chunkID]:
-				for fovNum in wasted_area_in_watched_frame[uID][chunkID][tile]:
-					if tileFrameSizes[tile].get(baseFrameNum+fovNum,None) != None:
-						tileframeSize = tileFrameSizes[tile][baseFrameNum+fovNum]
-						extraArea = wasted_area_in_watched_frame[uID][chunkID][tile][fovNum]
-						wastedAreInTileFrames += tileframeSize * (extraArea/(tileWidth*tileHeight))
-			area_waste[uID][chunkID] =  wastedAreInTileFrames
-			drop_frame_waste[uID][chunkID] = dropped_frames_in_tiles
-			waste[uID][chunkID] = dropped_frames_in_tiles + wastedAreInTileFrames
-	return area_waste, drop_frame_waste,waste,total_bytes
-
-#small_chunks_allowed : if we can use smaller chunk size on switch, typicall 500ms.
-#size_overhead: the diff in overhead between small and big chunk size. 
-def get_switch_latency_total_overhead(watched_frames_in_tiles,tilechunkSize, chunkLength, exponential_scheme):
-	IPerSec = int(round(1000.0/chunkLength)) #number of I-frames in a sec.
-	IFrameDist = int(round(30.0/IPerSec)) # Distance between two I-frames
-	total_bytes = {}
-	switch_bytes = {}
-
-	for uID in watched_frames_in_tiles:
-		total_bytes[uID] = {}
-		switch_bytes[uID] = {}
-		baseFrameNum = 0
-		for chunkID in watched_frames_in_tiles[uID]:
-			total_bytes[uID][chunkID] = 0
-			switch_bytes[uID][chunkID] = 0
-			if chunkID % IPerSec == 0:
-				baseFrameNum = ((chunkID/IPerSec)*30)
-			else:
-				baseFrameNum += IFrameDist
-
-
 			for tile in watched_frames_in_tiles[uID][chunkID]:
 				first_frame_id = sorted(watched_frames_in_tiles[uID][chunkID][tile])[0]
-				if first_frame_id == 1: #no switch. only bytes overhead.
-					total_bytes[uID][chunkID] += tilechunkSize[30] # size of all frames in tile watched and unwatched.
-
-				else: #switch latency, bytes overhead.
-					if switch_bytes[uID].get(baseFrameNum+first_frame_id) is None:
-							switch_bytes[uID][baseFrameNum+first_frame_id] = 0
-					
-					if exponential_scheme:
-						if first_frame_id <= 6:
-							total_bytes[uID][chunkID] += tilechunkSize[30]
-							switch_bytes[uID][baseFrameNum+first_frame_id] += tilechunkSize[30]
-						elif first_frame_id <= 14:
-							total_bytes[uID][chunkID] += tilechunkSize[24]
-							switch_bytes[uID][baseFrameNum+first_frame_id] += tilechunkSize[24]
-						elif first_frame_id <= 22:
-							total_bytes[uID][chunkID] += tilechunkSize[16]
-							switch_bytes[uID][baseFrameNum+first_frame_id] += tilechunkSize[16]
-						elif first_frame_id <= 26:
-							total_bytes[uID][chunkID] += tilechunkSize[8]
-							switch_bytes[uID][baseFrameNum+first_frame_id] += tilechunkSize[8]
-						elif first_frame_id <= 28:
-							total_bytes[uID][chunkID] += tilechunkSize[4]
-							switch_bytes[uID][baseFrameNum+first_frame_id] += tilechunkSize[4]
-						elif first_frame_id <= 29:
-							total_bytes[uID][chunkID] += tilechunkSize[2]
-							switch_bytes[uID][baseFrameNum+first_frame_id] += tilechunkSize[2]
-						else:
-							total_bytes[uID][chunkID] += tilechunkSize[1]
-							switch_bytes[uID][baseFrameNum+first_frame_id] += tilechunkSize[1]
-
-					else:
-						total_bytes[uID][chunkID] += tilechunkSize[30]
-						switch_bytes[uID][baseFrameNum+first_frame_id] += tilechunkSize[30]
-
-
-	return 	total_bytes, switch_bytes
+				if first_frame_id != 1: 
+					switches[uID].add(baseFrameNum+first_frame_id)
+					if tiles_per_switch[uID].get(baseFrameNum+first_frame_id) is None:
+						tiles_per_switch[uID][baseFrameNum+first_frame_id] = 0
+					tiles_per_switch[uID][baseFrameNum+first_frame_id] += 1
+	return 	switches,tiles_per_switch
 
 
 
-def sum_over_user(total_bytes,switch_latency):
-	total_bytes_users = {}
-	switch_latency_users = {}
-
-	for uID in total_bytes:
-		total_bytes_users[uID] = 0
-		for chunk_id in total_bytes[uID]:
-			total_bytes_users[uID] += total_bytes[uID][chunk_id]
+def sum_over_users(switch_latency):
 
 	all_switches = []
 	for uID in switch_latency:
 		for switch_frame in switch_latency[uID]:
-			all_switches.append(switch_latency[uID][switch_frame])
-		switch_latency_users[uID] = sum(all_switches)/len(all_switches)
-		
+			all_switches.append(switch_latency[uID][switch_frame]/1e3)
 
-	return total_bytes_users, switch_latency_users
+	return  all_switches
 
 
 def main():
@@ -832,14 +741,15 @@ def main():
 	size_threshold = {'6x6_1000':1,'6x6_500':1.15,'6x6_200':1.95,\
 					  '12x12_1000':1.10,'12x12_500':1.26,'12x12_200':2.05,\
 					  '24x18_1000':1.25,'24x18_500':1.41,'24x18_200':2.37}
-	video_avg_latencyt = []
-	video_avg_latency = []
-	video_min_bw = []
-	video_min_bwt = []
-	video_id = []
+	avg_num_switches = []
+	num_tiles_per_switch = []
+	median_num_switches = []
+	video_ids = []
 	for i in range(1,31):
 		print("Video:"+str(i))
 		video = i
+		if video ==15 or video ==16:
+			continue
 
 		# retrieve traces of interest.
 		data = {}
@@ -861,11 +771,7 @@ def main():
 				y = float(temp[2])
 				z = float(temp[3])
 				data[vID][uID].append([playbackTime,x,y,z])
-	
-		#[194.41757199999998, 324.96419333333336, 418.84826933333335, 587.4241914893616, 903.8698085106383, 1200.0536666666667, 1435.84434]
-
-	
-		tilechunkSize = {30:9971.1,24:8333.7,16:6276.9,8:4079.3,4:2908.7,2:2256.7,1:1350.1}
+			
 		chunkLength = 1000 #chunk length in millisecond
 		widths = [30]
 		heights = [15]
@@ -878,94 +784,53 @@ def main():
 			watched_frames_in_tiles, num_frames_in_tile, num_tiles_in_FOV,\
  						wasted_area_in_watched_frame = getData(data,video,chunkLength,\
 						tileWidth,tileHeight,tileMap)
+			num_switches_video,tiles_per_switch = get_num_switch(watched_frames_in_tiles, chunkLength)
+			
+			num_switches_list = []
+			num_tiles_per_switch_list = []
+			for uId in num_switches_video:
+				num_switches_list.append(len(num_switches_video[uId]))
+				tiles_per_switch_list = []
+				for switch in tiles_per_switch[uId]:
+					tiles_per_switch_list.append(tiles_per_switch[uId][switch])
+				avg_user = sum(tiles_per_switch_list) / len(tiles_per_switch_list)
+				num_tiles_per_switch_list.append(avg_user)
 
-			total_bytes_exp, switch_bytes_exp = get_switch_latency_total_overhead(watched_frames_in_tiles,tilechunkSize, chunkLength, True)
-			total_bytes, switch_bytes = get_switch_latency_total_overhead(watched_frames_in_tiles,tilechunkSize, chunkLength, False)
+		avg_num_switches.append(sum(num_switches_list) * 1. / len(num_switches_list))
+		num_tiles_per_switch.append(sum(num_tiles_per_switch_list)/len(num_tiles_per_switch_list))
+		median_num_switches.append(np.percentile(num_switches_list,50))
+		if video > 15:
+			video_ids.append(video-2)
+		else:
+			video_ids.append(video)
 
-		total_bytes_users, switch_latency_users = sum_over_user(total_bytes,switch_bytes)
-		total_bytes_users_exp, switch_latency_users_exp = sum_over_user(total_bytes_exp, switch_bytes_exp)
-	
-		x_axis = []
-		y_axis = []
-		x_axist = []
-		y_axist = []
-
-		for uId in total_bytes_users:
-			x_axis.append((((total_bytes_users[uId]) * 8.) / 1e6) / 60. )
-			y_axis.append(switch_latency_users[uId]/1e3)
-			x_axist.append((((total_bytes_users_exp[uId]) * 8.) / 1e6) / 60. )
-			y_axist.append(switch_latency_users_exp[uId]/1e3)
-
-		if len(x_axis) == 0:
-			continue
-		avg_latencyt = sum(y_axist)/len(y_axist)
-		avg_latency = sum(y_axis) / len(y_axis)
-		min_bwt = sum(x_axist) / len(x_axist)
-		min_bw = sum(x_axis) / len(x_axis)
-
-		video_avg_latencyt.append(avg_latencyt)
-		video_avg_latency.append(avg_latency)
-		video_min_bwt.append(min_bwt)
-		video_min_bw.append(min_bw)
-		video_id.append(video)
-
-	plt.figure(figsize=(8,5))
+	#print(avg_num_switches)
+	#print("=====")
+	#print(median_num_switches)
+	plt.figure(figsize=(8,4))
 	plt.subplot(111)
-	plt.plot([video_min_bw,video_min_bwt], [video_avg_latency,video_avg_latencyt],linestyle='--', color='whitesmoke',zorder=1)
-	plt.scatter(video_min_bw, video_avg_latency, marker='x', s=15, color='red',label='No overlap',zorder=2)
-	plt.scatter(video_min_bwt, video_avg_latencyt, marker='D', s=15, color='dodgerblue',label='Overlap',zorder=2)
 
-	plt.legend(loc='best',prop={'weight':'bold'})
-	plt.xlabel('Average minimum bandwidth (mbps)',size=16)
-	plt.ylabel('Average switch latency (KB)',size=16)
-	plt.xticks(size=16)
-	plt.yticks(size=16)
-	#plt.xlim(1,5)
-	#plt.ylim(0,10)
+	plt.scatter(video_ids,avg_num_switches,marker='x',color='dodgerblue',label='\# switches')
+
+	plt.legend(loc='lower left',prop={'size':'12'})
+	plt.xlabel('Video id',size=14)
+	plt.ylabel('Average number switches',size=14)
+	plt.xticks(size=14)
+	plt.yticks(size=14)
+	plt.xlim(.5,28.5)
+	plt.ylim(0,110)
+	plt.twinx()
+	plt.scatter(video_ids,num_tiles_per_switch,marker='D',color='seagreen',label='\# tiles')
+	plt.ylabel('Average number tiles per switch',size=14)
+	plt.yticks(size=14)
+	plt.ylim(0,7)
+	plt.legend(loc='lower right',prop={'size':'12'})
+
 	#plt.grid(True)
-	plt.savefig("graphs/switch_latency_total_bytes_scatter.png",dpi=300,bbox_inches='tight', pad_inches=0.03)
+	plt.savefig("graphs/num_switches.png",dpi=300,bbox_inches='tight', pad_inches=0.03)
 	plt.close()	
 
-	x_t = []
-	x = []
-	for i in range(1,len(video_id)+1):
-		x.append(i-.3)
-		x_t.append(i)
-		
-	plt.figure(figsize=(16,5))
-	plt.subplot(111)
-	plt.grid(axis='y',linestyle='--',zorder=1)
-	plt.bar(x,video_avg_latency,align='edge',color='r',label='No overlap',width=.3,zorder=2,edgecolor='k')
-	plt.bar(x_t,video_avg_latencyt,align='edge',color='dodgerblue',label='Overlap',width=.3,zorder=2,edgecolor='k')
 
-	plt.legend(loc='best',ncol=2,prop={'size':12})
-	plt.xlabel('Video id',size=14)
-	plt.ylabel('Average switch latency (KB)',size=14)
-	plt.xticks([2,4,6,8,10,12,14,16,18,20,22,24,26,28],size=12)
-	plt.yticks(size=12)
-	plt.xlim(.5,28.5)
-	plt.ylim(0,70)
-	#plt.grid(True)
-	plt.savefig("graphs/switch_latency_bar.png",dpi=300,bbox_inches='tight', pad_inches=0.04)
-	plt.close()
-	
-
-	plt.figure(figsize=(16,5))
-	plt.subplot(111)
-	plt.grid(axis='y',linestyle='--',zorder=1)
-	plt.bar(x,video_min_bw,align='edge',color='r',label='No overlap',width=.3,zorder=2,edgecolor='k')
-	plt.bar(x_t,video_min_bwt,align='edge',color='dodgerblue',label='Overlap',width=.3,zorder=2,edgecolor='k')
-
-	plt.legend(loc='best',ncol=2,prop={'size':12})
-	plt.xlabel('Video id',size=14)
-	plt.ylabel('Average minimum bandwidth (mbps)',size=14)
-	plt.xticks([2,4,6,8,10,12,14,16,18,20,22,24,26,28],size=12)
-	plt.yticks(size=12)
-	plt.xlim(.5,28.5)
-	plt.ylim(0,3.7)
-	#plt.grid(True)
-	plt.savefig("graphs/min_bw_bar.png",dpi=300,bbox_inches='tight', pad_inches=0.04)
-	plt.close()
 
 
 
