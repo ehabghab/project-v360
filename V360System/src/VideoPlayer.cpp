@@ -21,8 +21,13 @@
 
 VideoPlayer::VideoPlayer() {
   // read ground truth.
+  // std::string tracePath =
+  //    "/home/ehab/Desktop/traces/tiles_per_frame_user_3.txt";
+
   std::string tracePath =
-      "/home/ehab/Desktop/traces/tiles_per_frame_user_3.txt";
+      "/Users/eghabash/Desktop/360 Video/Project-V360"
+      "/split/tiles_per_frame_user_3.txt";
+
   std::ifstream infile(tracePath);
 
   std::string line;
@@ -52,8 +57,10 @@ VideoPlayer::VideoPlayer() {
     groundTruth_.insert(std::make_pair(sec, t));
   }
 
+  // tracePath = "/home/ehab/Desktop/traces/vp_corr_per_frame_user_3.txt";
   tracePath =
-      "/home/ehab/Desktop/traces/vp_corr_per_frame_user_3.txt";
+      "/Users/eghabash/Desktop/360 Video/Project-V360"
+      "/split/vp_corr_per_frame_user_3.txt";
   std::ifstream infile2(tracePath);
   while (std::getline(infile2, line)) {
     auto pos = line.find(",");
@@ -181,7 +188,8 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
   FILE *playLog;
   std::string filename = "play_log_" + videoPlayer->playLogTimestamp_ + ".txt";
   playLog = fopen(filename.c_str(), "wb");
-  fputs("frame id\t\tdeadline\t\trender time\n", playLog);
+  fprintf(playLog, "%-20s %-20s %-20s\n", "frame id", "deadline",
+          "render time");
 
   while (true) {
     long frameDeadline = Util::getTime();
@@ -235,9 +243,8 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
                             ->second[videoPlayer->frameId_ % videoPlayer->FPS_];
           viewport.insert(std::make_pair(tileIdx, frame));
         } else {
-          std::cout << "MISS:" << rawTilesChunks.find(tileIdx)->first
-                    << std::endl;
           // tile is missing. or not decoded.
+          VLOG(2) << "MISS:" << rawTilesChunks.find(tileIdx)->first;
         }
 
       } else {
@@ -249,13 +256,13 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
 
     // stichFrames.
     renderTime = Util::getTime();
-    std::string frameLog = std::to_string(videoPlayer->frameId_) + "\t\t" +
-                           std::to_string(frameDeadline) + "\t\t" +
-                           std::to_string(renderTime) + "\n";
-    fputs(frameLog.c_str(), playLog);
+    fprintf(playLog, "%-20s %-20s %-20s\n",
+            std::to_string(videoPlayer->frameId_).c_str(),
+            std::to_string(frameDeadline).c_str(),
+            std::to_string(renderTime).c_str());
+
     fflush(playLog);
     videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_);
-
     // free all tile-frames belonging to current frameId
     if (videoPlayer->frameId_ % videoPlayer->FPS_ == 0) {
       for (auto &pair :
@@ -269,6 +276,7 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
     viewport.clear();
     if (videoPlayer->frameId_ == 1475) {
       LOG(INFO) << "Video Ended!";
+      return;
     }
     Util::sleep(renderTime, frameGap);
     videoPlayer->frameId_++;
