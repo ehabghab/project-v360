@@ -27,11 +27,12 @@
 #include <vector>
 
 Server::Server() {
-  videoRootDir_ =
-       "/home/ehab/Desktop/Video_Dir";
+  // videoRootDir_ = "/home/ehab/Desktop/Video_Dir";
 
-  //	auto socket = listenToSocket();
-  //	serve(socket);
+  videoRootDir_ =
+      "/Users/eghabash/Desktop/360 Video/Project-V360"
+      "/split/YuvW12H12";
+
   uint8_t socketFD = initializeSocket();
   uint8_t socket = listenToSocket(socketFD);
   std::thread recieverThread(reciever, this, socket);
@@ -77,7 +78,7 @@ uint8_t Server::initializeSocket() {
 }
 
 uint8_t Server::listenToSocket(uint8_t socketFileDescriptor) {
-  std::cout << "ListenToSocket" << std::endl;
+  LOG(INFO) << "Listening @ PORT:" << PORT;
   struct sockaddr_in address;
   int addrlen = sizeof(address);
   uint8_t newSocket;
@@ -91,7 +92,7 @@ uint8_t Server::listenToSocket(uint8_t socketFileDescriptor) {
     perror("accept");
     exit(EXIT_FAILURE);
   }
-
+  LOG(INFO) << "Connected!";
   return newSocket;
 }
 
@@ -143,13 +144,8 @@ void Server::reciever(Server *server, uint8_t socket) {
          * Otherwise, add it. read more about boost::algorithm::split_regex:
          * https://www.boost.org/doc/libs/1_51_0/doc/html/boost/algorithm/split_regex.html
          * */
-        //std::cout << requestsVecTemp[idx] << "\n------\n";
+
         auto tiles = server->parseRequestIntoTiles(requestsVecTemp[idx]);
-        /*std::string x = "";
-        for (auto tile : tiles) {
-          x += tile + ",";
-        }
-        LOG(INFO) << x;*/
         auto quality = server->parseRequestIntoQuality(requestsVecTemp[idx]);
         server->addTileList(tiles, quality);
       }
@@ -286,13 +282,12 @@ void Server::sender(Server *server, uint8_t socket) {
     }
     std::string tilePath = server->videoRootDir_ + "/" + qualityPathIdx + "/" +
                            tileInfo[2] + "/" + tileInfo[0] + ".h264";
-    // std::cout << "Sent:" << tilePath << "\n";
     char *filePath = new char[tilePath.length() + 1];
     strcpy(filePath, tilePath.c_str());
     FILE *p_file = NULL;
     p_file = fopen(filePath, "r");
     if (!p_file) {
-      std::cout << "file issue" << std::endl;
+      LOG(ERROR) << "Server::sender(): chunk file not found!" << std::endl;
       // ToDo check error code.
       // send to user 404 or other error status.
       continue;
@@ -305,7 +300,7 @@ void Server::sender(Server *server, uint8_t socket) {
     // Enough memory for the file
     buffer = (uint8_t *)malloc((fileSize + 4) * sizeof(uint8_t));
     if (buffer == NULL) {
-      LOG(ERROR) << "Buffer did not allocat successfully!";
+      LOG(ERROR) << "Server::sender(): malloc buffer did not succeed!";
     }
     // Read in the entire file.
     fread(buffer, fileSize, 1, p_file);
@@ -321,7 +316,7 @@ void Server::sender(Server *server, uint8_t socket) {
     std::string header(server->getResponseHeader(
         "1.1", "200 OK", "Bytes", fileSize, "video/m4s",
         tileInfo[0] + "_" + tileInfo[2], qualityPathIdx));
-    std::cout<<header<<"\n-------\n";
+    VLOG(0) << "\n" << header << "-------";
     send(socket, header.c_str(), header.size(), 0);
 
     // send file.
@@ -359,7 +354,6 @@ std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
   boost::algorithm::split_regex(tempVec2, tempVec1[1], boost::regex("Quality"));
 
   std::vector<std::string> tiles;
-  // Tiles: requestsVecTemp[0]
   std::vector<std::string> tileSets;
   boost::algorithm::split_regex(tileSets, tempVec2[0], boost::regex("\n"));
   for (auto const &tileSet : tileSets) {
