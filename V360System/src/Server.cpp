@@ -316,7 +316,7 @@ void Server::sender(Server *server, uint8_t socket) {
     std::string header(server->getResponseHeader(
         "1.1", "200 OK", "Bytes", fileSize, "video/m4s",
         tileInfo[0] + "_" + tileInfo[2], qualityPathIdx));
-    VLOG(0) << "\n" << header << "-------";
+    VLOG(1) << "\n" << header << "-------";
     send(socket, header.c_str(), header.size(), 0);
 
     // send file.
