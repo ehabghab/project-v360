@@ -52,8 +52,7 @@ std::pair<uint32_t, uint16_t> extractTileInfo(std::string tileIndex) {
 
 void ClientNetworkLayer::readGroundTruth() {
   std::string tracePath =
-      "/Users/eghabash/Desktop/360 "
-      "Video/Project-V360/split/tiles_per_second_user_3.txt";
+      "/home/ehab/Desktop/traces/tiles_per_frame_user_3.txt";
   std::ifstream infile(tracePath);
   std::string line;
   int pos;
@@ -79,7 +78,7 @@ void ClientNetworkLayer::readGroundTruth() {
 }
 
 ClientNetworkLayer::ClientNetworkLayer() {
-  readGroundTruth();
+  //readGroundTruth();
   requestCounter_ = 0;
   socket_ = connectToServer();
 }
@@ -96,7 +95,7 @@ int ClientNetworkLayer::connectToServer() {
   serv_addr.sin_port = htons(PORT);
 
   // Convert IPv4 and IPv6 addresses from text to binary form
-  if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+  if (inet_pton(AF_INET, "100.64.0.2", &serv_addr.sin_addr) <= 0) {
     printf("\nInvalid address/ Address not supported \n");
     return -1;
   }
@@ -164,8 +163,7 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
   FILE *recvLog;
   std::string filename = "recv_log_" + client->recvLogTimestamp_ + ".txt";
   recvLog = fopen(filename.c_str(), "wb");
-  fputs("chunk_id\t\ttile_idx\t\tquality\t\tchunk_size\t\trecv_time\n",
-        recvLog);
+  fprintf(recvLog,"%-20s %-20s %-20s %-20s %-20s %-20s ","chunk_id","tile_idx","quality","chunk_size","recv_time","bandwidth(mbps)");
   // fwrite(rawViewPort, sizeof(uint8_t), viewport.size() * tileSize,
   // myfile);
 
@@ -217,13 +215,14 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
 
     if (responsesVecTemp[0].size() != 0 && responsesVecTemp.size() == 1) {
       // the response header has not fully received.
-      std::string temp(data, data + bytesRead);
-      leftoverString = temp;
+      //std::string temp(data, data + bytesRead);
+      leftoverString = responsesVecTemp[0]; // check if this makes sense.
       leftover = true;
     } else {
       // one response header has been received.
       // parse the header to get content length, tile index, and more info.
       respHeader = client->parseHeader(responsesVecTemp[0]);
+      
       // this the length of tile in bytes exculding what might have already been
       // read in previous read() call.
       int chunkSize;
@@ -231,6 +230,7 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
         // LOG(INFO) << responsesVecTemp[0];
         // length of tile + 4bytes of "\r\n\r\n"
         chunkSize = std::stoi(respHeader["Content-Length"]) + 4;
+
       } catch (std::invalid_argument &e) {
         LOG(ERROR) << "Error: failed to extract response header:\n"
                    << responsesVecTemp[0];
@@ -269,15 +269,19 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
       client->receivedTileChunks_.insert(
           std::make_pair(tileInfo.first, tileInfo.second));
       videoPlayer->addChunk(chunk, chunkSize, tileInfo.first, tileInfo.second);
-      std::string tileLog = std::to_string(tileInfo.first) + "\t\t" +
-                            std::to_string(tileInfo.second) + "\t\t" +
-                            respHeader["Tile-Quality"] + "\t\t" +
-                            std::to_string(chunkSize) + "\t\t\t" +
-                            std::to_string(etime - stime) + "\n";
-      fputs(tileLog.c_str(), recvLog);
+       bandwidth =
+        ((chunkSize * 8.0) / 1e6) / ((etime - stime) / 1000.0);  // mbps
+ 
+
+      fprintf(recvLog,"%-20s %-20s %-20s %-20s %-20s %-20s ",
+		std::to_string(tileInfo.first).c_str(),
+		std::to_string(tileInfo.second).c_str(),
+		respHeader["Tile-Quality"].c_str(),
+		std::to_string(chunkSize).c_str(),
+		std::to_string(etime - stime).c_str(),
+		std::to_string(bandwidth).c_str());
       fflush(recvLog);
-      // bandwidth =
-      //  ((chunkSize * 8.0) / 1e6) / ((etime - stime) / 1000.0);  // mbps
+
 
       // bandwidthPredictor->addTileBandwidth(bandwidth);
 

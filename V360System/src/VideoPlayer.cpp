@@ -22,8 +22,7 @@
 VideoPlayer::VideoPlayer() {
   // read ground truth.
   std::string tracePath =
-      "/Users/eghabash/Desktop/360 Video/Project-V360"
-      "/split/tiles_per_frame_user_3.txt";
+      "/home/ehab/Desktop/traces/tiles_per_frame_user_3.txt";
   std::ifstream infile(tracePath);
 
   std::string line;
@@ -54,8 +53,7 @@ VideoPlayer::VideoPlayer() {
   }
 
   tracePath =
-      "/Users/eghabash/Desktop/360 Video/Project-V360"
-      "/split/vp_corr_per_frame_user_3.txt";
+      "/home/ehab/Desktop/traces/vp_corr_per_frame_user_3.txt";
   std::ifstream infile2(tracePath);
   while (std::getline(infile2, line)) {
     auto pos = line.find(",");
@@ -193,6 +191,7 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
     bool check2 = true;
     tilePredictor->addVpCoordinate(
         videoPlayer->groundTruthCoordinates_[videoPlayer->frameId_ - 1]);
+
     // all tiles to present in the current frame.
     auto tiles = videoPlayer->groundTruth_.find(videoPlayer->frameId_);
     if (tiles == videoPlayer->groundTruth_.end()) {

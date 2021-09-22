@@ -20,8 +20,7 @@
 
 AbrAlgorithm::AbrAlgorithm() {
   std::string tracePath =
-      "/Users/eghabash/Desktop/360 Video/Project-V360"
-      "/split/quality_tile_sizes.txt";
+      "/home/ehab/Desktop/traces/quality_tile_sizes.txt";
   std::ifstream infile(tracePath);
   std::string line;
   uint8_t quality = -1;

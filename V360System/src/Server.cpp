@@ -28,8 +28,7 @@
 
 Server::Server() {
   videoRootDir_ =
-      "/Users/eghabash/Desktop/360 Video/Project-V360"
-      "/split/YuvW12H12";
+       "/home/ehab/Desktop/Video_Dir";
 
   //	auto socket = listenToSocket();
   //	serve(socket);
@@ -144,7 +143,7 @@ void Server::reciever(Server *server, uint8_t socket) {
          * Otherwise, add it. read more about boost::algorithm::split_regex:
          * https://www.boost.org/doc/libs/1_51_0/doc/html/boost/algorithm/split_regex.html
          * */
-        // std::cout << requestsVecTemp[idx] << "\n------\n";
+        //std::cout << requestsVecTemp[idx] << "\n------\n";
         auto tiles = server->parseRequestIntoTiles(requestsVecTemp[idx]);
         /*std::string x = "";
         for (auto tile : tiles) {
@@ -322,6 +321,7 @@ void Server::sender(Server *server, uint8_t socket) {
     std::string header(server->getResponseHeader(
         "1.1", "200 OK", "Bytes", fileSize, "video/m4s",
         tileInfo[0] + "_" + tileInfo[2], qualityPathIdx));
+    std::cout<<header<<"\n-------\n";
     send(socket, header.c_str(), header.size(), 0);
 
     // send file.
