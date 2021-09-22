@@ -130,7 +130,7 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
   FILE *recvLog;
   std::string filename = "recv_log_" + client->recvLogTimestamp_ + ".txt";
   recvLog = fopen(filename.c_str(), "wb");
-  fprintf(recvLog, "%-20s %-20s %-20s %-20s %-20s %-20s ", "chunk_id",
+  fprintf(recvLog, "%-20s %-20s %-20s %-20s %-20s %-20s \n", "chunk_id",
           "tile_idx", "quality", "chunk_size", "recv_time", "bandwidth(mbps)");
 
   while (true) {
@@ -237,7 +237,7 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
       bandwidth =
           ((chunkSize * 8.0) / 1e6) / ((etime - stime) / 1000.0);  // mbps
 
-      fprintf(recvLog, "%-20s %-20s %-20s %-20s %-20s %-20s ",
+      fprintf(recvLog, "%-20s %-20s %-20s %-20s %-20s %-20s \n",
               std::to_string(tileInfo.first).c_str(),
               std::to_string(tileInfo.second).c_str(),
               respHeader["Tile-Quality"].c_str(),
