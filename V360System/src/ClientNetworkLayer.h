@@ -31,9 +31,6 @@ class ClientNetworkLayer {
   // To synchronize read and write the request List.
   std::mutex reqMutex_;
 
-  // This is temp until we have our own predictor.
-  std::map<int, std::vector<std::string>> predTemp_;
-
   std::string recvLogTimestamp_;
 
   // TODO document what each function does.
@@ -51,8 +48,6 @@ class ClientNetworkLayer {
   std::string getRequestHeader(std::string request);
 
   std::map<std::string, std::string> parseHeader(std::string responseHeader);
-
-  void readGroundTruth();
 
  public:
   ClientNetworkLayer();
