@@ -19,8 +19,11 @@
 #define ABR_FREQ 100
 
 AbrAlgorithm::AbrAlgorithm() {
+  // std::string tracePath =
+  //    "/home/ehab/Desktop/traces/quality_tile_sizes.txt";
   std::string tracePath =
-      "/home/ehab/Desktop/traces/quality_tile_sizes.txt";
+      "/Users/eghabash/Desktop/360 Video/Project-V360"
+      "/split/quality_tile_sizes.txt";
   std::ifstream infile(tracePath);
   std::string line;
   uint8_t quality = -1;
@@ -44,7 +47,7 @@ AbrAlgorithm::AbrAlgorithm() {
       }
 
     } catch (std::invalid_argument &e) {
-      std::cout << "Error reading ground truth\n" << line << std::endl;
+      LOG(ERROR) << "AbrAlgorithm::AbrAlgorithm(): cannot read line :" << line;
     }
   }
   numberOfQualities_ = tileChunkSizePerQuality_.size();
