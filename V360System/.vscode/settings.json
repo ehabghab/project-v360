@@ -92,7 +92,18 @@
         "stop_token": "cpp",
         "cinttypes": "cpp",
         "filesystem": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "cfenv": "cpp",
+        "charconv": "cpp",
+        "csetjmp": "cpp",
+        "forward_list": "cpp",
+        "numbers": "cpp",
+        "regex": "cpp",
+        "scoped_allocator": "cpp",
+        "shared_mutex": "cpp",
+        "span": "cpp",
+        "valarray": "cpp",
+        "cuchar": "cpp"
     },
     "editor.codeActionsOnSave": {
         "source.fixAll": true
