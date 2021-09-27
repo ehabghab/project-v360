@@ -13,6 +13,8 @@
 #include <utility>
 #include <vector>
 
+#include "LinearRegression.h"
+
 class TilePredictor {
  public:
   void addVpCoordinate(std::pair<float, float> coordinate);
@@ -30,6 +32,8 @@ class TilePredictor {
     std::pair<float, float> lowerLeft;
     std::pair<float, float> lowerRight;
   };
+
+  LinearRegression* linearRegressor_;
 
   // Assuming the video is only 2000 frames. otherwise,
   // increase the size of vectors.

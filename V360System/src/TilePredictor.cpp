@@ -234,6 +234,15 @@ TilePredictor::getPredictedTiles() {
     ;
   std::vector<std::pair<int, int>> vpCorrs = {{100, 100}, {120, 120}};
 
+  if (frameId_ >= 13) {
+    auto res =
+        linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_ - 1);
+    for (auto &pair : res) {
+      std::cout << "(" << pair.first << "," << pair.second << "), ";
+    }
+    std::cout << "\n---------\n";
+  }
+
   // Todo fix
   uint16_t frameId = frameId_;
 
@@ -360,6 +369,8 @@ TilePredictor::TilePredictor() {
   vpGroundTruth_.reserve(2000);
   vpPredictions_.reserve(2000);
   frameId_ = 0;
+
+  linearRegressor_ = new LinearRegression();
 
   // fill
   uint16_t c = 1;
