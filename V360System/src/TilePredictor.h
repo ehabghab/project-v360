@@ -21,7 +21,10 @@ class TilePredictor {
 
   // returns frameId --> tile class --> set of tiles.
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
-  getPredictedTiles();
+  getPredictedTilesStatic();
+
+  std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
+  getPredictedTilesLR();
 
   TilePredictor();
 
@@ -62,8 +65,9 @@ class TilePredictor {
                               std::pair<float, float> tileCorrdinates,
                               std::pair<float, float> tileDimensions);
 
-  void getTileSet(std::map<float, std::vector<uint16_t>>& tileRanksByArea,
-                  std::vector<SquareCoordinates>& vpSqrs, int vpArea);
+  void sortTileSetByArea(
+      std::map<float, std::vector<uint16_t>>& tileRanksByArea,
+      std::vector<SquareCoordinates>& vpSqrs, int vpArea);
 
   std::pair<float, float> getVpCoordinate();
 };

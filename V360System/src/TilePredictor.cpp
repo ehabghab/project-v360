@@ -225,7 +225,117 @@ float TilePredictor::getFractionOfTileInVP(
 }
 
 std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
-TilePredictor::getPredictedTiles() {
+TilePredictor::getPredictedTilesLR() {
+  std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
+      tileClassAllFrames;
+
+  // video join time as it only happens at the start of video sessions.
+  while (frameId_ == 0)
+    ;
+  std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
+
+  std::vector<std::pair<float, float>> predictedCorr;
+  if (frameId_ >= 13) {
+    predictedCorr =
+        linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_ - 1);
+    for (auto &pair : predictedCorr) {
+      std::cout << "(" << pair.first << "," << pair.second << "), ";
+    }
+    std::cout << "\n---------\n";
+  }
+
+  uint16_t frameId = frameId_;
+
+  for (uint16_t idx = 0; idx < 25; idx++) {
+    if (frameId >= 1475) {
+      break;
+    }
+
+    std::pair<float, float> viewportCenter;
+    // use static predictor.
+    if (predictedCorr.size() == 0) {
+      viewportCenter = vpGroundTruth_[frameId_ - 1];
+    } else {
+      viewportCenter = predictedCorr[idx];
+    }
+    // Key: tile-class (i.e. rank).
+    // Value: all tiles with that class.
+    std::map<uint8_t, std::vector<uint16_t>> fillingMap;
+
+    // Key: frame id
+    // Value: all predicted tiles sorted based on rank into sets.
+    //        and, tiles within the set are sorted based on area overlapped with
+    //        viewport.
+    tileClassAllFrames.insert(std::make_pair(frameId + idx, fillingMap));
+    auto &tileClassMap = tileClassAllFrames.find(frameId + idx)->second;
+
+    // Two classes: 0 (VP--> highest_class), and 1 (Edge)
+    uint8_t tileClass = 0;
+    // This set will contain all tiles in prev sets (duplicates are not allowed)
+    std::set<uint16_t> tilesInPrevSets;
+    for (auto &vpResolution : vpResolutions) {
+      // find viewport squares.
+      std::vector<SquareCoordinates> vpSqrs;
+      getViewportSquares(vpSqrs, viewportCenter, vpResolution);
+
+      // key: fraction area of tile that overlaps with viewport.
+      // value: list of all tiles.
+
+      std::map<float, std::vector<uint16_t>> tilesSortedByArea;
+      sortTileSetByArea(tilesSortedByArea, vpSqrs,
+                        vpResolution.first * vpResolution.second);
+      for (auto const &tileSet : tilesSortedByArea) {
+        // if the tiles do not overlap with viewport then skip.
+        if ((1 - tileSet.first) == 0) {
+          continue;
+        }
+
+        // go over all tiles in the set.
+        for (auto const &tile : tileSet.second) {
+          // if the tile already included in previous higher rank sets, no
+          // need to include it in the lower sets
+          if (tilesInPrevSets.find(tile) != tilesInPrevSets.end()) {
+            continue;
+          }
+          tilesInPrevSets.insert(tile);
+          if (tileClassMap.find(tileClass) == tileClassMap.end()) {
+            std::vector<uint16_t> tileSet;
+            tileClassMap.insert(std::make_pair(tileClass, tileSet));
+          }
+          tileClassMap.find(tileClass)->second.push_back(tile);
+        }
+        if (VLOG_IS_ON(1)) {
+          VLOG(1) << "Fraction of area in viewport:" << (1 - tileSet.first);
+          std::string vLogTiles;
+          for (auto const &tile : tileSet.second) {
+            vLogTiles += std::to_string(tile) + ",";
+          }
+          VLOG(1) << vLogTiles;
+        }
+      }
+      tileClass++;
+    }
+  }
+  // print tiles in sets
+  if (VLOG_IS_ON(1)) {
+    for (auto const &chunkSet : tileClassAllFrames) {
+      for (auto const &setTiles : chunkSet.second) {
+        LOG(INFO) << static_cast<int>(chunkSet.first) << ":"
+                  << static_cast<int>(setTiles.first);
+        std::string tiles;
+        for (auto const &tile : setTiles.second) {
+          tiles += std::to_string(tile) + ",";
+        }
+        LOG(INFO) << tiles;
+      }
+    }
+    LOG(INFO) << "==================";
+  }
+  return tileClassAllFrames;
+}
+
+std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
+TilePredictor::getPredictedTilesStatic() {
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
       tileClassAllFrames;
 
@@ -233,15 +343,6 @@ TilePredictor::getPredictedTiles() {
   while (frameId_ == 0)
     ;
   std::vector<std::pair<int, int>> vpCorrs = {{100, 100}, {120, 120}};
-
-  if (frameId_ >= 13) {
-    auto res =
-        linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_ - 1);
-    for (auto &pair : res) {
-      std::cout << "(" << pair.first << "," << pair.second << "), ";
-    }
-    std::cout << "\n---------\n";
-  }
 
   // Todo fix
   uint16_t frameId = frameId_;
@@ -266,7 +367,8 @@ TilePredictor::getPredictedTiles() {
      */
     uint8_t tileClass = 0;
 
-    // This set will contain all tiles in prev set. all tiles in set are unique.
+    // This set will contain all tiles in prev set. all tiles in set are
+    // unique.
     std::set<uint16_t> tilesInPrevSets;
     for (auto &vpCorr : vpCorrs) {
       // find viewport squares.
@@ -274,10 +376,10 @@ TilePredictor::getPredictedTiles() {
       getViewportSquares(vpSqrs, viewportCenter, vpCorr);
 
       // key: fraction area of tile that overlaps with viewport.
-      // value: all tiles with fraction of area overlapping with viewport equals
-      // to key.
+      // value: all tiles with fraction of area overlapping with viewport
+      // equals to key.
       std::map<float, std::vector<uint16_t>> tileRanksByArea;
-      getTileSet(tileRanksByArea, vpSqrs, vpCorr.first * vpCorr.second);
+      sortTileSetByArea(tileRanksByArea, vpSqrs, vpCorr.first * vpCorr.second);
 
       for (auto const &tiles : tileRanksByArea) {
         // if the tiles do not overlap with viewport then skip.
@@ -286,8 +388,8 @@ TilePredictor::getPredictedTiles() {
         }
 
         for (auto const &tile : tiles.second) {
-          // if the tile already included in previous higher rank sets, no need
-          // to include it in the lower sets
+          // if the tile already included in previous higher rank sets, no
+          // need to include it in the lower sets
           if (tilesInPrevSets.find(tile) != tilesInPrevSets.end()) {
             continue;
           }
@@ -332,7 +434,7 @@ TilePredictor::getPredictedTiles() {
   return tileClassAllFrames;
 }
 
-void TilePredictor::getTileSet(
+void TilePredictor::sortTileSetByArea(
     std::map<float, std::vector<uint16_t>> &tileRanksByArea,
     std::vector<SquareCoordinates> &vpSqrs, int vpArea) {
   // per tile in frame get the fraction of its area that overlaps with

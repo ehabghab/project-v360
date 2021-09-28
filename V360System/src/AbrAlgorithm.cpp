@@ -71,7 +71,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     // get the predicted tiles every ABR_FREQ(100ms).
     // we will have mutliple sets (e.g. viewport tiles, viewport edge tiles ,
     // further tiles, rest of tiles)
-    auto tilesPerFrame = tilePredictor->getPredictedTiles();
+    auto tilesPerFrame = tilePredictor->getPredictedTilesLR();
     if (tilesPerFrame.size() == 0) {
       break;
     }
