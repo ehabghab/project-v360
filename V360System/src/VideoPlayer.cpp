@@ -85,7 +85,9 @@ void VideoPlayer::addChunk(uint8_t *chunkPointer, uint32_t chunkSize,
   // comment to turn off decoder.
   auto pair = chunks_.find(tileChunkIdx);
   if (pair != chunks_.end()) {
+    recvChunKMutex_.lock();	
     pair->second.insert(std::make_pair(tileIdx, chunk));
+    recvChunKMutex_.unlock();	
   } else {
     std::map<uint16_t, struct Chunk> tileIdxChunkMap;
     tileIdxChunkMap.insert(std::make_pair(tileIdx, chunk));
@@ -163,7 +165,9 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
           // free chunks.
           auto &encodedFrameStruct = tileInfo->second;
           free(encodedFrameStruct.chunk);
+	  videoPlayer->recvChunKMutex_.lock();	
           chunks->second.erase(tileInfo->first);
+	  videoPlayer->recvChunKMutex_.unlock();	
           decode_frame = true;
           break;
         }
@@ -438,7 +442,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
     numOfRows++;
   }  // end of stitching loop
 
-  FILE *myfile;
+  /*FILE *myfile;
 
   std::string filename =
       std::to_string(frameId) + "_" + std::to_string(tilesInRow * 320) + "X" +
@@ -448,7 +452,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
 
   fwrite(rawViewPort, sizeof(uint8_t), numberOfTiles * tileSize, myfile);
 
-  fclose(myfile);
+  fclose(myfile);*/
 }
 
 void VideoPlayer::setPlayLogTimestamp(std::string playLogTimestamp) {

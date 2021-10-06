@@ -164,9 +164,9 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
       allCombinations.insert(std::make_pair(chunkSet.first, qualityComb));
     }
 
-    //float predictedBw = 1000.0 * 1e6 / 8.0;  // 5mpbs to bytes/second.
-    float predictedBw = (bandwidthPredictor->getMpcBandwidthPrediction() * 1e6) / 8.0;
-    /*std::cout<<"BW:"<<std::to_string(predictedBw)<<std::endl;
+
+    float predictedBw = (bandwidthPredictor->getMpcBandwidthPrediction() * 1e6) / 8.0; //Bytes Per Second
+    /*std::cout<<"BW:"<<std::to_string(predictedBwx1)<<std::endl;
     std::cout<<videoTime<<std::endl;    
     for (auto const &chunkComb : allCombinations) {
         std::cout<<chunkComb.first<<":[";

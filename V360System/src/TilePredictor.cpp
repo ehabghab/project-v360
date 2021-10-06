@@ -457,8 +457,14 @@ void TilePredictor::sortTileSetByArea(
   vpSize = vpSize * 30 * 15;
   if (vpSize <= vpArea - .1 || vpSize >= vpArea + .1) {
     LOG(ERROR) << "Fraction of tiles covering viewport"
-                  " does not match with viewport true size: "
+                  " does not match with viewport true size "
                << vpSize;
+    for (auto const& vpsqr : vpSqrs)
+	{
+		LOG(INFO)<<"("<<std::to_string(vpsqr.upperRight.first)<<","<<std::to_string(vpsqr.upperRight.second)<<") --> ("<<std::to_string(vpsqr.upperLeft.first)<<","<<std::to_string(vpsqr.upperLeft.second)<<")"<<std::endl;
+		LOG(INFO)<<"("<<std::to_string(vpsqr.lowerRight.first)<<","<<std::to_string(vpsqr.lowerRight.second)<<") --> ("<<std::to_string(vpsqr.lowerLeft.first)<<","<<std::to_string(vpsqr.lowerLeft.second)<<")\n====="<<std::endl;
+			
+	}
   }
 }
 

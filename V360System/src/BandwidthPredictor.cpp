@@ -6,7 +6,10 @@
  */
 
 #include "BandwidthPredictor.h"
+
+#include <cmath>
 #include <iostream>
+
 
 BandwidthPredictor::BandwidthPredictor() {
 	bandwidthSum_ = 0.0;
@@ -15,6 +18,10 @@ BandwidthPredictor::BandwidthPredictor() {
 }
 
 void BandwidthPredictor::addTileBandwidth(float bandwidth) {
+	if (std::isinf(bandwidth))
+	{
+		return;		
+	}
 	bandwidthMutex_.lock();
 	bandwidthSum_+= bandwidth;
 	numOfChunks_++;
@@ -45,8 +52,6 @@ float BandwidthPredictor::getMpcBandwidthPrediction() {
 	int timeStartIdx = avgBandwidths_.size() < 50 ? 0 : avgBandwidths_.size() - 50;
 	float predictedBandwidthSum = 0;
 	int totalNumOfChunks = 0;
-
-	std::cout<<timeStartIdx<<":"<<avgBandwidths_.size()-1<<std::endl;
 	for(timeStartIdx; timeStartIdx < avgBandwidths_.size() ; timeStartIdx++) {
 
 		predictedBandwidthSum += avgBandwidths_[timeStartIdx].second;
