@@ -55,10 +55,12 @@ Client::Client() {
                         clientNetworkLayer);
 
   videoPlayerThread.join();
-  abrThread.join();
-  senderThread.join();
-  recvThread.join();
-  videoPlayerDecoderThread.join();
+
+
+  //abrThread.join();
+  //senderThread.join();
+  //recvThread.join();
+  //videoPlayerDecoderThread.join();
 }
 
 Client::~Client() {}

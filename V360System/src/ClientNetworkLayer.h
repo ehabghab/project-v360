@@ -25,9 +25,6 @@ class ClientNetworkLayer {
   // set of tiles to be requests, filled by ABR algorithm.
   std::string request_;
 
-  // Newest request will have higher counters.
-  int requestCounter_;
-
   // To synchronize read and write the request List.
   std::mutex reqMutex_;
 

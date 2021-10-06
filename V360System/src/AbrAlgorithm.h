@@ -27,6 +27,7 @@ class AbrAlgorithm {
   std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
       tileChunkSizePerQuality_;
   uint8_t numberOfQualities_;
+
 };
 
 #endif /* ABRALGORITHM_H_ */

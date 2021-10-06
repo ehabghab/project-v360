@@ -61,6 +61,7 @@ class VideoPlayer {
   void orderTilesToLinkedList(std::map<uint16_t, T *> &viewport,
                               std::vector<Node<T> *> &viewportLinkedList);
   std::mutex recvChunKMutex_;
+
  public:
   static void start(VideoPlayer *videoPlayer, TilePredictor *tilePredictor);
 

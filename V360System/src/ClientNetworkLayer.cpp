@@ -51,7 +51,6 @@ std::pair<uint32_t, uint16_t> extractTileInfo(std::string tileIndex) {
 }
 
 ClientNetworkLayer::ClientNetworkLayer() {
-  requestCounter_ = 0;
   socket_ = connectToServer();
 }
 
