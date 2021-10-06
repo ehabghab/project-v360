@@ -275,11 +275,6 @@ def getTiles(map,cx,cy,tileWidth,tileHeight):
 	else:
 		yd = int(y1/tileHeight) * tileHeight
 
-	#print "("+str(xul)+","+str(yu)+")"
-	#print "("+str(xur)+","+str(yu)+")"
-	#print "("+str(xdl)+","+str(yd)+")"
-	#print "("+str(xdr)+","+str(yd)+")"
-
 	# flipped or not
 	# xaxis are wrapped or not!
 	tiles = set()
@@ -290,7 +285,6 @@ def getTiles(map,cx,cy,tileWidth,tileHeight):
 				for i in range(int(xul),int(xur),tileWidth):
 					tiles.add(map[i][j])
 		else:
-			print("overlapping!")
 			for j in range(int(yu),int(yd),-tileHeight):
 				for i in range(int(xul), 360, tileWidth):
 					tiles.add(map[i][j])
@@ -628,13 +622,14 @@ def getData(data,video,chunkLength,tileWidth,tileHeight,tileMap):
 	num_frames_in_tile = {} # index of watched frames in chunk, key is (user id --> chunkNum), value list of frames number within tile.
 	num_tiles_in_FOV = {} # number of tiles in a single FOV
 	wasted_area_in_watched_frame = {}
-	yaws = []
-	pitches = []
-	cxcx = 1
+	yaws = {}
+	pitches = {}
 	for vID in data:
 		if vID != video:
 			continue
 		for uID in data[vID]:
+			yaws[uID] = []
+			pitches[uID] = []
 			FOVNum = 1 #number of frames in second (frame counter)
 			startTime = -1
 			prevFrameTime = 0
@@ -662,13 +657,10 @@ def getData(data,video,chunkLength,tileWidth,tileHeight,tileMap):
 
 				#frames are 40msec apart (25FPS).
 				if (timestampCal - prevFrameTime) >=40 or prevFrameTime == 0:
-					yaws.append(yaw)
-					pitches.append(pitch)
+					yaws[uID].append(yaw)
+					pitches[uID].append(pitch)
 					prevFrameTime += 40
-					print(cxcx)
 					tiles,wastage = getTiles(tileMap,yaw,pitch,tileWidth,tileHeight)
-					print("====")
-					cxcx += 1
 					if  watched_frames_in_tiles[uID].get(chunkID,None) == None:
 						watched_frames_in_tiles[uID][chunkID] = {}
 						wasted_area_in_watched_frame[uID][chunkID] = {}
@@ -718,8 +710,6 @@ def getWaste(watched_frames_in_tiles, wasted_area_in_watched_frame, num_frames_i
 			else:
 				baseFrameNum += IFrameDist
 
-			#print(baseFrameNum)
-				#size of un-watched frames in all tiles.
 
 			for tile in watched_frames_in_tiles[uID][chunkID]:
 				for fId in range(1,num_frames_in_tile[uID][chunkID]+1): #loop over all frames ids in tile.
@@ -789,7 +779,6 @@ def get_switch_latency_total_overhead(watched_frames_in_tiles,\
 		for switch_frame in sorted(num_missed_tiles):
 			switch_size = num_missed_tiles[switch_frame] * tile_chunk_size[0] * 8. / 1e3 #Mbit
 			switch_latency = switch_size / bandwidth # sec
-			#print(switch_latency)
 			if prev_switch_frame != -1:
 				passed_time = (switch_frame - prev_switch_frame) * 40. / 1e3
 				cascade -= passed_time
@@ -800,7 +789,6 @@ def get_switch_latency_total_overhead(watched_frames_in_tiles,\
 			switch_latency_all[uID].append(total_latency)
 
 			if cascade > 0:
-				print(cascade * 1e3)
 				bad_all[uID] += 1
 				switch_latency_bad_all[uID].append(total_latency)
 
@@ -854,14 +842,6 @@ def main():
 				if ".csv" in fname:
 					files.append(dirpath+"/"+fname)
 
-	video_switch_latency = {}
-	video_switch_typical = {}
-	video_switch_bad = {}
-	video_switch_latency_typical = {}
-	video_switch_latency_bad = {}
-	video_ids = []
-	bandwidths = [1.2,2.3,4.7]  #video bitrate ,10.17,  12x12 fov bitrate = 28 (tiles) * 5.18 (tile chunk size) 
-	tile_chunk_sizes = [5.18, 8.33] #0: 12x12 --> 1 sec, 12x12 --> 0.5 sec
 	for i in range(1,2):
 		print("Video:"+str(i))
 		video = i
@@ -873,7 +853,7 @@ def main():
 		for fname in files:
 			vID = int(fname.split("vID_")[1].split("_")[0])
 			uID = int(fname.split("uID_")[1].split("_")[0])
-			if vID != video or uID != 3:
+			if vID != video:
 				continue
 			if data.get(vID, None) == None:
 				data[vID] = {}
@@ -892,25 +872,17 @@ def main():
 		chunkLength = 1000 #chunk length in millisecond
 		widths = [30]
 		heights = [15]
-		video_switch_latency[video] = {}
-		video_switch_typical[video] = {}
-		video_switch_bad[video] = {}
-		video_switch_latency_typical[video] = {}
-		video_switch_latency_bad[video] = {}
 		for tileWidth,tileHeight in zip((widths),(heights)):
 			tileMap = generateMAP(tileWidth,tileHeight)
 			watched_frames_in_tiles, num_frames_in_tile, num_tiles_in_FOV,\
  						wasted_area_in_watched_frame,yaws,pitches = getData(data,video,chunkLength,\
 						tileWidth,tileHeight,tileMap)
 
-			
-		'''for user_id in watched_frames_in_tiles:
-			fi = open("tiles_per_second_user_"+str(user_id)+".txt",'w')
-			for chunk_id in sorted(watched_frames_in_tiles[user_id]):
-				fi.write(str(chunk_id)+":"+str(sorted(watched_frames_in_tiles[user_id][chunk_id]))+"\n")
+		for uID in yaws:
+			fi = open("traces_system/vp_corr_per_frame_user_"+str(uID)+".txt",'w')
+			for x,y in zip(yaws[uID],pitches[uID]):
+				fi.write(str(x)+","+str(y)+"\n")
 			fi.close()
-		'''
-
 
 		
 		for user_id in watched_frames_in_tiles:
@@ -925,7 +897,7 @@ def main():
 				frames_count += num_frames_in_tile[user_id][chunk_id]
 
 			chunk_in_sec = {}
-			fi  = open("tiles_per_frame_user_"+str(user_id)+".txt",'w')
+			fi  = open("traces_system/tiles_per_frame_user_"+str(user_id)+".txt",'w')
 			frame_id = 1
 			FPS = 25
 			for frame in sorted(tiles_per_frame):
@@ -940,15 +912,6 @@ def main():
 				
 			fi.close()
 
-			'''fi = open("tiles_per_second_user_"+str(user_id)+".txt",'w')
-			for chunk_id in chunk_in_sec:
-				fi.write(str(chunk_id)+":"+str(sorted(chunk_in_sec[chunk_id]))+"\n")
-			fi.close()'''
-
-		fi = open("vp_corr_per_frame_user_"+str(3)+".txt",'w')
-		for x,y in zip(yaws,pitches):
-			fi.write(str(x)+","+str(y)+"\n")
-		fi.close()
 
 
 
