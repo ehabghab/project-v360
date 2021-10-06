@@ -27,11 +27,11 @@
 #include <vector>
 
 Server::Server() {
-  // videoRootDir_ = "/home/ehab/Desktop/Video_Dir";
+  videoRootDir_ = "/home/ehab/Desktop/Project-V360/split/YuvW12H12";
 
-  videoRootDir_ =
-      "/Users/eghabash/Desktop/360 Video/Project-V360"
-      "/split/YuvW12H12";
+  //videoRootDir_ =
+    //  "/Users/eghabash/Desktop/360 Video/Project-V360"
+      //"/split/YuvW12H12";
 
   uint8_t socketFD = initializeSocket();
   uint8_t socket = listenToSocket(socketFD);

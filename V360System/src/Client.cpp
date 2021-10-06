@@ -51,7 +51,7 @@ Client::Client() {
 
   std::thread senderThread(ClientNetworkLayer::sender, clientNetworkLayer);
 
-  std::thread abrThread(AbrAlgorithm::runAbr, abr, tilePredictor, nullptr,
+  std::thread abrThread(AbrAlgorithm::runAbr, abr, tilePredictor, bandwidthPredictor,
                         clientNetworkLayer);
 
   videoPlayerThread.join();

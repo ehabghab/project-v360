@@ -238,10 +238,10 @@ TilePredictor::getPredictedTilesLR() {
   if (frameId_ >= 13) {
     predictedCorr =
         linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_ - 1);
-    for (auto &pair : predictedCorr) {
+   /* for (auto &pair : predictedCorr) {
       std::cout << "(" << pair.first << "," << pair.second << "), ";
     }
-    std::cout << "\n---------\n";
+    std::cout << "\n---------\n";*/
   }
 
   uint16_t frameId = frameId_;

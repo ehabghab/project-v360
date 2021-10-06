@@ -6,6 +6,7 @@
  */
 
 #include "BandwidthPredictor.h"
+#include <iostream>
 
 BandwidthPredictor::BandwidthPredictor() {
 	bandwidthSum_ = 0.0;
@@ -40,17 +41,19 @@ float BandwidthPredictor::getMpcBandwidthPrediction() {
 
 	//ToDo return mpc avg.
 
-
 	avgBandwidths_.push_back(getAvgDownloadTime());
-	int timeEndIdx = avgBandwidths_.size() - 50 < 0 ? 0 : avgBandwidths_.size() - 50;
+	int timeStartIdx = avgBandwidths_.size() < 50 ? 0 : avgBandwidths_.size() - 50;
 	float predictedBandwidthSum = 0;
 	int totalNumOfChunks = 0;
-	for(int timeIdx = avgBandwidths_.size()-1; timeIdx > timeEndIdx - 1; timeIdx++) {
-		predictedBandwidthSum += avgBandwidths_[timeIdx].first * avgBandwidths_[timeIdx].second;
-		totalNumOfChunks += avgBandwidths_[timeIdx].first;
+
+	std::cout<<timeStartIdx<<":"<<avgBandwidths_.size()-1<<std::endl;
+	for(timeStartIdx; timeStartIdx < avgBandwidths_.size() ; timeStartIdx++) {
+
+		predictedBandwidthSum += avgBandwidths_[timeStartIdx].second;
+		totalNumOfChunks += avgBandwidths_[timeStartIdx].first;
 	}
 
-	//TODO: check?
+
 	return predictedBandwidthSum/totalNumOfChunks;
 }
 

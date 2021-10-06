@@ -67,10 +67,10 @@ int ClientNetworkLayer::connectToServer() {
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_port = htons(PORT);
 
-  // std::string ip_ubunut = "100.64.0.2";
-  std::string ip_macos = "127.0.0.1";
+  std::string ip = "100.64.0.2";
+  //std::string ip = "127.0.0.1";
   // Convert IPv4 and IPv6 addresses from text to binary form
-  if (inet_pton(AF_INET, ip_macos.c_str(), &serv_addr.sin_addr) <= 0) {
+  if (inet_pton(AF_INET, ip.c_str(), &serv_addr.sin_addr) <= 0) {
     LOG(ERROR) << "ClientNetworkLayer::connectToServer(): Invalid address"
                   "Address not supported ";
     return -1;
@@ -246,7 +246,7 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
               std::to_string(bandwidth).c_str());
       fflush(recvLog);
 
-      // bandwidthPredictor->addTileBandwidth(bandwidth);
+      bandwidthPredictor->addTileBandwidth(bandwidth);
 
       stime = -1;
     }

@@ -19,11 +19,11 @@
 #define ABR_FREQ 100
 
 AbrAlgorithm::AbrAlgorithm() {
-  // std::string tracePath =
-  //    "/home/ehab/Desktop/traces/quality_tile_sizes.txt";
-  std::string tracePath =
-      "/Users/eghabash/Desktop/360 Video/Project-V360"
-      "/split/quality_tile_sizes.txt";
+   std::string tracePath =
+      "/home/ehab/Desktop/Project-V360/split/quality_tile_sizes.txt";
+  //std::string tracePath =
+   //   "/Users/eghabash/Desktop/360 Video/Project-V360"
+     // "/split/quality_tile_sizes.txt";
   std::ifstream infile(tracePath);
   std::string line;
   uint8_t quality = -1;
@@ -144,16 +144,18 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     // set1 set2 set3
     // qulity1 quality2
     // TODO: This need to be generalized.
-    // chunk id, size <LL, HL, HH>
-    std::map<int, std::vector<uint64_t>> allCombinations;
+
+  // chunkId, set, quality (index), sum size of all set with <quality>.
+     // chunk id, size <LL, HL, HH>
+   std::map<int, std::vector<uint64_t>> allCombinations;
     for (auto const &chunkSet : chunkIdSetQualitySizeSum) {
       std::vector<uint64_t> qualityComb = {0, 0, 0};
       for (auto const &setQuality : chunkSet.second) {
-        if (setQuality.first == 0) {
+        if (setQuality.first == 0) { // viewport set
           qualityComb[0] += setQuality.second[0];
           qualityComb[1] += setQuality.second[1];
           qualityComb[2] += setQuality.second[1];
-        } else {
+        } else { // edge set
           qualityComb[0] += setQuality.second[0];
           qualityComb[1] += setQuality.second[0];
           qualityComb[2] += setQuality.second[1];
@@ -162,32 +164,55 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
       allCombinations.insert(std::make_pair(chunkSet.first, qualityComb));
     }
 
-    float predictedBw = 1000.0 * 1e6 / 8.0;  // 5mpbs to bytes/second.
-    // bandwidthPredictor->getMpcBandwidthPrediction();
+    //float predictedBw = 1000.0 * 1e6 / 8.0;  // 5mpbs to bytes/second.
+    float predictedBw = (bandwidthPredictor->getMpcBandwidthPrediction() * 1e6) / 8.0;
+    /*std::cout<<"BW:"<<std::to_string(predictedBw)<<std::endl;
+    std::cout<<videoTime<<std::endl;    
+    for (auto const &chunkComb : allCombinations) {
+        std::cout<<chunkComb.first<<":[";
+	for (auto const &q : chunkComb.second)
+        {
+	    std::cout<<std::to_string(q)<<",";	
+	}
+	std::cout<<"]\n";
+    }*/
+    
+	
 
     int qIdx = 2;
-    // assuming that bandwidth is 5mbps.
+    if (predictedBw == 0 || std::isnan(predictedBw)) 
+    {
+	qIdx = 0;
+    }
+    else{
+    // try all different quality options (i.e. H_H:2, H_L:1, L_L:0)
+    bool qualityFound;
     for (; qIdx >= 0; qIdx--) {
-      float tcascade = 0;
+      float timeCascade = (videoTime / 1e3);
+      qualityFound = true;
+      // chunkComb.first = chunkId
+      // chunkComb.second = {0: size(L_L),1:size(H_L), 2:size(H_H)} 
       for (auto const &chunkComb : allCombinations) {
         // time in sec to get the set of quality[qIdx]
         auto downloadTime = chunkComb.second[qIdx] / predictedBw;
-        // time by which this set is needed if not to face rebuffering.
-        auto chunkDeadline = ((chunkComb.first) - (videoTime / 1e3));
-        tcascade = (chunkDeadline - downloadTime) + tcascade;
-        VLOG(1) << chunkComb.first << " : " << videoTime / 1e3 << " : "
-                << ((chunkComb.first) - (videoTime / 1e3))
-                << " == " << chunkComb.second[qIdx] << " = " << downloadTime
-                << "/" << tcascade;
-        if (tcascade < 0) {
-          break;
+	if (downloadTime + timeCascade < chunkComb.first)
+	{
+		timeCascade += downloadTime;
         }
+	else
+	{
+		qualityFound = false;
+		break;	
+	}
       }
-      if (tcascade > 0) {
+      if (qualityFound) {
+	// all sets are recevied by their deadline, so qIdx is the best quality.
         break;
       }
     }
+    }
     qIdx = qIdx == -1 ? 0 : qIdx;
+    //std::cout<<qIdx<<"\n===========\n";
     std::string req = "Tiles\n";
     for (auto const &tileSet : tilesRequest) {
       req += tileSet + "\n";
