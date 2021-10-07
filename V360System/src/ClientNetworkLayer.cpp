@@ -65,9 +65,7 @@ int ClientNetworkLayer::connectToServer() {
 
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_port = htons(PORT);
-
   std::string ip = "100.64.0.2";
-  //std::string ip = "127.0.0.1";
   // Convert IPv4 and IPv6 addresses from text to binary form
   if (inet_pton(AF_INET, ip.c_str(), &serv_addr.sin_addr) <= 0) {
     LOG(ERROR) << "ClientNetworkLayer::connectToServer(): Invalid address"
@@ -79,6 +77,7 @@ int ClientNetworkLayer::connectToServer() {
     LOG(ERROR) << "ClientNetworkLayer::connectToServer(): nConnection Failed";
     return -1;
   }
+
   return sock;
 }
 
@@ -245,7 +244,7 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
               std::to_string(bandwidth).c_str());
       fflush(recvLog);
 
-      bandwidthPredictor->addTileBandwidth(bandwidth);
+      // bandwidthPredictor->addTileBandwidth(bandwidth);
 
       stime = -1;
     }

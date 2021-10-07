@@ -22,7 +22,7 @@
 VideoPlayer::VideoPlayer() {
   // read ground truth.
   std::string tracePath =
-      "/home/ehab/Desktop/Project-V360/split/tiles_per_frame_user_3.txt";
+      "/home/ehab/Desktop/Project-V360/split/tiles_per_frame_synthetic_user_1.txt";
 
   //std::string tracePath =
     //  "/Users/eghabash/Desktop/360 Video/Project-V360"
@@ -57,7 +57,7 @@ VideoPlayer::VideoPlayer() {
     groundTruth_.insert(std::make_pair(sec, t));
   }
 
-  tracePath = "/home/ehab/Desktop/Project-V360/split/vp_corr_per_frame_user_3.txt";
+  tracePath = "/home/ehab/Desktop/Project-V360/split/vp_corr_per_frame_synthetic_user_1.txt";
   //tracePath =
     //  "/Users/eghabash/Desktop/360 Video/Project-V360"
       //"/split/vp_corr_per_frame_user_3.txt";

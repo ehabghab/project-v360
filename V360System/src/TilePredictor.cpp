@@ -238,10 +238,6 @@ TilePredictor::getPredictedTilesLR() {
   if (frameId_ >= 13) {
     predictedCorr =
         linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_ - 1);
-   /* for (auto &pair : predictedCorr) {
-      std::cout << "(" << pair.first << "," << pair.second << "), ";
-    }
-    std::cout << "\n---------\n";*/
   }
 
   uint16_t frameId = frameId_;
@@ -459,12 +455,6 @@ void TilePredictor::sortTileSetByArea(
     LOG(ERROR) << "Fraction of tiles covering viewport"
                   " does not match with viewport true size "
                << vpSize;
-    for (auto const& vpsqr : vpSqrs)
-	{
-		LOG(INFO)<<"("<<std::to_string(vpsqr.upperRight.first)<<","<<std::to_string(vpsqr.upperRight.second)<<") --> ("<<std::to_string(vpsqr.upperLeft.first)<<","<<std::to_string(vpsqr.upperLeft.second)<<")"<<std::endl;
-		LOG(INFO)<<"("<<std::to_string(vpsqr.lowerRight.first)<<","<<std::to_string(vpsqr.lowerRight.second)<<") --> ("<<std::to_string(vpsqr.lowerLeft.first)<<","<<std::to_string(vpsqr.lowerLeft.second)<<")\n====="<<std::endl;
-			
-	}
   }
 }
 

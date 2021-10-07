@@ -19,6 +19,10 @@ class LinearRegression {
   static constexpr float kLowerBound_ = 1e-5;
   static constexpr float kYawAlpha_ = 0.01;    // initializing our learning rate
   static constexpr float kPitchAlpha_ = 0.01;  // initializing our learning rate
+  float pitchB0 = 0.0;  // initializing pitch b0
+  float pitchB1 = 0.0;  // initializing pitch b1
+  float yawB0 = 0.0;
+  float yawB1 = 0.0;
 
   size_t hw_{kHW};
   size_t pw_{kPW};

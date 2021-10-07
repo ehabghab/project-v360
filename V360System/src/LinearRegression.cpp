@@ -6,6 +6,8 @@
  */
 #include "LinearRegression.h"
 
+#include<iostream>
+
 std::vector<std::pair<float, float>> LinearRegression::predict(
     std::vector<std::pair<float, float>>& input, int length) {
   std::vector<std::pair<float, float>> lrPredictions;
@@ -13,22 +15,19 @@ std::vector<std::pair<float, float>> LinearRegression::predict(
   std::vector<float> yawError;    // for storing the yaw error values
 
   /*Intialization Phase*/
-  for (size_t i = 1; i < hw_; i++) {
+  for (size_t i = 0; i < hw_; i++) {
     // Assuming the ground truth is [1,2,3,4,5,6] with 6 being most recent.
     yawInput_[hw_ - i] = input[length - i].first;
     pitchInput_[hw_ - i] = input[length - i].second;
     timeSampleInput_[i] = i;
   }
-
+  
   /*Training Phase*/
   // Since there are {hw_} values in our dataset and we want to run for 4*HW
   // epochs.
   int idx;
   float pred;
-
   float yawErr;
-  float yawB0;
-  float yawB1;
   for (int i = 0; i < (4 * hw_); i++) {
     idx = i % 10;  // for accessing index after every epoch
     pred = yawB0 + yawB1 * timeSampleInput_[idx];  // making the prediction
@@ -41,8 +40,6 @@ std::vector<std::pair<float, float>> LinearRegression::predict(
   }
 
   float pitchErr;       // for calculating pitch error on each stage
-  float pitchB0 = 0.0;  // initializing pitch b0
-  float pitchB1 = 0.0;  // initializing pitch b1
   for (int i = 0; i < (4 * hw_); i++) {
     idx = i % 10;  // for accessing index after every epoch
     pred = pitchB0 + pitchB1 * timeSampleInput_[idx];  // making the prediction
