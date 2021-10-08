@@ -9,7 +9,6 @@
  */
 #include <stdlib.h>
 
-#include <utility>
 #include <vector>
 
 class LinearRegression {
@@ -19,10 +18,14 @@ class LinearRegression {
   static constexpr float kLowerBound_ = 1e-5;
   static constexpr float kYawAlpha_ = 0.01;    // initializing our learning rate
   static constexpr float kPitchAlpha_ = 0.01;  // initializing our learning rate
-  float pitchB0 = 0.0;  // initializing pitch b0
-  float pitchB1 = 0.0;  // initializing pitch b1
-  float yawB0 = 0.0;
-  float yawB1 = 0.0;
+  
+  //ToDo initialize with slope function. 
+  
+  float pitchB0;  // initializing pitch b0
+  float pitchB1;  // initializing pitch b1
+  float yawB0;
+  float yawB1;
+  bool initalized = false;
 
   size_t hw_{kHW};
   size_t pw_{kPW};
@@ -31,6 +34,7 @@ class LinearRegression {
   float pitchInput_[kHW];
   float timeSampleInput_[kHW];
 
+  void init(std::vector<std::pair<float, float>>& input);
  public:
   std::vector<std::pair<float, float>> predict(
       std::vector<std::pair<float, float>>& input, int length);
