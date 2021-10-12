@@ -38,7 +38,7 @@ class ClientNetworkLayer {
                      boost::hash<std::pair<int, uint16_t>>>
       receivedTileChunks_;
 
-  int connectToServer();
+  int connectToServer(std::string serverIp);
 
   std::string getRequest();
 
@@ -47,7 +47,7 @@ class ClientNetworkLayer {
   std::map<std::string, std::string> parseHeader(std::string responseHeader);
 
  public:
-  ClientNetworkLayer();
+  ClientNetworkLayer(std::string serverIp);
 
   void static sender(ClientNetworkLayer* client);
 

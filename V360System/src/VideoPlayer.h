@@ -67,7 +67,7 @@ class VideoPlayer {
 
   static void decode(VideoPlayer *videoPlayer, Decoder *decoder);
 
-  VideoPlayer();
+  VideoPlayer(std::string tilesPerFrameTracePath, std::string vpCorrPerFrameTracePath);
 
   void addChunk(uint8_t *chunkPointer, uint32_t chunkSize,
                 uint32_t tileChunkIdx, uint16_t tileIdx);

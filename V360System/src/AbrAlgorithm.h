@@ -14,7 +14,7 @@
 
 class AbrAlgorithm {
  public:
-  AbrAlgorithm();
+  AbrAlgorithm(std::string tileChunkSizesTracePath);
   static void runAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
                      BandwidthPredictor *bandwidthPredictor,
                      ClientNetworkLayer *clientNetworkLayer);

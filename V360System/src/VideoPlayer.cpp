@@ -19,16 +19,9 @@
 #include "Util.h"
 #include "glog/logging.h"
 
-VideoPlayer::VideoPlayer() {
+VideoPlayer::VideoPlayer(std::string tilesPerFrameTracePath, std::string vpCorrPerFrameTracePath) {
   // read ground truth.
-  std::string tracePath =
-      "/home/ehab/Desktop/Project-V360/split/tiles_per_frame_user_13.txt";
-
-  //std::string tracePath =
-    //  "/Users/eghabash/Desktop/360 Video/Project-V360"
-      //"/split/tiles_per_frame_user_3.txt";
-
-  std::ifstream infile(tracePath);
+  std::ifstream infile(tilesPerFrameTracePath);
 
   std::string line;
   int pos;
@@ -57,11 +50,7 @@ VideoPlayer::VideoPlayer() {
     groundTruth_.insert(std::make_pair(sec, t));
   }
 
-  tracePath = "/home/ehab/Desktop/Project-V360/split/vp_corr_per_frame_user_13.txt";
-  //tracePath =
-    //  "/Users/eghabash/Desktop/360 Video/Project-V360"
-      //"/split/vp_corr_per_frame_user_3.txt";
-  std::ifstream infile2(tracePath);
+  std::ifstream infile2(vpCorrPerFrameTracePath);
   while (std::getline(infile2, line)) {
     auto pos = line.find(",");
     try {

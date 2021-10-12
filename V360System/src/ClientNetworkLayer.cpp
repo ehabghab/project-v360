@@ -50,11 +50,11 @@ std::pair<uint32_t, uint16_t> extractTileInfo(std::string tileIndex) {
   return std::make_pair(timestamp, tileIdx);
 }
 
-ClientNetworkLayer::ClientNetworkLayer() {
-  socket_ = connectToServer();
+ClientNetworkLayer::ClientNetworkLayer(std::string serverIp) {
+  socket_ = connectToServer(serverIp);
 }
 
-int ClientNetworkLayer::connectToServer() {
+int ClientNetworkLayer::connectToServer(std::string serverIp) {
   int sock = -1;
   struct sockaddr_in serv_addr;
   if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -65,9 +65,8 @@ int ClientNetworkLayer::connectToServer() {
 
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_port = htons(PORT);
-  std::string ip = "100.64.0.2";
   // Convert IPv4 and IPv6 addresses from text to binary form
-  if (inet_pton(AF_INET, ip.c_str(), &serv_addr.sin_addr) <= 0) {
+  if (inet_pton(AF_INET, serverIp.c_str(), &serv_addr.sin_addr) <= 0) {
     LOG(ERROR) << "ClientNetworkLayer::connectToServer(): Invalid address"
                   "Address not supported ";
     return -1;

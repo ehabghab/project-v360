@@ -9,22 +9,25 @@
 
 #include <thread>
 
+#include "glog/logging.h"
+
 #include "AbrAlgorithm.h"
 #include "ClientNetworkLayer.h"
 #include "Decoder.h"
 #include "Util.h"
 #include "VideoPlayer.h"
 
-Client::Client() {
+
+Client::Client(std::string tilesPerFrameTracePath, std::string vpCorrPerFrameTracePath,std::string tileChunkSizesTracePath, std::string serverIp) {
   // Initiate all instances to create threads.
   // 1- Network layer (sender and receiver).
   // 2- Video player along with the decoder.
   // 3- ABR algorithm along with tile and bandwidth predictors.
 
-  ClientNetworkLayer *clientNetworkLayer = new ClientNetworkLayer();
-  VideoPlayer *videoPlayer = new VideoPlayer();
+  ClientNetworkLayer *clientNetworkLayer = new ClientNetworkLayer(serverIp);
+  VideoPlayer *videoPlayer = new VideoPlayer(tilesPerFrameTracePath,vpCorrPerFrameTracePath);
   Decoder *decoder = new Decoder();
-  AbrAlgorithm *abr = new AbrAlgorithm();
+  AbrAlgorithm *abr = new AbrAlgorithm(tileChunkSizesTracePath);
   TilePredictor *tilePredictor = new TilePredictor();
   BandwidthPredictor *bandwidthPredictor = new BandwidthPredictor();
 
@@ -65,8 +68,14 @@ Client::Client() {
 
 Client::~Client() {}
 
-int main(int argc, const char **argv) {
-  Client *client = new Client();
+int main(int argc, char **argv) {
+  
+  if(argc < 5) {
+    LOG(ERROR)<<"Usage: ./client <tiles_per_frame_trace> <vp_corrdinates_per_frame> <tile_chunk_sizes> <server_ip>";
+    return -1;
+  }
+
+  Client *client = new Client(argv[1],argv[2],argv[3],argv[4]);
   // to suppress warning
   assert(client != nullptr);
   return 0;

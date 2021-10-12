@@ -18,13 +18,8 @@
 
 #define ABR_FREQ 100
 
-AbrAlgorithm::AbrAlgorithm() {
-   std::string tracePath =
-      "/home/ehab/Desktop/Project-V360/split/quality_tile_sizes.txt";
-  //std::string tracePath =
-   //   "/Users/eghabash/Desktop/360 Video/Project-V360"
-     // "/split/quality_tile_sizes.txt";
-  std::ifstream infile(tracePath);
+AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesTracePath) {
+  std::ifstream infile(tileChunkSizesTracePath);
   std::string line;
   uint8_t quality = -1;
   while (std::getline(infile, line)) {

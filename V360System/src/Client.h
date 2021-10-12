@@ -8,12 +8,12 @@
 #ifndef CLIENT_H_
 #define CLIENT_H_
 
-#include <chrono>
+#include <string>
 
 class Client {
 
 public:
-	Client();
+	Client(std::string tilesPerFrameTracePath, std::string vpCorrPerFrameTracePath,std::string tileChunkSizesTracePath, std::string serverIp);
 	virtual ~Client();
 };
 

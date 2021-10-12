@@ -460,7 +460,6 @@ void TilePredictor::sortTileSetByArea(
 
 void TilePredictor::addVpCoordinate(std::pair<float, float> coordinate) {
   vpGroundTruth_[frameId_] = coordinate;
-  std::cout<<"Corr:"<<coordinate.first<<","<<coordinate.second<<"\n";
   frameId_++;
 }
 
