@@ -56,6 +56,7 @@ def run_server_and_get_ip(tracefile):
 		if interface not in interfaces_before_mahimahi:
 			mahimahi_interface=interface
 			break
+	print(mahimahi_interface)
 	ip_cmd="/sbin/ifconfig "+mahimahi_interface.decode(encoding)
 	pid5 = subprocess.Popen(shlex.split(ip_cmd), stdout=subprocess.PIPE, shell=False)
 	ipout, err5 = pid5.communicate()
@@ -71,11 +72,11 @@ def main():
 
 	user_trace_dir = "/home/ehab/Desktop/Project-V360/split/"
 	tile_size ="quality_tile_sizes.txt"
-	user_tile_per_frame_traces = ["tiles_per_frame_user_3.txt","tiles_per_frame_user_13.txt","tiles_per_frame_user_29.txt"]
+	user_tile_per_frame_traces = ["tiles_per_frame_user_3.txt","tiles_per_frame_user_13.txt"]#,"tiles_per_frame_user_29.txt"]
 	#user_vp_corr_per_frame_traces = ["vp_corr_per_frame_user_3.txt"S,"vp_corr_per_frame_user_13.txt","vp_corr_per_frame_user_29.txt"]
-	bw_trace_dir = "/home/ehab/Desktop/automate/"        
+	bw_trace_dir = "/home/ehab/Desktop/Project-V360/automate/"        
 	bw_traces = ["trace_mahimahi_20.33mbps.txt", "trace_mahimahi_6.2mbps.txt","trace_mahimahi_3.1mbps.txt"]
-	delays = [20, 50, 100]	
+	delays = [20, 50]	
 	out_file = open("exp_log.txt","w")
 	for bw_trace in bw_traces:
 		for user_tile_trace in user_tile_per_frame_traces:
