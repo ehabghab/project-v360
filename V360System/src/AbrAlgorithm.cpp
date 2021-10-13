@@ -161,7 +161,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
 
 
     float predictedBw = (bandwidthPredictor->getMpcBandwidthPrediction() * 1e6) / 8.0; //Bytes Per Second
-    /*std::cout<<"BW:"<<std::to_string(predictedBwx1)<<std::endl;
+    std::cout<<"BW:"<<std::to_string(predictedBw * 8 /1e6)<<std::endl;
     std::cout<<videoTime<<std::endl;    
     for (auto const &chunkComb : allCombinations) {
         std::cout<<chunkComb.first<<":[";
@@ -170,7 +170,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
 	    std::cout<<std::to_string(q)<<",";	
 	}
 	std::cout<<"]\n";
-    }*/
+    }
     
 	
 
@@ -207,7 +207,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     }
     }
     qIdx = qIdx == -1 ? 0 : qIdx;
-    //std::cout<<qIdx<<"\n===========\n";
+    std::cout<<qIdx<<"\n===========\n";
     std::string req = "Tiles\n";
     for (auto const &tileSet : tilesRequest) {
       req += tileSet + "\n";

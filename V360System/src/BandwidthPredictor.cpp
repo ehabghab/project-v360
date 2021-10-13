@@ -57,8 +57,6 @@ float BandwidthPredictor::getMpcBandwidthPrediction() {
 		predictedBandwidthSum += avgBandwidths_[timeStartIdx].second;
 		totalNumOfChunks += avgBandwidths_[timeStartIdx].first;
 	}
-
-
 	return predictedBandwidthSum/totalNumOfChunks;
 }
 
