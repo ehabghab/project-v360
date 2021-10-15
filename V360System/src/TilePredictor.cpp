@@ -105,13 +105,13 @@ void TilePredictor::getViewportSquares(
     // viewport has two squares due to overlapping over y = 0.
     SquareCoordinates vpPart1 = {
         std::make_pair(x3, y2),
-        std::make_pair(x4,  // @suppress("Invalid arguments")
+        std::make_pair(x4, // @suppress("Invalid arguments")
                        y2),
         std::make_pair(x3, 0), std::make_pair(x4, 0)};
 
     SquareCoordinates vpPart2 = {
         std::make_pair(x1, y1),
-        std::make_pair(x2,  // @suppress("Invalid arguments")
+        std::make_pair(x2, // @suppress("Invalid arguments")
                        y1),
         std::make_pair(x1, 0), std::make_pair(x2, 0)};
     vpSquares = {vpPart1, vpPart2};
@@ -242,10 +242,15 @@ TilePredictor::getPredictedTilesLR() {
 
   uint16_t frameId = frameId_;
 
-  for (uint16_t idx = 0; idx < 25; idx++) {
+  // This set will contain all tiles in prev sets (to contain duplicates)
+  // tilechunk_tileIdx
+  std::set<std::string> tilesInPrevSets;
+
+  for (uint16_t idx = 0; idx < 25; idx++) { // per frame
     if (frameId >= 1475) {
       break;
     }
+    int chunkId = ((frameId + idx) - 1) / 25;
 
     std::pair<float, float> viewportCenter;
     // use static predictor.
@@ -267,9 +272,8 @@ TilePredictor::getPredictedTilesLR() {
 
     // Two classes: 0 (VP--> highest_class), and 1 (Edge)
     uint8_t tileClass = 0;
-    // This set will contain all tiles in prev sets (duplicates are not allowed)
-    std::set<uint16_t> tilesInPrevSets;
-    for (auto &vpResolution : vpResolutions) {
+
+    for (auto &vpResolution : vpResolutions) { // per vp-class
       // find viewport squares.
       std::vector<SquareCoordinates> vpSqrs;
       getViewportSquares(vpSqrs, viewportCenter, vpResolution);
@@ -288,12 +292,14 @@ TilePredictor::getPredictedTilesLR() {
 
         // go over all tiles in the set.
         for (auto const &tile : tileSet.second) {
+          std::string tileKey =
+              std::to_string(chunkId) + "_" + std::to_string(tile);
           // if the tile already included in previous higher rank sets, no
           // need to include it in the lower sets
-          if (tilesInPrevSets.find(tile) != tilesInPrevSets.end()) {
+          if (tilesInPrevSets.find(tileKey) != tilesInPrevSets.end()) {
             continue;
           }
-          tilesInPrevSets.insert(tile);
+          tilesInPrevSets.insert(tileKey);
           if (tileClassMap.find(tileClass) == tileClassMap.end()) {
             std::vector<uint16_t> tileSet;
             tileClassMap.insert(std::make_pair(tileClass, tileSet));
@@ -313,7 +319,7 @@ TilePredictor::getPredictedTilesLR() {
     }
   }
   // print tiles in sets
-  if (VLOG_IS_ON(1)) {
+  if (VLOG_IS_ON(0)) {
     for (auto const &chunkSet : tileClassAllFrames) {
       for (auto const &setTiles : chunkSet.second) {
         LOG(INFO) << static_cast<int>(chunkSet.first) << ":"

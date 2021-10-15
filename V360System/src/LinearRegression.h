@@ -12,17 +12,17 @@
 #include <vector>
 
 class LinearRegression {
- private:
+private:
   static constexpr size_t kHW = 13;
   static constexpr size_t kPW = 25;
   static constexpr float kLowerBound_ = 1e-5;
-  static constexpr float kYawAlpha_ = 0.01;    // initializing our learning rate
-  static constexpr float kPitchAlpha_ = 0.01;  // initializing our learning rate
-  
-  //ToDo initialize with slope function. 
-  
-  float pitchB0;  // initializing pitch b0
-  float pitchB1;  // initializing pitch b1
+  static constexpr float kYawAlpha_ = 0.01;   // initializing our learning rate
+  static constexpr float kPitchAlpha_ = 0.01; // initializing our learning rate
+
+  // ToDo initialize with slope function.
+
+  float pitchB0; // initializing pitch b0
+  float pitchB1; // initializing pitch b1
   float yawB0;
   float yawB1;
   bool initalized = false;
@@ -34,8 +34,9 @@ class LinearRegression {
   float pitchInput_[kHW];
   float timeSampleInput_[kHW];
 
-  void init(std::vector<std::pair<float, float>>& input);
- public:
-  std::vector<std::pair<float, float>> predict(
-      std::vector<std::pair<float, float>>& input, int length);
+  void init(std::vector<std::pair<float, float>> &input);
+
+public:
+  std::vector<std::pair<float, float>>
+  predict(std::vector<std::pair<float, float>> &input, int length);
 };

@@ -46,13 +46,13 @@ class ClientNetworkLayer {
 
   std::map<std::string, std::string> parseHeader(std::string responseHeader);
 
- public:
+public:
   ClientNetworkLayer(std::string serverIp);
 
-  void static sender(ClientNetworkLayer* client);
+  void static sender(ClientNetworkLayer *client);
 
-  void static receiver(ClientNetworkLayer* client, VideoPlayer* videoPlayer,
-                       BandwidthPredictor* bandwidthPredictor);
+  void static receiver(ClientNetworkLayer *client, VideoPlayer *videoPlayer,
+                       BandwidthPredictor *bandwidthPredictor);
 
   bool isReceived(int chunkId, uint16_t tileId);
 

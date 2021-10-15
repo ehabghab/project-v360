@@ -8,7 +8,7 @@
 #include <string>
 
 class Util {
- public:
+public:
   static const std::string getCurrentDateTime();
   static long getTime();
   static void sleep(long currentTime, long millisecondsToSleep);

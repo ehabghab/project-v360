@@ -11,8 +11,8 @@
 #include "Decoder.h"
 #include "Util.h"
 
-int read_packet(void* opaque, uint8_t* buffer, int bufferSize) {
-  struct BufferReader* br = (struct BufferReader*)opaque;
+int read_packet(void *opaque, uint8_t *buffer, int bufferSize) {
+  struct BufferReader *br = (struct BufferReader *)opaque;
   bufferSize = FFMIN(bufferSize, br->size);
 
   memcpy(buffer, br->ptr, bufferSize);
@@ -22,23 +22,24 @@ int read_packet(void* opaque, uint8_t* buffer, int bufferSize) {
   return bufferSize;
 }
 
-static AVBufferRef* hw_device_ctx = NULL;
+static AVBufferRef *hw_device_ctx = NULL;
 static enum AVPixelFormat hw_pix_fmt;
-static FILE* output_file = NULL;
+static FILE *output_file = NULL;
 
-static enum AVPixelFormat get_hw_format(AVCodecContext* ctx,
-                                        const enum AVPixelFormat* pix_fmts) {
-  const enum AVPixelFormat* p;
+static enum AVPixelFormat get_hw_format(AVCodecContext *ctx,
+                                        const enum AVPixelFormat *pix_fmts) {
+  const enum AVPixelFormat *p;
 
   for (p = pix_fmts; *p != -1; p++) {
-    if (*p == hw_pix_fmt) return *p;
+    if (*p == hw_pix_fmt)
+      return *p;
   }
 
   fprintf(stderr, "Failed to get HW surface format.\n");
   return AV_PIX_FMT_NONE;
 }
 
-static int hw_decoder_init(AVCodecContext* ctx,
+static int hw_decoder_init(AVCodecContext *ctx,
                            const enum AVHWDeviceType type) {
   int err = 0;
 
@@ -54,10 +55,10 @@ static int hw_decoder_init(AVCodecContext* ctx,
   return err;
 }
 
-static int decode_write(AVCodecContext* avctx, AVPacket* packet) {
+static int decode_write(AVCodecContext *avctx, AVPacket *packet) {
   AVFrame *frame = NULL, *sw_frame = NULL;
-  AVFrame* tmp_frame = NULL;
-  uint8_t* buffer = NULL;
+  AVFrame *tmp_frame = NULL;
+  uint8_t *buffer = NULL;
   int size;
   int ret = 0;
   ret = avcodec_send_packet(avctx, packet);
@@ -95,15 +96,15 @@ static int decode_write(AVCodecContext* avctx, AVPacket* packet) {
 
     size = av_image_get_buffer_size(AVPixelFormat(tmp_frame->format),
                                     tmp_frame->width, tmp_frame->height, 1);
-    buffer = (uint8_t*)av_malloc(size);
+    buffer = (uint8_t *)av_malloc(size);
     if (!buffer) {
       std::cout << "ERROR5" << std::endl;
       ret = AVERROR(ENOMEM);
       goto fail;
     }
     ret = av_image_copy_to_buffer(
-        buffer, size, (const uint8_t* const*)tmp_frame->data,
-        (const int*)tmp_frame->linesize, AVPixelFormat(tmp_frame->format),
+        buffer, size, (const uint8_t *const *)tmp_frame->data,
+        (const int *)tmp_frame->linesize, AVPixelFormat(tmp_frame->format),
         tmp_frame->width, tmp_frame->height, 1);
     if (ret < 0) {
       std::cout << "ERROR6" << std::endl;
@@ -118,20 +119,21 @@ static int decode_write(AVCodecContext* avctx, AVPacket* packet) {
     av_frame_free(&frame);
     av_frame_free(&sw_frame);
     av_freep(&buffer);
-    if (ret < 0) return ret;
+    if (ret < 0)
+      return ret;
   }
 }
 
-void Decoder::dec(uint8_t* encodedFrame, uint32_t size,
-                  std::vector<uint8_t*>& decodedTileFrames) {
+void Decoder::dec(uint8_t *encodedFrame, uint32_t size,
+                  std::vector<uint8_t *> &decodedTileFrames) {
   int video_stream, ret;
-  AVStream* video = NULL;
-  AVCodecContext* decoder_ctx = NULL;
-  AVCodec* decoder = NULL;
+  AVStream *video = NULL;
+  AVCodecContext *decoder_ctx = NULL;
+  AVCodec *decoder = NULL;
   AVPacket packet;
   enum AVHWDeviceType type;
   int i;
-  AVFormatContext* input_ctx = NULL;
+  AVFormatContext *input_ctx = NULL;
 
   av_register_all();
 
@@ -152,7 +154,8 @@ void Decoder::dec(uint8_t* encodedFrame, uint32_t size,
 
   video_stream = ret;
 
-  if (!(decoder_ctx = avcodec_alloc_context3(decoder))) return;
+  if (!(decoder_ctx = avcodec_alloc_context3(decoder)))
+    return;
 
   video = input_ctx->streams[video_stream];
 
@@ -176,7 +179,8 @@ void Decoder::dec(uint8_t* encodedFrame, uint32_t size,
   int cc = 1;
   /* actual decoding and dump the raw data */
   while (ret >= 0) {
-    if ((ret = av_read_frame(input_ctx, &packet)) < 0) break;
+    if ((ret = av_read_frame(input_ctx, &packet)) < 0)
+      break;
     if (video_stream == packet.stream_index) {
       long x = Util::getTime();
       ret = decode_write(decoder_ctx, &packet);
@@ -192,7 +196,8 @@ void Decoder::dec(uint8_t* encodedFrame, uint32_t size,
   ret = decode_write(decoder_ctx, &packet);
   av_packet_unref(&packet);
 
-  if (output_file) fclose(output_file);
+  if (output_file)
+    fclose(output_file);
   avcodec_free_context(&decoder_ctx);
   av_buffer_unref(&hw_device_ctx);
 }
@@ -211,7 +216,7 @@ void Decoder::initAVCodec() {
 void Decoder::initCustomFormatContext() {
   formatContext = avformat_alloc_context();
   int bufferSize = 80960;
-  uint8_t* buffer = (uint8_t*)(av_malloc(bufferSize));
+  uint8_t *buffer = (uint8_t *)(av_malloc(bufferSize));
   avioContext = avio_alloc_context(buffer, bufferSize, 0, &bufferReader,
                                    &read_packet, NULL, NULL);
 
@@ -233,18 +238,18 @@ Decoder::~Decoder() {
 }
 
 int fId = 1;
-void Decoder::decode(uint8_t* encodedFrame, uint32_t size,
-                     std::vector<uint8_t*>& decodedTileFrames) {
+void Decoder::decode(uint8_t *encodedFrame, uint32_t size,
+                     std::vector<uint8_t *> &decodedTileFrames) {
   av_log_set_level(AV_LOG_PANIC);
   int ret = -1;
-  AVFrame* avFrame;
-  AVPacket* avPacket;
-  AVFrame* pFrameARGB;
+  AVFrame *avFrame;
+  AVPacket *avPacket;
+  AVFrame *pFrameARGB;
   int ret1 = -1, ret2 = -1, frameId = 0;
 
   formatContext = avformat_alloc_context();
   int bufferSize = 80960;
-  uint8_t* buffer = (uint8_t*)(av_malloc(bufferSize));
+  uint8_t *buffer = (uint8_t *)(av_malloc(bufferSize));
   avioContext = avio_alloc_context(buffer, bufferSize, 0, &bufferReader,
                                    &read_packet, NULL, NULL);
 
@@ -297,7 +302,7 @@ void Decoder::decode(uint8_t* encodedFrame, uint32_t size,
   // determine the size of the buffer
 
   // create swscontext to transform from I420P to ARGB
-  struct SwsContext* sws_ctx = sws_getContext(
+  struct SwsContext *sws_ctx = sws_getContext(
       avCodecContext->width, avCodecContext->height, avCodecContext->pix_fmt,
       avCodecContext->width, avCodecContext->height, AV_PIX_FMT_YUV420P,
       SWS_FAST_BILINEAR, NULL, NULL, NULL);
@@ -312,7 +317,7 @@ void Decoder::decode(uint8_t* encodedFrame, uint32_t size,
   avPacket = new AVPacket();
   avPacket->pts = AV_NOPTS_VALUE;
   avPacket->dts = AV_NOPTS_VALUE;
-  uint8_t* buffer2 = NULL;
+  uint8_t *buffer2 = NULL;
   int numBytes = av_image_get_buffer_size(
       AV_PIX_FMT_YUV420P, avCodecContext->width, avCodecContext->height, 1);
 
@@ -320,7 +325,7 @@ void Decoder::decode(uint8_t* encodedFrame, uint32_t size,
     avFrame = av_frame_alloc();
     pFrameARGB = av_frame_alloc();
 
-    buffer2 = static_cast<uint8_t*>(av_malloc(numBytes));
+    buffer2 = static_cast<uint8_t *>(av_malloc(numBytes));
     av_image_fill_arrays(pFrameARGB->data, pFrameARGB->linesize, buffer2,
                          AV_PIX_FMT_YUV420P, avCodecContext->width,
                          avCodecContext->height, 1);

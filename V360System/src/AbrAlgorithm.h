@@ -13,21 +13,20 @@
 #include "TilePredictor.h"
 
 class AbrAlgorithm {
- public:
+public:
   AbrAlgorithm(std::string tileChunkSizesTracePath);
   static void runAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
                      BandwidthPredictor *bandwidthPredictor,
                      ClientNetworkLayer *clientNetworkLayer);
   uint8_t getNumberOfQualities();
-  std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
-      &getTileChunkSizePerQuality();
+  std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>> &
+  getTileChunkSizePerQuality();
 
- private:
+private:
   // quality --> tiles --> tile chunk sizes.
   std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
       tileChunkSizePerQuality_;
   uint8_t numberOfQualities_;
-
 };
 
 #endif /* ABRALGORITHM_H_ */

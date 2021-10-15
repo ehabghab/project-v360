@@ -29,32 +29,32 @@ extern "C" {
 #include <vector>
 
 struct BufferReader {
-  uint8_t* ptr;
-  size_t size;  ///< size left in the buffer
+  uint8_t *ptr;
+  size_t size; ///< size left in the buffer
 };
 
 class Decoder {
- public:
-  AVFormatContext* formatContext;
-  AVCodec* avCodec;
-  AVCodecContext* avCodecContext;
-  AVIOContext* avioContext;
+public:
+  AVFormatContext *formatContext;
+  AVCodec *avCodec;
+  AVCodecContext *avCodecContext;
+  AVIOContext *avioContext;
   struct BufferReader bufferReader;
 
   Decoder();
 
   virtual ~Decoder();
 
-  void decodeOptimized(uint8_t* encodedFrame, uint32_t size,
-                       std::vector<AVFrame*>& decodedAVFrames);
+  void decodeOptimized(uint8_t *encodedFrame, uint32_t size,
+                       std::vector<AVFrame *> &decodedAVFrames);
 
-  void decodeNotOptimized(uint8_t* encodedFrame, uint32_t size,
-                          std::vector<uint8_t*>& decodedTileFrames);
+  void decodeNotOptimized(uint8_t *encodedFrame, uint32_t size,
+                          std::vector<uint8_t *> &decodedTileFrames);
 
-  void dec(uint8_t* encodedFrame, uint32_t size,
-           std::vector<uint8_t*>& decodedTileFrames);
+  void dec(uint8_t *encodedFrame, uint32_t size,
+           std::vector<uint8_t *> &decodedTileFrames);
 
- private:
+private:
   void initAVCodec();
 
   void initCustomFormatContext();

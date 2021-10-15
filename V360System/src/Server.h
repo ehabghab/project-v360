@@ -34,9 +34,9 @@ class Server {
 
   uint8_t listenToSocket(uint8_t socketFileDescriptor);
 
-  void static reciever(Server* server, uint8_t socket);
+  void static reciever(Server *server, uint8_t socket);
 
-  void static sender(Server* server, uint8_t socket);
+  void static sender(Server *server, uint8_t socket);
 
   std::string getResponseHeader(std::string httpVersion, std::string statusCode,
                                 std::string acceptRange, int contentLength,
@@ -57,7 +57,7 @@ class Server {
 
   std::pair<uint8_t, std::vector<std::string>> getTileList();
 
- public:
+public:
   Server();
   virtual ~Server();
 };

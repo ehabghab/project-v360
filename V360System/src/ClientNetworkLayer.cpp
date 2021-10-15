@@ -232,7 +232,7 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
           std::make_pair(tileInfo.first, tileInfo.second));
       videoPlayer->addChunk(chunk, chunkSize, tileInfo.first, tileInfo.second);
       bandwidth =
-          ((chunkSize * 8.0) / 1e6) / ((etime - stime) / 1000.0);  // mbps
+          ((chunkSize * 8.0) / 1e6) / ((etime - stime) / 1000.0); // mbps
 
       fprintf(recvLog, "%-20s %-20s %-20s %-20s %-20s %-20s \n",
               std::to_string(tileInfo.first).c_str(),
@@ -260,8 +260,8 @@ std::string ClientNetworkLayer::getRequestHeader(std::string request) {
   return reqHeader.str();
 }
 
-std::map<std::string, std::string> ClientNetworkLayer::parseHeader(
-    std::string responseHeader) {
+std::map<std::string, std::string>
+ClientNetworkLayer::parseHeader(std::string responseHeader) {
   std::map<std::string, std::string> header;
   std::vector<std::string> headersVec;
   std::vector<std::string> splitVec;

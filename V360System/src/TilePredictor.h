@@ -16,7 +16,7 @@
 #include "LinearRegression.h"
 
 class TilePredictor {
- public:
+public:
   void addVpCoordinate(std::pair<float, float> coordinate);
 
   // returns frameId --> tile class --> set of tiles.
@@ -28,7 +28,7 @@ class TilePredictor {
 
   TilePredictor();
 
- private:
+private:
   struct SquareCoordinates {
     std::pair<float, float> upperLeft;
     std::pair<float, float> upperRight;
@@ -36,7 +36,7 @@ class TilePredictor {
     std::pair<float, float> lowerRight;
   };
 
-  LinearRegression* linearRegressor_;
+  LinearRegression *linearRegressor_;
 
   // Assuming the video is only 2000 frames. otherwise,
   // increase the size of vectors.
@@ -53,7 +53,7 @@ class TilePredictor {
    * This return the viewport as input,
    * and returns it as multiple squares in case of overlapping.
    */
-  void getViewportSquares(std::vector<SquareCoordinates>& vpSquares,
+  void getViewportSquares(std::vector<SquareCoordinates> &vpSquares,
                           std::pair<float, float> viewportCenter,
                           std::pair<int, int> viewportResolution);
 
@@ -61,13 +61,13 @@ class TilePredictor {
    *  This takes tile coordinates, and viewport squares as input,
    *  and returns the fraction of tile that overlap with viewport as output.
    */
-  float getFractionOfTileInVP(std::vector<SquareCoordinates>& partialVPs,
+  float getFractionOfTileInVP(std::vector<SquareCoordinates> &partialVPs,
                               std::pair<float, float> tileCorrdinates,
                               std::pair<float, float> tileDimensions);
 
-  void sortTileSetByArea(
-      std::map<float, std::vector<uint16_t>>& tileRanksByArea,
-      std::vector<SquareCoordinates>& vpSqrs, int vpArea);
+  void
+  sortTileSetByArea(std::map<float, std::vector<uint16_t>> &tileRanksByArea,
+                    std::vector<SquareCoordinates> &vpSqrs, int vpArea);
 
   std::pair<float, float> getVpCoordinate();
 };

@@ -13,8 +13,10 @@
 class Client {
 
 public:
-	Client(std::string tilesPerFrameTracePath, std::string vpCorrPerFrameTracePath,std::string tileChunkSizesTracePath, std::string serverIp);
-	virtual ~Client();
+  Client(std::string tilesPerFrameTracePath,
+         std::string vpCorrPerFrameTracePath,
+         std::string tileChunkSizesTracePath, std::string serverIp);
+  virtual ~Client();
 };
 
 #endif /* CLIENT_H_ */

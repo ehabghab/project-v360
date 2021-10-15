@@ -19,7 +19,8 @@
 #include "Util.h"
 #include "glog/logging.h"
 
-VideoPlayer::VideoPlayer(std::string tilesPerFrameTracePath, std::string vpCorrPerFrameTracePath) {
+VideoPlayer::VideoPlayer(std::string tilesPerFrameTracePath,
+                         std::string vpCorrPerFrameTracePath) {
   // read ground truth.
   std::ifstream infile(tilesPerFrameTracePath);
 
@@ -74,9 +75,9 @@ void VideoPlayer::addChunk(uint8_t *chunkPointer, uint32_t chunkSize,
   // comment to turn off decoder.
   auto pair = chunks_.find(tileChunkIdx);
   if (pair != chunks_.end()) {
-    recvChunKMutex_.lock();	
+    recvChunKMutex_.lock();
     pair->second.insert(std::make_pair(tileIdx, chunk));
-    recvChunKMutex_.unlock();	
+    recvChunKMutex_.unlock();
   } else {
     std::map<uint16_t, struct Chunk> tileIdxChunkMap;
     tileIdxChunkMap.insert(std::make_pair(tileIdx, chunk));
@@ -154,9 +155,9 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
           // free chunks.
           auto &encodedFrameStruct = tileInfo->second;
           free(encodedFrameStruct.chunk);
-	  videoPlayer->recvChunKMutex_.lock();	
+          videoPlayer->recvChunKMutex_.lock();
           chunks->second.erase(tileInfo->first);
-	  videoPlayer->recvChunKMutex_.unlock();	
+          videoPlayer->recvChunKMutex_.unlock();
           decode_frame = true;
           break;
         }
@@ -291,8 +292,8 @@ void VideoPlayer::orderTilesToLinkedList(
 
   // loop over all tiles
   for (auto tilePair : viewport) {
-    int tileRow = ((tilePair.first - 1) / tileHeight) + 1;  // 1--> 12 same row.
-    int tileCol = ((tilePair.first - 1) % tileWidth) + 1;   // 1--> 12
+    int tileRow = ((tilePair.first - 1) / tileHeight) + 1; // 1--> 12 same row.
+    int tileCol = ((tilePair.first - 1) % tileWidth) + 1;  // 1--> 12
     if (tileRow != prevRow) {
       // first tile in the row, then create row linkedlist.
       Node<T> *tileNode = new Node<T>;
@@ -377,7 +378,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
   // number of rows * tiles per row.
   // loc of tile in row.
   int numOfRows = 0;
-  for (auto &row : viewportLinkedList) {  // start of stitching loop
+  for (auto &row : viewportLinkedList) { // start of stitching loop
     if (row == nullptr) {
       LOG(ERROR) << "Row of tiles starts with null";
       return;
@@ -429,7 +430,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
       tileCountInRow++;
     }
     numOfRows++;
-  }  // end of stitching loop
+  } // end of stitching loop
 
   /*FILE *myfile;
 

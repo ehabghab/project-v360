@@ -27,11 +27,12 @@
 #include <vector>
 
 Server::Server() {
-  videoRootDir_ = "/home/ehab/Desktop/Project-V360/split/YuvW12H12";
+  videoRootDir_ =
+      "/Users/eghabash/Desktop/System-github/Project-V360/split/YuvW12H12";
 
-  //videoRootDir_ =
-    //  "/Users/eghabash/Desktop/360 Video/Project-V360"
-      //"/split/YuvW12H12";
+  // videoRootDir_ =
+  //  "/Users/eghabash/Desktop/360 Video/Project-V360"
+  //"/split/YuvW12H12";
 
   uint8_t socketFD = initializeSocket();
   uint8_t socket = listenToSocket(socketFD);
@@ -269,15 +270,15 @@ void Server::sender(Server *server, uint8_t socket) {
     // sets.
 
     // 0:LL, 1:HL, 2:HH
-    if (tileLists.first == 0) {  // LL
+    if (tileLists.first == 0) { // LL
       qualityPathIdx = "1";
-    } else if (tileLists.first == 1) {  // HL
-      if (tileInfo[1] == "0") {         // Set 0: viewport set
+    } else if (tileLists.first == 1) { // HL
+      if (tileInfo[1] == "0") {        // Set 0: viewport set
         qualityPathIdx = "2";
-      } else {  // Set 1: viewport edge set
+      } else { // Set 1: viewport edge set
         qualityPathIdx = "1";
       }
-    } else {  // HH
+    } else { // HH
       qualityPathIdx = "2";
     }
     std::string tilePath = server->videoRootDir_ + "/" + qualityPathIdx + "/" +
@@ -325,10 +326,11 @@ void Server::sender(Server *server, uint8_t socket) {
   }
 }
 
-std::string Server::getResponseHeader(
-    std::string httpVersion, std::string statusCode, std::string acceptRange,
-    int contentLength, std::string contentType, std::string tileIdx,
-    std::string quality) {
+std::string
+Server::getResponseHeader(std::string httpVersion, std::string statusCode,
+                          std::string acceptRange, int contentLength,
+                          std::string contentType, std::string tileIdx,
+                          std::string quality) {
   std::stringstream header;
 
   time_t now = time(0);
