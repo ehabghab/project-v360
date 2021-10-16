@@ -57,52 +57,59 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
   float videoTime = 0;
 
   uint8_t numOfQualities = abrAlgorithm->getNumberOfQualities();
+  uint8_t numOfClasses;
   auto &tileChunkSizePerQuality = abrAlgorithm->getTileChunkSizePerQuality();
-  // chunkId, set, quality (index), sum size of all set with <quality>.
+  // frameId, set, quality (index), sum size of all set with <quality>.
   std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
-      chunkIdSetQualitySizeSum;
+      FrameIdSetQualitySizeSum;
   std::vector<std::string> tilesRequest;
   while (true) {
     // get the predicted tiles every ABR_FREQ(100ms).
     // we will have mutliple sets (e.g. viewport tiles, viewport edge tiles ,
     // further tiles, rest of tiles)
-    auto tilesPerFrame = tilePredictor->getPredictedTilesLR();
-    if (tilesPerFrame.size() == 0) {
+    auto tileClassesOfFutureFrames = tilePredictor->getPredictedTilesLR();
+    if (tileClassesOfFutureFrames.size() == 0) {
       break;
     }
-    // per chunk Id, per set, find the sum sizes of all tiles per different
+    numOfClasses = 0;
+
+    // per frame Id, per class, find the sum sizes of all tiles per different
     // qualities.
-    for (auto const &frameTilesPair : tilesPerFrame) {  // per chunkId
-      int tileChunk = ((frameTilesPair.first - 1) / 25) + 1;
-      // first tile with chunkId == tileChunk, then init map.
-      if (chunkIdSetQualitySizeSum.find(tileChunk) ==
-          chunkIdSetQualitySizeSum.end()) {
+    for (auto const &tileClassesSingleFrame :
+         tileClassesOfFutureFrames) { // per chunkId
+      auto frameId = tileClassesSingleFrame.first;
+      auto chunkId = ((frameId - 1) / 25) + 1;
+
+      if (FrameIdSetQualitySizeSum.find(frameId) ==
+          FrameIdSetQualitySizeSum.end()) {
         std::map<uint8_t, std::vector<uint64_t>> setQualitySizeSum;
-        chunkIdSetQualitySizeSum.insert(
-            std::make_pair(tileChunk, setQualitySizeSum));
+        FrameIdSetQualitySizeSum.insert(
+            std::make_pair(frameId, setQualitySizeSum));
       }
 
-      auto &setQualitySizeSum =
-          chunkIdSetQualitySizeSum.find(tileChunk)->second;
-      for (auto const &tileSet : frameTilesPair.second) {  // per tile set
-        std::string tiles = std::to_string(tileChunk) + ":" +
-                            std::to_string(tileSet.first) + ":";
+      auto &setQualitySizeSum = FrameIdSetQualitySizeSum.find(frameId)->second;
+      for (auto const &SetOftilesInClass :
+           tileClassesSingleFrame.second) { // per class of tiles
+        auto classRank = SetOftilesInClass.first;
+        numOfClasses = numOfClasses < classRank ? classRank : numOfClasses;
+        std::string tiles =
+            std::to_string(frameId) + ":" + std::to_string(classRank) + ":";
         bool setHasTiles = false;
         // first tile in set.
         // We have viewport set, and multiple out of sight sets.
-        if (setQualitySizeSum.find(tileSet.first) == setQualitySizeSum.end()) {
+        if (setQualitySizeSum.find(classRank) == setQualitySizeSum.end()) {
           std::vector<uint64_t> qualitySizeSumVec(numOfQualities);
           setQualitySizeSum.insert(
-              std::make_pair(tileSet.first, qualitySizeSumVec));
+              std::make_pair(classRank, qualitySizeSumVec));
         }
 
-        auto &qualitySizeSumVec = setQualitySizeSum.find(tileSet.first)->second;
+        auto &qualitySizeSumVec = setQualitySizeSum.find(classRank)->second;
         for (uint8_t qualityIdx = 0; qualityIdx < numOfQualities;
-             qualityIdx++) {  // per quality
+             qualityIdx++) { // per quality
 
-          for (auto const &tile : tileSet.second) {  // per tile
+          for (auto const &tile : SetOftilesInClass.second) { // per tile
             // if tile chunk is recevied then do not count it.
-            if (!clientNetworkLayer->isReceived(tileChunk, tile)) {
+            if (!clientNetworkLayer->isReceived(frameId, tile)) {
               if (qualityIdx == 0) {
                 tiles += std::to_string(tile) + ",";
                 setHasTiles = true;
@@ -111,7 +118,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
               qualitySizeSumVec[qualityIdx] +=
                   tileChunkSizePerQuality.find(qualityIdx + 1)
                       ->second.find(tile)
-                      ->second[tileChunk - 1];
+                      ->second[chunkId - 1];
             }
           }
         }
@@ -121,12 +128,16 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
           tilesRequest.push_back(tiles);
         }
         if (VLOG_IS_ON(1)) {
-          VLOG(1) << "ChunkId[" << static_cast<int>(tileChunk) << "] - "
-                  << "set[" << static_cast<int>(tileSet.first)
-                  << "] : " << tiles << std::endl;
+          VLOG(1) << "FrameId[" << static_cast<int>(frameId) << "] - "
+                  << "set[" << static_cast<int>(classRank) << "] : " << tiles
+                  << std::endl;
         }
       }
     }
+
+    // per quality HH --> HL --> LL
+    // per tileClasses
+    // total download time is viable?
 
     // first make sure we can delive viewport set on time, the other sets.
     // do all.
@@ -138,12 +149,60 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     // chunk id.
     // set1 set2 set3
     // qulity1 quality2
-    // TODO: This need to be generalized.
+
+    float predictedBw =
+        (bandwidthPredictor->getMpcBandwidthPrediction() * 1e6) /
+        8.0; // Bytes Per Second
+
+    auto qualitiesAssignments = abrAlgorithm->getPossibleQualityAssignment(
+        numOfQualities, numOfClasses + 1);
+
+    float currentVideoTime = ((tilePredictor->getFrameId() - 1) * 40.0) / 1e3;
+    int qIdx = 2;
+    bool qualityFound;
+    // current video time.
+    for (int quality = numOfQualities; quality > 0; quality--) {
+      // for all possible solutions
+      for (auto const &solution : qualitiesAssignments.find(quality)->second) {
+        // try the solution: calculate the timing for all sets in all frames
+        float timeCascade = currentVideoTime;
+        qualityFound = true;
+        // go through all classes in all frames one by one based on render
+        // deadline.
+        for (auto const &tileClassesSingleFrame : FrameIdSetQualitySizeSum) {
+          // size sum of set of tiles in all classes for this frame
+          uint64_t totalFrameTileSizes = 0;
+          for (auto const &tileClass : tileClassesSingleFrame.second) {
+            int qualityIdx = int(solution[tileClass.first * 2]) - 49;
+            totalFrameTileSizes += tileClass.second[qualityIdx];
+          }
+          // can we get all frame tiles before render deadline?
+          auto downloadTime = totalFrameTileSizes / predictedBw;
+          auto frameTilesDeadline = (tileClassesSingleFrame.first - 1) * 40;
+          if (downloadTime + timeCascade < frameTilesDeadline) {
+            timeCascade += downloadTime;
+          } else {
+            qualityFound = false;
+            qIdx--;
+            break;
+          }
+        }
+        if (qualityFound) {
+          break;
+        }
+      }
+      if (qualityFound) {
+        break;
+      }
+    }
+    std::cout << qIdx << std::endl;
+
+    /*
 
     // chunkId, set, quality (index), sum size of all set with <quality>.
     // chunk id, size <LL, HL, HH>
     std::map<int, std::vector<uint64_t>> allCombinations;
-    for (auto const &chunkSet : chunkIdSetQualitySizeSum) {
+    for (auto const &chunkSet : FrameIdSetQualitySizeSum) {
       std::vector<uint64_t> qualityComb = {0, 0, 0};
       for (auto const &setQuality : chunkSet.second) {
         if (setQuality.first == 0) {  // viewport set
@@ -159,9 +218,6 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
       allCombinations.insert(std::make_pair(chunkSet.first, qualityComb));
     }
 
-    float predictedBw =
-        (bandwidthPredictor->getMpcBandwidthPrediction() * 1e6) /
-        8.0;  // Bytes Per Second
     std::cout << "BW:" << std::to_string(predictedBw * 8 / 1e6) << std::endl;
     std::cout << videoTime << std::endl;
     for (auto const &chunkComb : allCombinations) {
@@ -200,17 +256,18 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
         }
       }
     }
+    */
     qIdx = qIdx == -1 ? 0 : qIdx;
-    std::cout << qIdx << "\n===========\n";
     std::string req = "Tiles\n";
     for (auto const &tileSet : tilesRequest) {
       req += tileSet + "\n";
     }
     req += "Quality\n" + std::to_string(qIdx);
+    std::cout << req << std::endl;
     clientNetworkLayer->setRequest(req);
 
     tilesRequest.clear();
-    chunkIdSetQualitySizeSum.clear();
+    FrameIdSetQualitySizeSum.clear();
     Util::sleep(stime, ABR_FREQ);
     videoTime += (Util::getTime() - stime);
     stime += 100;
@@ -219,7 +276,32 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
 
 uint8_t AbrAlgorithm::getNumberOfQualities() { return numberOfQualities_; }
 
-std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
-    &AbrAlgorithm::getTileChunkSizePerQuality() {
+std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>> &
+AbrAlgorithm::getTileChunkSizePerQuality() {
   return tileChunkSizePerQuality_;
+}
+
+std::map<int, std::vector<std::string>>
+AbrAlgorithm::getPossibleQualityAssignment(int quality, int tileClass) {
+  std::map<int, std::vector<std::string>> returnMap;
+  if (tileClass == 1) {
+    for (int q = quality; q > 0; q--) {
+      std::vector<std::string> qualityVec{std::to_string(q)};
+      returnMap.insert(std::make_pair(q, qualityVec));
+    }
+    return returnMap;
+  }
+
+  auto result = getPossibleQualityAssignment(quality, tileClass - 1);
+  for (int q1 = quality; q1 > 0; q1--) {
+    std::vector<std::string> solution;
+    for (int q2 = q1; q2 > 0; q2--) {
+      for (auto sol : result.find(q2)->second) {
+        solution.push_back(std::to_string(q1) + "," + sol);
+      }
+    }
+    returnMap.insert(std::make_pair(q1, solution));
+  }
+
+  return returnMap;
 }

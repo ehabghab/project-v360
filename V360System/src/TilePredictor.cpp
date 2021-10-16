@@ -317,9 +317,12 @@ TilePredictor::getPredictedTilesLR() {
       }
       tileClass++;
     }
+    if (tileClassAllFrames.find(frameId + idx)->second.size() == 0) {
+      tileClassAllFrames.erase(frameId + idx);
+    }
   }
   // print tiles in sets
-  if (VLOG_IS_ON(0)) {
+  if (VLOG_IS_ON(1)) {
     for (auto const &chunkSet : tileClassAllFrames) {
       for (auto const &setTiles : chunkSet.second) {
         LOG(INFO) << static_cast<int>(chunkSet.first) << ":"
@@ -419,12 +422,12 @@ TilePredictor::getPredictedTilesStatic() {
   }
   // print tiles in sets
   if (VLOG_IS_ON(1)) {
-    for (auto const &chunkSet : tileClassAllFrames) {
-      for (auto const &setTiles : chunkSet.second) {
-        LOG(INFO) << static_cast<int>(chunkSet.first) << ":"
-                  << static_cast<int>(setTiles.first);
+    for (auto const &tileClassesSingleFrame : tileClassAllFrames) {
+      for (auto const &tileClass : tileClassesSingleFrame.second) {
+        LOG(INFO) << static_cast<int>(tileClassesSingleFrame.first) << ":"
+                  << static_cast<int>(tileClass.first);
         std::string tiles;
-        for (auto const &tile : setTiles.second) {
+        for (auto const &tile : tileClass.second) {
           tiles += std::to_string(tile) + ",";
         }
         LOG(INFO) << tiles;
@@ -486,3 +489,5 @@ TilePredictor::TilePredictor() {
     }
   }
 }
+
+uint16_t TilePredictor::getFrameId() { return frameId_; }

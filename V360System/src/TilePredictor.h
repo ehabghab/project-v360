@@ -27,6 +27,7 @@ public:
   getPredictedTilesLR();
 
   TilePredictor();
+  uint16_t getFrameId();
 
 private:
   struct SquareCoordinates {

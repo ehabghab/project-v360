@@ -237,11 +237,11 @@ void Server::sender(Server *server, uint8_t socket) {
     // find a non duplicate tile to send.
     for (; tileIdx < tileLists.second.size(); tileIdx++) {
       // LOG(INFO) << tileIdx << ":" << tileLists.second.size() << " = "
-      //        << tileLists.second[tileIdx];
+      //          << tileLists.second[tileIdx];
       boost::algorithm::split_regex(tileInfo, tileLists.second[tileIdx],
                                     boost::regex("_"));
       try {
-        auto chunkId = stoi(tileInfo[0]);
+        auto chunkId = ((stoi(tileInfo[0]) - 1) / 25) + 1;
         auto tileId = static_cast<uint16_t>(stoi(tileInfo[2]));
         // check if the tile has already been sent or not.
         if (server->tilesSent_.find(std::make_pair(chunkId, tileId)) ==
@@ -281,8 +281,12 @@ void Server::sender(Server *server, uint8_t socket) {
     } else { // HH
       qualityPathIdx = "2";
     }
+
+    std::string chunkId = std::to_string(((stoi(tileInfo[0]) - 1) / 25) + 1);
+
+    // quality/tileId/chunkId
     std::string tilePath = server->videoRootDir_ + "/" + qualityPathIdx + "/" +
-                           tileInfo[2] + "/" + tileInfo[0] + ".h264";
+                           tileInfo[2] + "/" + chunkId + ".h264";
     char *filePath = new char[tilePath.length() + 1];
     strcpy(filePath, tilePath.c_str());
     FILE *p_file = NULL;
@@ -316,7 +320,7 @@ void Server::sender(Server *server, uint8_t socket) {
     // send header
     std::string header(server->getResponseHeader(
         "1.1", "200 OK", "Bytes", fileSize, "video/m4s",
-        tileInfo[0] + "_" + tileInfo[2], qualityPathIdx));
+        chunkId + "_" + tileInfo[2], qualityPathIdx));
     VLOG(1) << "\n" << header << "-------";
     send(socket, header.c_str(), header.size(), 0);
 
@@ -364,11 +368,11 @@ std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
     }
     // get chunk/set Id
     boost::algorithm::split_regex(tempVec2, tileSet, boost::regex(":"));
-    std::string chunkSetId = tempVec2[0] + "_" + tempVec2[1] + "_";
+    std::string FrameSetId = tempVec2[0] + "_" + tempVec2[1] + "_";
     boost::algorithm::split_regex(tempVec1, tempVec2[2], boost::regex(","));
 
     for (auto const &tileId : tempVec1) {
-      tiles.push_back(chunkSetId + tileId);
+      tiles.push_back(FrameSetId + tileId);
     }
   }
   return tiles;
