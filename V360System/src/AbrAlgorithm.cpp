@@ -76,7 +76,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     // per frame Id, per class, find the sum sizes of all tiles per different
     // qualities.
     for (auto const &tileClassesSingleFrame :
-         tileClassesOfFutureFrames) { // per chunkId
+         tileClassesOfFutureFrames) {  // per chunkId
       auto frameId = tileClassesSingleFrame.first;
       auto chunkId = ((frameId - 1) / 25) + 1;
 
@@ -89,7 +89,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
 
       auto &setQualitySizeSum = FrameIdSetQualitySizeSum.find(frameId)->second;
       for (auto const &SetOftilesInClass :
-           tileClassesSingleFrame.second) { // per class of tiles
+           tileClassesSingleFrame.second) {  // per class of tiles
         auto classRank = SetOftilesInClass.first;
         numOfClasses = numOfClasses < classRank ? classRank : numOfClasses;
         std::string tiles =
@@ -105,9 +105,9 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
 
         auto &qualitySizeSumVec = setQualitySizeSum.find(classRank)->second;
         for (uint8_t qualityIdx = 0; qualityIdx < numOfQualities;
-             qualityIdx++) { // per quality
+             qualityIdx++) {  // per quality
 
-          for (auto const &tile : SetOftilesInClass.second) { // per tile
+          for (auto const &tile : SetOftilesInClass.second) {  // per tile
             // if tile chunk is recevied then do not count it.
             if (!clientNetworkLayer->isReceived(frameId, tile)) {
               if (qualityIdx == 0) {
@@ -152,7 +152,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
 
     float predictedBw =
         (bandwidthPredictor->getMpcBandwidthPrediction() * 1e6) /
-        8.0; // Bytes Per Second
+        8.0;  // Bytes Per Second
 
     auto qualitiesAssignments = abrAlgorithm->getPossibleQualityAssignment(
         numOfQualities, numOfClasses + 1);
@@ -195,7 +195,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
         break;
       }
     }
-    std::cout << qIdx << std::endl;
+    // std::cout << qIdx << std::endl;
 
     /*
 
@@ -263,7 +263,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
       req += tileSet + "\n";
     }
     req += "Quality\n" + std::to_string(qIdx);
-    std::cout << req << std::endl;
+    // std::cout << req << std::endl;
     clientNetworkLayer->setRequest(req);
 
     tilesRequest.clear();
@@ -276,8 +276,8 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
 
 uint8_t AbrAlgorithm::getNumberOfQualities() { return numberOfQualities_; }
 
-std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>> &
-AbrAlgorithm::getTileChunkSizePerQuality() {
+std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
+    &AbrAlgorithm::getTileChunkSizePerQuality() {
   return tileChunkSizePerQuality_;
 }
 
