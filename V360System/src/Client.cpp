@@ -9,13 +9,12 @@
 
 #include <thread>
 
-#include "glog/logging.h"
-
 #include "AbrAlgorithm.h"
 #include "ClientNetworkLayer.h"
 #include "Decoder.h"
 #include "Util.h"
 #include "VideoPlayer.h"
+#include "glog/logging.h"
 
 Client::Client(std::string tilesPerFrameTracePath,
                std::string vpCorrPerFrameTracePath,
@@ -57,7 +56,7 @@ Client::Client(std::string tilesPerFrameTracePath,
   std::thread senderThread(ClientNetworkLayer::sender, clientNetworkLayer);
 
   std::thread abrThread(AbrAlgorithm::runAbr, abr, tilePredictor,
-                        bandwidthPredictor, clientNetworkLayer);
+                        bandwidthPredictor, clientNetworkLayer, videoPlayer);
 
   videoPlayerThread.join();
 
@@ -70,7 +69,6 @@ Client::Client(std::string tilesPerFrameTracePath,
 Client::~Client() {}
 
 int main(int argc, char **argv) {
-
   if (argc < 5) {
     LOG(ERROR) << "Usage: ./client <tiles_per_frame_trace> "
                   "<vp_corrdinates_per_frame> <tile_chunk_sizes> <server_ip>";

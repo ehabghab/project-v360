@@ -11,15 +11,17 @@
 #include "BandwidthPredictor.h"
 #include "ClientNetworkLayer.h"
 #include "TilePredictor.h"
+#include "VideoPlayer.h"
 
 class AbrAlgorithm {
-public:
+ public:
   AbrAlgorithm(std::string tileChunkSizesTracePath);
   static void runAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
                      BandwidthPredictor *bandwidthPredictor,
-                     ClientNetworkLayer *clientNetworkLayer);
+                     ClientNetworkLayer *clientNetworkLayer,
+                     VideoPlayer *videoPlayer);
 
-private:
+ private:
   // quality --> tiles --> tile chunk sizes.
   std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
       tileChunkSizePerQuality_;
@@ -41,12 +43,12 @@ private:
    *        with "3,3,3" being highest quality, and "1,1,1" the lowest.
    * */
 
-  std::map<int, std::vector<std::string>>
-  getPossibleQualityAssignment(int quality, int tileClass);
+  std::map<int, std::vector<std::string>> getPossibleQualityAssignment(
+      int quality, int tileClass);
 
   uint8_t getNumberOfQualities();
-  std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>> &
-  getTileChunkSizePerQuality();
+  std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
+      &getTileChunkSizePerQuality();
 };
 
 #endif /* ABRALGORITHM_H_ */

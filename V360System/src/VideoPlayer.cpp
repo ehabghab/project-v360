@@ -246,7 +246,7 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
         // all tiles are needed.
       }
     }
-    LOG(INFO) << "Stitching F#" << (videoPlayer->frameId_ - 1) << "\n====";
+    LOG(INFO) << "Stitching F#" << videoPlayer->frameId_ << "\n====";
 
     // stichFrames.
     renderTime = Util::getTime();
@@ -448,6 +448,8 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
 void VideoPlayer::setPlayLogTimestamp(std::string playLogTimestamp) {
   playLogTimestamp_ = playLogTimestamp;
 }
+
+uint32_t VideoPlayer::getFrameToRenderId() { return frameId_; }
 
 VideoPlayer::~VideoPlayer() {
   // TODO Auto-generated destructor stub
