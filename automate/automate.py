@@ -75,8 +75,8 @@ def main():
 	user_tile_per_frame_traces = ["tiles_per_frame_user_3.txt","tiles_per_frame_user_13.txt"]#,"tiles_per_frame_user_29.txt"]
 	#user_vp_corr_per_frame_traces = ["vp_corr_per_frame_user_3.txt"S,"vp_corr_per_frame_user_13.txt","vp_corr_per_frame_user_29.txt"]
 	bw_trace_dir = "/home/ehab/Desktop/Project-V360/automate/"        
-	bw_traces = ["trace_mahimahi_20.33mbps.txt", "trace_mahimahi_6.2mbps.txt","trace_mahimahi_3.1mbps.txt"]
-	delays = [20, 50]	
+	bw_traces = ["trace_mahimahi_100mbps.txt","trace_mahimahi_20.33mbps.txt", "trace_mahimahi_6.2mbps.txt","trace_mahimahi_3.1mbps.txt"]
+	delays = [0,10,20, 50]	
 	out_file = open("exp_log.txt","w")
 	for bw_trace in bw_traces:
 		for user_tile_trace in user_tile_per_frame_traces:
