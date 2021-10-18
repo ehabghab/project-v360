@@ -109,7 +109,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
 
           for (auto const &tile : SetOftilesInClass.second) {  // per tile
             // if tile chunk is recevied then do not count it.
-            if (!clientNetworkLayer->isReceived(frameId, tile)) {
+            if (!clientNetworkLayer->isReceived(chunkId, tile)) {
               if (qualityIdx == 0) {
                 tiles += std::to_string(tile) + ",";
                 setHasTiles = true;
@@ -127,8 +127,8 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
           tiles.pop_back();
           tilesRequest.push_back(tiles);
         }
-        if (VLOG_IS_ON(1)) {
-          VLOG(1) << "FrameId[" << static_cast<int>(frameId) << "] - "
+        if (VLOG_IS_ON(0)) {
+          VLOG(0) << "FrameId[" << static_cast<int>(frameId) << "] - "
                   << "set[" << static_cast<int>(classRank) << "] : " << tiles
                   << std::endl;
         }
@@ -178,8 +178,10 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
           }
           // can we get all frame tiles before render deadline?
           auto downloadTime = totalFrameTileSizes / predictedBw;
-          auto frameTilesDeadline = (tileClassesSingleFrame.first - 1) * 40;
-          if (downloadTime + timeCascade < frameTilesDeadline) {
+          auto frameTilesDeadline = ((tileClassesSingleFrame.first - 1.0) * 40.0) / 1e3;
+	  LOG(INFO)<<solution<<":"<<totalFrameTileSizes;
+	  LOG(INFO)<<currentVideoTime<<":"<<frameTilesDeadline<<":"<<downloadTime;
+          if (downloadTime + timeCascade < frameTilesDeadline || totalFrameTileSizes <= 0) {
             timeCascade += downloadTime;
           } else {
             qualityFound = false;
@@ -219,7 +221,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     }
 
     std::cout << "BW:" << std::to_string(predictedBw * 8 / 1e6) << std::endl;
-    std::cout << videoTime << std::endl;
+    std::cout << currentVideoTime << std::endl;
     for (auto const &chunkComb : allCombinations) {
       std::cout << chunkComb.first << ":[";
       for (auto const &q : chunkComb.second) {
@@ -228,14 +230,14 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
       std::cout << "]\n";
     }
 
-    int qIdx = 2;
+    int qIdx1 = 2;
     if (predictedBw == 0 || std::isnan(predictedBw)) {
-      qIdx = 0;
+      qIdx1 = 0;
     } else {
       // try all different quality options (i.e. H_H:2, H_L:1, L_L:0)
       bool qualityFound;
-      for (; qIdx >= 0; qIdx--) {
-        float timeCascade = (videoTime / 1e3);
+      for (; qIdx1 >= 0; qIdx1--) {
+        float timeCascade = currentVideoTime;
         qualityFound = true;
         // chunkComb.first = chunkId
         // chunkComb.second = {0: size(L_L),1:size(H_L), 2:size(H_H)}
@@ -255,8 +257,8 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
           break;
         }
       }
-    }
-    */
+    }*/
+    
     qIdx = qIdx == -1 ? 0 : qIdx;
     std::string req = "Tiles\n";
     for (auto const &tileSet : tilesRequest) {

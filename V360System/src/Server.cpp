@@ -28,11 +28,9 @@
 
 Server::Server() {
   videoRootDir_ =
-      "/Users/eghabash/Desktop/System-github/Project-V360/split/YuvW12H12";
+      "/home/ehab/Desktop/Project-V360/split/YuvW12H12";
 
-  // videoRootDir_ =
-  //  "/Users/eghabash/Desktop/360 Video/Project-V360"
-  //"/split/YuvW12H12";
+  ///Users/eghabash/Desktop/System-github/Project-V360/
 
   uint8_t socketFD = initializeSocket();
   uint8_t socket = listenToSocket(socketFD);
