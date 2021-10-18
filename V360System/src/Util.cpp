@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+long Util::videoPlayTime;
+
 const std::string Util::getCurrentDateTime() {
   time_t now = time(0);
   struct tm tstruct;
@@ -20,4 +22,16 @@ long Util::getTime() {
 void Util::sleep(long currentTime, long millisecondsToSleep) {
   while (getTime() - currentTime < millisecondsToSleep)
     ;
+}
+
+long Util::getTimePassedSinceLastFrame() {
+  auto currentTime = getTime();
+  auto timeDiffInMs = currentTime - Util::videoPlayTime;
+  if (timeDiffInMs < 40) {
+    return timeDiffInMs;
+  }
+  return 40;
+}
+void Util::setFramePlayTime(long FramePlayTimeInMs) {
+  Util::videoPlayTime = FramePlayTimeInMs;
 }
