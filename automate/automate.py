@@ -72,7 +72,7 @@ def main():
 
 	user_trace_dir = "/home/ehab/Desktop/Project-V360/split/"
 	tile_size ="quality_tile_sizes.txt"
-	user_tile_per_frame_traces = ["tiles_per_frame_user_3.txt","tiles_per_frame_user_13.txt"]#,"tiles_per_frame_user_29.txt"]
+	user_tile_per_frame_traces = ["tiles_per_frame_synthetic_user_1.txt","tiles_per_frame_user_3.txt","tiles_per_frame_user_13.txt"]#,"tiles_per_frame_user_29.txt"]
 	#user_vp_corr_per_frame_traces = ["vp_corr_per_frame_user_3.txt"S,"vp_corr_per_frame_user_13.txt","vp_corr_per_frame_user_29.txt"]
 	bw_trace_dir = "/home/ehab/Desktop/Project-V360/automate/"        
 	bw_traces = ["trace_mahimahi_100mbps.txt","trace_mahimahi_20.33mbps.txt", "trace_mahimahi_6.2mbps.txt","trace_mahimahi_3.1mbps.txt"]
@@ -82,6 +82,8 @@ def main():
 		for user_tile_trace in user_tile_per_frame_traces:
 			user_id = user_tile_trace.split("_")[4].split(".")[0]
 			vp_corr_trace = "vp_corr_per_frame_user_"+user_id+".txt"
+			if "tiles_per_frame_synthetic_user_1" in user_tile_trace:
+				vp_corr_trace = "vp_corr_per_frame_synthetic_user_1.txt"
 			kill_procs()
 			for delay in delays:
 				out_file.write(bw_trace+"\n"+str(delay)+"\n"+user_tile_trace+"\n=========\n")

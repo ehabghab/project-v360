@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-long Util::videoPlayTime;
+long Util::videoPlayTime = getTime();
 
 const std::string Util::getCurrentDateTime() {
   time_t now = time(0);
@@ -28,7 +28,6 @@ long Util::getTimePassedSinceLastFrame() {
   auto currentTime = getTime();
   auto timeDiffInMs = currentTime - Util::videoPlayTime;
   return timeDiffInMs;
-  
 }
 void Util::setFramePlayTime(long FramePlayTimeInMs) {
   Util::videoPlayTime = FramePlayTimeInMs;

@@ -266,13 +266,13 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
         }
       }
     }
+    Util::setFramePlayTime(renderTime);
     videoPlayer->frameId_++;
     viewport.clear();
-    if (videoPlayer->frameId_ == 1475) {
+    if (videoPlayer->frameId_ == 1476) {
       LOG(INFO) << "Video Ended!";
       return;
     }
-    Util::setFramePlayTime(renderTime);
     Util::sleep(renderTime, frameGap);
   }
 }
@@ -292,8 +292,8 @@ void VideoPlayer::orderTilesToLinkedList(
 
   // loop over all tiles
   for (auto tilePair : viewport) {
-    int tileRow = ((tilePair.first - 1) / tileHeight) + 1;  // 1--> 12 same row.
-    int tileCol = ((tilePair.first - 1) % tileWidth) + 1;   // 1--> 12
+    int tileRow = ((tilePair.first - 1) / tileHeight) + 1; // 1--> 12 same row.
+    int tileCol = ((tilePair.first - 1) % tileWidth) + 1;  // 1--> 12
     if (tileRow != prevRow) {
       // first tile in the row, then create row linkedlist.
       Node<T> *tileNode = new Node<T>;
@@ -378,7 +378,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
   // number of rows * tiles per row.
   // loc of tile in row.
   int numOfRows = 0;
-  for (auto &row : viewportLinkedList) {  // start of stitching loop
+  for (auto &row : viewportLinkedList) { // start of stitching loop
     if (row == nullptr) {
       LOG(ERROR) << "Row of tiles starts with null";
       return;
@@ -430,7 +430,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
       tileCountInRow++;
     }
     numOfRows++;
-  }  // end of stitching loop
+  } // end of stitching loop
 
   /*FILE *myfile;
 

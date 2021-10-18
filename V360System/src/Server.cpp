@@ -27,10 +27,9 @@
 #include <vector>
 
 Server::Server() {
-  videoRootDir_ =
-      "/home/ehab/Desktop/Project-V360/split/YuvW12H12";
+  videoRootDir_ = "/home/ehab/Desktop/Project-V360/split/YuvW12H12";
 
-  ///Users/eghabash/Desktop/System-github/Project-V360/
+  /// Users/eghabash/Desktop/System-github/Project-V360/
 
   uint8_t socketFD = initializeSocket();
   uint8_t socket = listenToSocket(socketFD);
@@ -220,6 +219,7 @@ void Server::sender(Server *server, uint8_t socket) {
 
     // if new tile list received update current one.
     if (tileListsTemp.second.size() != 0) {
+      // LOG(INFO)<<"New list received";
       tileLists = tileListsTemp;
       tileIdx = 0;
     }
@@ -244,6 +244,8 @@ void Server::sender(Server *server, uint8_t socket) {
         // check if the tile has already been sent or not.
         if (server->tilesSent_.find(std::make_pair(chunkId, tileId)) ==
             server->tilesSent_.end()) {
+          // LOG(INFO) << tileIdx << ":" << tileLists.second.size() << " = "
+          //   << tileLists.second[tileIdx];
           // mark as sent since we are going to send it.
           server->tilesSent_.insert(std::make_pair(chunkId, tileId));
           break;
@@ -351,6 +353,7 @@ Server::getResponseHeader(std::string httpVersion, std::string statusCode,
 }
 
 std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
+  LOG(INFO) << "====" << request << "======";
   std::vector<std::string> tempVec1;
   std::vector<std::string> tempVec2;
   boost::algorithm::split_regex(tempVec1, request, boost::regex("Tiles"));

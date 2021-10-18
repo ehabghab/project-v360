@@ -242,10 +242,6 @@ TilePredictor::getPredictedTilesLR() {
 
   uint16_t frameId = frameId_;
 
-  // This set will contain all tiles in prev sets (to contain duplicates)
-  // tilechunk_tileIdx
-  std::set<std::string> tilesInPrevSets;
-
   for (uint16_t idx = 0; idx < 25; idx++) { // per frame
     if (frameId >= 1475) {
       break;
@@ -292,14 +288,6 @@ TilePredictor::getPredictedTilesLR() {
 
         // go over all tiles in the set.
         for (auto const &tile : tileSet.second) {
-          std::string tileKey =
-              std::to_string(chunkId) + "_" + std::to_string(tile);
-          // if the tile already included in previous higher rank sets, no
-          // need to include it in the lower sets
-          if (tilesInPrevSets.find(tileKey) != tilesInPrevSets.end()) {
-            continue;
-          }
-          tilesInPrevSets.insert(tileKey);
           if (tileClassMap.find(tileClass) == tileClassMap.end()) {
             std::vector<uint16_t> tileSet;
             tileClassMap.insert(std::make_pair(tileClass, tileSet));

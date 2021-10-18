@@ -25,8 +25,7 @@ class VideoPlayer {
   };
 
   // linked list to order the tiles in stitched frame.
-  template <typename T>
-  struct Node {
+  template <typename T> struct Node {
     T *tile;
     Node *nextTile;
   };
@@ -62,7 +61,7 @@ class VideoPlayer {
                               std::vector<Node<T> *> &viewportLinkedList);
   std::mutex recvChunKMutex_;
 
- public:
+public:
   static void start(VideoPlayer *videoPlayer, TilePredictor *tilePredictor);
 
   static void decode(VideoPlayer *videoPlayer, Decoder *decoder);
