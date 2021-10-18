@@ -133,17 +133,19 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
           // if this class has tiles, then add tiles to request
           tiles.pop_back();
           tilesRequest.push_back(tiles);
+          if (VLOG_IS_ON(0)) {
+            VLOG(0) << "FrameId[" << static_cast<int>(frameId) << "] - "
+                  << "set[" << static_cast<int>(classRank) << "] : " << tiles
+                  << std::endl;
+          }
         } else {
           classQualitySizeSum.erase(classRank);
         }
-        if (VLOG_IS_ON(0)) {
-          VLOG(0) << "FrameId[" << static_cast<int>(frameId) << "] - "
-                  << "set[" << static_cast<int>(classRank) << "] : " << tiles
-                  << std::endl;
-        }
+
       }
       if (!frameHasTiles) {
-        frameIdSetQualitySizeSum.erase(frameId)
+         LOG(INFO)<<"Frame has no tiles:"<<frameId;
+        frameIdSetQualitySizeSum.erase(frameId);
       }
     }
 
@@ -166,12 +168,13 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     float predictedBw =
         (bandwidthPredictor->getMpcBandwidthPrediction() * 1e6) /
         8.0;  // Bytes Per Second
-
+    LOG(INFO)<< "Bandwidth: " << (predictedBw * 8 / 1e6);
     auto qualitiesAssignments = abrAlgorithm->getPossibleQualityAssignment(
         numOfQualities, numOfClasses + 1);
     // current video time is the time of the last played frame + time
     // passed since last frame was rendered.
-    float currentVideoTime = (((tilePredictor->getFrameId() - 1) * 40.0) +
+    auto lastFrameRendered = tilePredictor->getFrameId()-1;
+    float currentVideoTime = ((lastFrameRendered * 40.0) +
                               Util::getTimePassedSinceLastFrame()) /
                              1e3;
     int qIdx = 2;
@@ -185,7 +188,8 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
         qualityFound = true;
         // go through all classes in all frames one by one based on render
         // deadline.
-        for (auto const &tileClassesSingleFrame : FrameIdSetQualitySizeSum) {
+	LOG(INFO) <<"Solution = " << solution;
+        for (auto const &tileClassesSingleFrame : frameIdSetQualitySizeSum) {
           // size sum of set of tiles in all classes for this frame
           uint64_t totalFrameTileSizes = 0;
           for (auto const &tileClass : tileClassesSingleFrame.second) {
@@ -196,10 +200,11 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
           auto downloadTime = totalFrameTileSizes / predictedBw;
           auto frameTilesDeadline =
               ((tileClassesSingleFrame.first - 1.0) * 40.0) / 1e3;
-          LOG(INFO) << solution << ":" << totalFrameTileSizes;
-          LOG(INFO) << currentVideoTime << ":" << frameTilesDeadline << ":"
+
+          LOG(INFO) <<"Frame : "<<tileClassesSingleFrame.first<<" , size= " << totalFrameTileSizes;
+          LOG(INFO) <<"currentTime : "<< currentVideoTime << ", frame deadline : " << frameTilesDeadline << " , download time : "
                     << downloadTime;
-          if (downloadTime + timeCascade) {
+          if (downloadTime + timeCascade < frameTilesDeadline) {
             timeCascade += downloadTime;
           } else {
             qualityFound = false;
@@ -287,7 +292,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     clientNetworkLayer->setRequest(req);
 
     tilesRequest.clear();
-    FrameIdSetQualitySizeSum.clear();
+    frameIdSetQualitySizeSum.clear();
     Util::sleep(stime, ABR_FREQ);
     videoTime += (Util::getTime() - stime);
     stime += 100;

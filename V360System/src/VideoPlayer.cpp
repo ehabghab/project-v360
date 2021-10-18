@@ -246,7 +246,7 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
         // all tiles are needed.
       }
     }
-    LOG(INFO) << "Stitching F#" << videoPlayer->frameId_ << "\n====";
+    LOG(INFO) << "Stitching F#" << (videoPlayer->frameId_ - 1) << "\n====";
 
     // stichFrames.
     renderTime = Util::getTime();
@@ -266,7 +266,7 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
         }
       }
     }
-
+    videoPlayer->frameId_++;
     viewport.clear();
     if (videoPlayer->frameId_ == 1475) {
       LOG(INFO) << "Video Ended!";
@@ -274,7 +274,6 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
     }
     Util::setFramePlayTime(renderTime);
     Util::sleep(renderTime, frameGap);
-    videoPlayer->frameId_++;
   }
 }
 

@@ -27,10 +27,8 @@ void Util::sleep(long currentTime, long millisecondsToSleep) {
 long Util::getTimePassedSinceLastFrame() {
   auto currentTime = getTime();
   auto timeDiffInMs = currentTime - Util::videoPlayTime;
-  if (timeDiffInMs < 40) {
-    return timeDiffInMs;
-  }
-  return 40;
+  return timeDiffInMs;
+  
 }
 void Util::setFramePlayTime(long FramePlayTimeInMs) {
   Util::videoPlayTime = FramePlayTimeInMs;
