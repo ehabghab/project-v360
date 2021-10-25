@@ -88,7 +88,7 @@ void ClientNetworkLayer::sender(ClientNetworkLayer *client) {
     if (request == "") {
       continue;
     }
-    LOG(INFO) << request;
+    //LOG(INFO) << request;
     reqHeader = client->getRequestHeader(request);
     send(client->socket_, reqHeader.c_str(), reqHeader.size(), 0);
   }

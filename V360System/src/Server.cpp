@@ -353,7 +353,7 @@ Server::getResponseHeader(std::string httpVersion, std::string statusCode,
 }
 
 std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
-  LOG(INFO) << "====" << request << "======";
+  //LOG(INFO) << "====" << request << "======";
   std::vector<std::string> tempVec1;
   std::vector<std::string> tempVec2;
   boost::algorithm::split_regex(tempVec1, request, boost::regex("Tiles"));
