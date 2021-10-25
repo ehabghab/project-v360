@@ -109,11 +109,11 @@
         "source.fixAll": true
     },
     "editor.formatOnSave": true,
-    "clang-format.executable": "/usr/local/Cellar/clang-format/12.0.0/bin/clang-format",
+    "clang-format.executable": "/usr/bin/clang-format",
     "clang-format.style": "google",
     "clang-format.language.c.enable": true,
     "[cpp]": {
-        "editor.defaultFormatter": "xaver.clang-format",
+        "editor.defaultFormatter": "ms-vscode.cpptools",
         "editor.wordBasedSuggestions": true,
         "editor.suggest.insertMode": "replace",
         "editor.semanticHighlighting.enabled": true,

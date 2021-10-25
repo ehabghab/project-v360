@@ -29,7 +29,6 @@ VideoPlayer::VideoPlayer(std::string tilesPerFrameTracePath,
   uint32_t sec;
   std::string tiles;
   std::vector<std::string> tilesVec;
-
   while (std::getline(infile, line)) {
     pos = line.find(":");
     try {
@@ -142,7 +141,6 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
               videoPlayer->decodedTileChunks_.end()) {
             videoPlayer->decodedTileChunks_.find(chunks->first)
                 ->second.insert(std::make_pair(tileInfo->first, rawTileFrames));
-
           } else {
             std::map<uint16_t, std::vector<uint8_t *>> temp;
             temp.insert(std::make_pair(tileInfo->first, rawTileFrames));
@@ -240,7 +238,6 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
           // tile is missing. or not decoded.
           VLOG(2) << "MISS:" << rawTilesChunks.find(tileIdx)->first;
         }
-
       } else {
         // schedule urgent request.
         // all tiles are needed.
@@ -302,7 +299,6 @@ void VideoPlayer::orderTilesToLinkedList(
       nextTile = tileNode;
       head = tileNode;
       viewportLinkedList.push_back(tileNode);
-
     } else if (tileRow == prevRow && tileCol - 1 != prevCol) {
       // An overlap in row-tiles.
       Node<T> *tileNode = new Node<T>;

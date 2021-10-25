@@ -40,7 +40,6 @@ AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesTracePath) {
         tileChunkSizePerQuality_.find(qualityTileId[0])
             ->second.insert(std::make_pair(qualityTileId[1], tileChunkSizes));
       }
-
     } catch (std::invalid_argument &e) {
       LOG(ERROR) << "AbrAlgorithm::AbrAlgorithm(): cannot read line :" << line;
     }
@@ -199,8 +198,8 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     float currentVideoTime =
         (((frameIdToRender - 1) * 40.0) + Util::getTimePassedSinceLastFrame()) /
         1e3; // current video time.
-     LOG(INFO) << "Bandwidth: " << (predictedBw * 8 / 1e6)
-             << " , Next frame: " << frameIdToRender;
+    LOG(INFO) << "Bandwidth: " << (predictedBw * 8 / 1e6)
+              << " , Next frame: " << frameIdToRender;
 
     for (int quality = numOfQualities; quality > 0; quality--) {
       // for all possible solutions
@@ -210,7 +209,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
         qualityFound = true;
         // go through all classes in all frames one by one based on render
         // deadline.
-         LOG(INFO) << "Solution = " << solution;
+        LOG(INFO) << "Solution = " << solution;
         for (auto const &tileClassesSingleFrame : frameIdSetQualitySizeSum) {
           if (tileClassesSingleFrame.first < frameIdToRender) {
             continue;
@@ -226,9 +225,9 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
           auto frameTilesDeadline =
               ((tileClassesSingleFrame.first - 1.0) * 40.0) / 1e3;
 
-           LOG(INFO) << "Frame : " << tileClassesSingleFrame.first
+          LOG(INFO) << "Frame : " << tileClassesSingleFrame.first
                     << " , size= " << totalFrameTileSizes;
-           LOG(INFO) << "currentTime : " << currentVideoTime
+          LOG(INFO) << "currentTime : " << currentVideoTime
                     << ", frame deadline : " << frameTilesDeadline
                     << " , download time : " << downloadTime;
           if (downloadTime + timeCascade < frameTilesDeadline) {
@@ -248,66 +247,6 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
       }
     }
     // std::cout << qIdx << std::endl;
-
-    /*
-
-    // chunkId, set, quality (index), sum size of all set with <quality>.
-    // chunk id, size <LL, HL, HH>
-    std::map<int, std::vector<uint64_t>> allCombinations;
-    for (auto const &chunkSet : FrameIdSetQualitySizeSum) {
-      std::vector<uint64_t> qualityComb = {0, 0, 0};
-      for (auto const &setQuality : chunkSet.second) {
-        if (setQuality.first == 0) {  // viewport set
-          qualityComb[0] += setQuality.second[0];
-          qualityComb[1] += setQuality.second[1];
-          qualityComb[2] += setQuality.second[1];
-        } else {  // edge set
-          qualityComb[0] += setQuality.second[0];
-          qualityComb[1] += setQuality.second[0];
-          qualityComb[2] += setQuality.second[1];
-        }
-      }
-      allCombinations.insert(std::make_pair(chunkSet.first, qualityComb));
-    }
-
-    std::cout << "BW:" << std::to_string(predictedBw * 8 / 1e6) << std::endl;
-    std::cout << currentVideoTime << std::endl;
-    for (auto const &chunkComb : allCombinations) {
-      std::cout << chunkComb.first << ":[";
-      for (auto const &q : chunkComb.second) {
-        std::cout << std::to_string(q) << ",";
-      }
-      std::cout << "]\n";
-    }
-
-    int qIdx1 = 2;
-    if (predictedBw == 0 || std::isnan(predictedBw)) {
-      qIdx1 = 0;
-    } else {
-      // try all different quality options (i.e. H_H:2, H_L:1, L_L:0)
-      bool qualityFound;
-      for (; qIdx1 >= 0; qIdx1--) {
-        float timeCascade = currentVideoTime;
-        qualityFound = true;
-        // chunkComb.first = chunkId
-        // chunkComb.second = {0: size(L_L),1:size(H_L), 2:size(H_H)}
-        for (auto const &chunkComb : allCombinations) {
-          // time in sec to get the set of quality[qIdx]
-          auto downloadTime = chunkComb.second[qIdx] / predictedBw;
-          if (downloadTime + timeCascade < chunkComb.first) {
-            timeCascade += downloadTime;
-          } else {
-            qualityFound = false;
-            break;
-          }
-        }
-        if (qualityFound) {
-          // all sets are recevied by their deadline, so qIdx is the best
-          // quality.
-          break;
-        }
-      }
-    }*/
 
     qIdx = qIdx == -1 ? 0 : qIdx;
     std::string req = "Tiles\n";
