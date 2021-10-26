@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <map>
 #include <mutex>
+#include <unordered_set>
 
 #include "Decoder.h"
 #include "TilePredictor.h"
@@ -40,6 +41,9 @@ class VideoPlayer {
 
   std::map<uint32_t, std::map<uint16_t, struct Chunk>> chunks_;
 
+  // key: frameId, value: set of all tiles to skip.
+  std::map<uint32_t, std::unordered_set<uint16_t>> tilesInFrameToSkip;
+
   // Per frame, what are the tiles in the viewport.
   std::map<uint32_t, std::vector<uint16_t>> groundTruth_;
 
@@ -61,6 +65,12 @@ class VideoPlayer {
                               std::vector<Node<T> *> &viewportLinkedList);
   std::mutex recvChunKMutex_;
 
+  std::mutex skipTileMutex_;
+
+  bool skipThisTile(uint16_t tileId);
+
+  void freeSkipTileMapCurrentFrame();
+
 public:
   static void start(VideoPlayer *videoPlayer, TilePredictor *tilePredictor);
 
@@ -75,6 +85,8 @@ public:
   void setPlayLogTimestamp(std::string playLogTimestamp);
 
   uint32_t getFrameToRenderId();
+
+  void setTileToSkip(uint32_t frameId, uint16_t tile);
 
   virtual ~VideoPlayer();
 };

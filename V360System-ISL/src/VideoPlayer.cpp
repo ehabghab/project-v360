@@ -202,48 +202,58 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
 
     // for each tile.
     for (auto tileIdx : tiles->second) {
+      // if this ABR decided to skip a tile, this to be set to true.
+      bool skipTile = false;
+
       playSecond = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
-      while (check1) {
+
+      while (check1 && !skipTile) {
         videoPlayer->decodedTileChunksMutex_.lock();
         if (videoPlayer->decodedTileChunks_.find(playSecond) !=
             videoPlayer->decodedTileChunks_.end()) {
           check1 = false;
         }
         videoPlayer->decodedTileChunksMutex_.unlock();
+        skipTile = videoPlayer->skipThisTile(tileIdx);
       }
       check1 = true;
       // decoded chunks with frames belong to current presentation time.
       // this gets all the raw chunks for all tiles at chunk = play-second.
 
       if (videoPlayer->decodedTileChunks_.find(playSecond) !=
-          videoPlayer->decodedTileChunks_.end()) {
+              videoPlayer->decodedTileChunks_.end() &&
+          !skipTile) {
         auto &rawTilesChunks =
             videoPlayer->decodedTileChunks_.find(playSecond)->second;
 
         // get all frames of chunk.
-        while (check2) {
+        while (check2 && !skipTile) {
           videoPlayer->decodedTileChunksMutex_.lock();
           if (rawTilesChunks.find(tileIdx) != rawTilesChunks.end()) {
             check2 = false;
           }
           videoPlayer->decodedTileChunksMutex_.unlock();
+          skipTile = videoPlayer->skipThisTile(tileIdx);
         }
         check2 = true;
 
-        if (rawTilesChunks.find(tileIdx) != rawTilesChunks.end()) {
+        if (!skipTile && rawTilesChunks.find(tileIdx) != rawTilesChunks.end()) {
           auto &frame =
               rawTilesChunks.find(tileIdx)
                   ->second[(videoPlayer->frameId_ - 1) % videoPlayer->FPS_];
           viewport.insert(std::make_pair(tileIdx, frame));
-        } else {
-          // tile is missing. or not decoded.
-          VLOG(2) << "MISS:" << rawTilesChunks.find(tileIdx)->first;
         }
-      } else {
-        // schedule urgent request.
-        // all tiles are needed.
+
+      } else if (!skipTile) {
+        // all tiles are needed. You may want to skip the whole frame.
+      }
+      if (skipTile) {
+        viewport.insert(std::make_pair(tileIdx, nullptr));
+        LOG(INFO) << "Skip: <" << videoPlayer->frameId_ << "," << tileIdx
+                  << ">";
       }
     }
+
     LOG(INFO) << "Stitching F#" << videoPlayer->frameId_ << "\n====";
 
     // stichFrames.
@@ -265,6 +275,7 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
       }
     }
     Util::setFramePlayTime(renderTime);
+    videoPlayer->freeSkipTileMapCurrentFrame();
     videoPlayer->frameId_++;
     viewport.clear();
     if (videoPlayer->frameId_ == 1476) {
@@ -391,10 +402,15 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
           (tilesInRow * numOfRows * 320 * 160) + (tileCountInRow * 320);
       for (int c = 0; c < 160; c++) {
         auto destAddress = rawViewPort + yBaseTileAddress + (rowLengthY * c);
-        auto srcAddress = row->tile + (320 * c);
-        // AVFrame uncomment
-        // auto srcAddress =  (row->tile->data[0] + (384 * c))
-        memcpy(destAddress, srcAddress, 320);
+        if (row->tile != nullptr) {
+          auto srcAddress = row->tile + (320 * c);
+          // AVFrame uncomment
+          // auto srcAddress =  (row->tile->data[0] + (384 * c))
+          memcpy(destAddress, srcAddress, 320);
+        } else {
+          // skip tile, set color to black.
+          memset(destAddress, 0, 320);
+        }
       }
 
       // U-plane
@@ -404,10 +420,15 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
                              tileCountInRow * 160;
       for (int c = 0; c < 80; c++) {
         auto destAddress = rawViewPort + uTileBaseAddress + (rowLengthUV * c);
-        auto srcAddress = row->tile + (160 * c) + uBaseAddressInTile;
-        // AVFrame uncomment
-        // auto srcAddress = (row->tile->data[1] + (192 * c))
-        memcpy(destAddress, srcAddress, 160);
+        if (row->tile != nullptr) {
+          auto srcAddress = row->tile + (160 * c) + uBaseAddressInTile;
+          // AVFrame uncomment
+          // auto srcAddress = (row->tile->data[1] + (192 * c))
+          memcpy(destAddress, srcAddress, 160);
+        } else {
+          // skip tile, set color to black.
+          memset(destAddress, 128, 160);
+        }
       }
 
       // V-plane
@@ -417,10 +438,15 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
                              tileCountInRow * 160;
       for (int c = 0; c < 80; c++) {
         auto destAddress = rawViewPort + vTileBaseAddress + (rowLengthUV * c);
-        auto srcAddress = row->tile + (160 * c) + vBaseAddressInTile;
-        // AVFrame uncomment
-        // auto srcAddress = (row->tile->data[2] + (192 * c))
-        memcpy(destAddress, srcAddress, 160);
+        if (row->tile != nullptr) {
+          auto srcAddress = row->tile + (160 * c) + vBaseAddressInTile;
+          // AVFrame uncomment
+          // auto srcAddress = (row->tile->data[2] + (192 * c))
+          memcpy(destAddress, srcAddress, 160);
+        } else {
+          // skip tile, set color to black.
+          memset(destAddress, 128, 160);
+        }
       }
 
       row = row->nextTile;
@@ -450,4 +476,32 @@ uint32_t VideoPlayer::getFrameToRenderId() { return frameId_; }
 
 VideoPlayer::~VideoPlayer() {
   // TODO Auto-generated destructor stub
+}
+
+void VideoPlayer::setTileToSkip(uint32_t frameId, uint16_t tile) {
+  skipTileMutex_.lock();
+  if (tilesInFrameToSkip.find(frameId) == tilesInFrameToSkip.end()) {
+    std::unordered_set<uint16_t> initSet;
+    tilesInFrameToSkip.insert(std::make_pair(frameId, initSet));
+  }
+  tilesInFrameToSkip.find(frameId)->second.insert(tile);
+  skipTileMutex_.unlock();
+}
+
+bool VideoPlayer::skipThisTile(uint16_t tileId) {
+  auto skippedTiles = tilesInFrameToSkip.find(frameId_);
+  if (skippedTiles != tilesInFrameToSkip.end()) {
+    if (skippedTiles->second.find(tileId) != skippedTiles->second.end()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void VideoPlayer::freeSkipTileMapCurrentFrame() {
+  skipTileMutex_.lock();
+  if (tilesInFrameToSkip.find(frameId_) != tilesInFrameToSkip.end()) {
+    tilesInFrameToSkip.erase(frameId_);
+  }
+  skipTileMutex_.unlock();
 }

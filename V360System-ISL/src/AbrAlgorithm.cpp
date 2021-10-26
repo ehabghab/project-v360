@@ -107,7 +107,12 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
            tileClassesSingleFrame.second) { // per class of tiles
 
         auto classRank = SetOftilesInClass.first;
+
+        //============================================
+        // This line to determine how many classes to go over next.
         numOfClasses = numOfClasses < classRank ? classRank : numOfClasses;
+        //============================================
+
         std::string tiles =
             std::to_string(frameId) + ":" + std::to_string(classRank) + ":";
         bool classHasTiles = false;
@@ -127,8 +132,8 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
             // if tile chunk is recevied then do not count it.
             std::string tileKey =
                 std::to_string(chunkId) + "_" + std::to_string(tile);
-            // if the tile already included in previous higher rank sets, no
-            // need to include it in the lower sets
+            // if the tile already included in earlier frame of higher rank
+            // class, then skip (no duplicates)
             if (tilesInPrevSets.find(tileKey) != tilesInPrevSets.end()) {
               continue;
             }
@@ -169,6 +174,17 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
       }
     }
 
+    if (frameIdToRender == 3) {
+
+      videoPlayer->setTileToSkip(3, 29);
+
+      videoPlayer->setTileToSkip(4, 29);
+      videoPlayer->setTileToSkip(4, 30);
+      videoPlayer->setTileToSkip(4, 31);
+      videoPlayer->setTileToSkip(4, 32);
+
+      videoPlayer->setTileToSkip(5, 66);
+    }
     // find the quality that we can get all tiles within each frame before frame
     // deadline (avoid rebuffering at all costs).
     // Constraints:
@@ -226,10 +242,10 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
               ((tileClassesSingleFrame.first - 1.0) * 40.0) / 1e3;
 
           LOG(INFO) << "Frame : " << tileClassesSingleFrame.first
-                    << " , size= " << totalFrameTileSizes;
-          LOG(INFO) << "currentTime : " << currentVideoTime
+                    << " , size= " << totalFrameTileSizes
+                    << "(currentTime : " << timeCascade
                     << ", frame deadline : " << frameTilesDeadline
-                    << " , download time : " << downloadTime;
+                    << " , download time : " << downloadTime << ")";
           if (downloadTime + timeCascade < frameTilesDeadline) {
             timeCascade += downloadTime;
           } else {
