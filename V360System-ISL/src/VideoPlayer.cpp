@@ -408,7 +408,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
           // auto srcAddress =  (row->tile->data[0] + (384 * c))
           memcpy(destAddress, srcAddress, 320);
         } else {
-          // skip tile, set color to black.
+          // skip tile, set color to black (Y:0, U:128, V:128)
           memset(destAddress, 0, 320);
         }
       }
@@ -426,7 +426,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
           // auto srcAddress = (row->tile->data[1] + (192 * c))
           memcpy(destAddress, srcAddress, 160);
         } else {
-          // skip tile, set color to black.
+          // skip tile, set color to black (Y:0, U:128, V:128)
           memset(destAddress, 128, 160);
         }
       }
@@ -444,7 +444,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
           // auto srcAddress = (row->tile->data[2] + (192 * c))
           memcpy(destAddress, srcAddress, 160);
         } else {
-          // skip tile, set color to black.
+          // skip tile, set color to black (Y:0, U:128, V:128)
           memset(destAddress, 128, 160);
         }
       }
