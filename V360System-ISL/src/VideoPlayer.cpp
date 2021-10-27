@@ -180,88 +180,108 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
   FILE *playLog;
   std::string filename = "play_log_" + videoPlayer->playLogTimestamp_ + ".txt";
   playLog = fopen(filename.c_str(), "wb");
-  fprintf(playLog, "%-20s %-20s %-20s\n", "frame id", "deadline",
-          "render time");
+  fprintf(playLog, "%-20s %-20s %-20s %-20s\n", "frame id", "deadline",
+          "render time", "skipped tiles");
+  // list of all tiles we had to skip for the current frame.
+  std::string skippedTiles;
+  // For the first frame in the video, we don't skip any tiles (allow join time)
+  bool firstFrame = true;
+
+  // if the tile is not received by its deadline, then skip it.
+  bool skipTile;
+
+  // if no tile-chunks have been received, then skip them all.
+  bool haveTilesForCurrentSecond;
+
+  // if the needed tile has not been received, the skip it.
+  bool haveReceivedTile;
 
   while (true) {
     long frameDeadline = Util::getTime();
 
-    // LOG(INFO) << "Playing Frame#" << videoPlayer->frameId_;
-    bool check1 = true;
-    bool check2 = true;
+    // add current user's coordinate to ground truth.
     tilePredictor->addVpCoordinate(
         videoPlayer->groundTruthCoordinates_[videoPlayer->frameId_ - 1]);
 
-    // all tiles to present in the current frame.
+    // all tiles needed to construct current frame.
     auto tiles = videoPlayer->groundTruth_.find(videoPlayer->frameId_);
     if (tiles == videoPlayer->groundTruth_.end()) {
       // no more frames;
-      LOG(INFO) << "No frames";
+      LOG(INFO) << "No more frames to play!";
       break;
     }
 
+    skippedTiles = "";
     // for each tile.
     for (auto tileIdx : tiles->second) {
-      // if this ABR decided to skip a tile, this to be set to true.
-      bool skipTile = false;
 
+      skipTile = false;
+      haveTilesForCurrentSecond = false;
+      haveReceivedTile = false;
       playSecond = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
 
-      while (check1 && !skipTile) {
+      // first, check if any tile-chunk that correspond to current second has
+      // been received or not. If not, and this is the first frame in the video,
+      // then wait. Otherwise, skip.
+      while (!haveTilesForCurrentSecond && !skipTile) {
         videoPlayer->decodedTileChunksMutex_.lock();
         if (videoPlayer->decodedTileChunks_.find(playSecond) !=
             videoPlayer->decodedTileChunks_.end()) {
-          check1 = false;
+          haveTilesForCurrentSecond = true;
         }
         videoPlayer->decodedTileChunksMutex_.unlock();
-        skipTile = videoPlayer->skipThisTile(tileIdx);
+        if (!firstFrame && !haveTilesForCurrentSecond) {
+          skipTile = true;
+        }
       }
-      check1 = true;
-      // decoded chunks with frames belong to current presentation time.
-      // this gets all the raw chunks for all tiles at chunk = play-second.
 
+      // check if the tile has been received, if so add the raw tile-frame to
+      // final viewport list for stitching. If not, and this is not the first
+      // frame, then wait until tile-chunk is receieved.
       if (videoPlayer->decodedTileChunks_.find(playSecond) !=
               videoPlayer->decodedTileChunks_.end() &&
           !skipTile) {
         auto &rawTilesChunks =
             videoPlayer->decodedTileChunks_.find(playSecond)->second;
 
-        // get all frames of chunk.
-        while (check2 && !skipTile) {
+        // get all frames in tile-chunk.
+        while (!haveReceivedTile && !skipTile) {
           videoPlayer->decodedTileChunksMutex_.lock();
           if (rawTilesChunks.find(tileIdx) != rawTilesChunks.end()) {
-            check2 = false;
+            haveReceivedTile = true;
           }
           videoPlayer->decodedTileChunksMutex_.unlock();
-          skipTile = videoPlayer->skipThisTile(tileIdx);
+          if (!firstFrame && !haveReceivedTile) {
+            skipTile = true;
+          }
         }
-        check2 = true;
 
+        // if the tile-frame received, then add it to viewport.
         if (!skipTile && rawTilesChunks.find(tileIdx) != rawTilesChunks.end()) {
           auto &frame =
               rawTilesChunks.find(tileIdx)
                   ->second[(videoPlayer->frameId_ - 1) % videoPlayer->FPS_];
           viewport.insert(std::make_pair(tileIdx, frame));
         }
-
-      } else if (!skipTile) {
-        // all tiles are needed. You may want to skip the whole frame.
       }
+
       if (skipTile) {
         viewport.insert(std::make_pair(tileIdx, nullptr));
-        LOG(INFO) << "Skip: <" << videoPlayer->frameId_ << "," << tileIdx
-                  << ">";
+        skippedTiles += std::to_string(tileIdx) + ",";
+        // LOG(INFO) << "Skip: <" << videoPlayer->frameId_ << "," << tileIdx
+        //        << ">";
       }
     }
-
+    firstFrame = false;
     LOG(INFO) << "Stitching F#" << videoPlayer->frameId_ << "\n====";
 
     // stichFrames.
     renderTime = Util::getTime();
-    fprintf(playLog, "%-20s %-20s %-20s\n",
+    skippedTiles.pop_back();
+    fprintf(playLog, "%-20s %-20s %-20s %-20s\n",
             std::to_string(videoPlayer->frameId_).c_str(),
             std::to_string(frameDeadline).c_str(),
-            std::to_string(renderTime).c_str());
+            std::to_string(renderTime).c_str(), skippedTiles.c_str());
 
     fflush(playLog);
     videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_);

@@ -174,17 +174,6 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
       }
     }
 
-    if (frameIdToRender == 3) {
-
-      videoPlayer->setTileToSkip(3, 29);
-
-      videoPlayer->setTileToSkip(4, 29);
-      videoPlayer->setTileToSkip(4, 30);
-      videoPlayer->setTileToSkip(4, 31);
-      videoPlayer->setTileToSkip(4, 32);
-
-      videoPlayer->setTileToSkip(5, 66);
-    }
     // find the quality that we can get all tiles within each frame before frame
     // deadline (avoid rebuffering at all costs).
     // Constraints:
