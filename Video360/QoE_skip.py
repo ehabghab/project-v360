@@ -6,6 +6,11 @@ from os import system
 import sys
 import os
 
+#plt.rcParams.update({
+#    "text.usetex": True,
+#    "font.family": "sans-serif",
+#    "font.sans-serif": ["Helvetica"]})
+
 
 def main():
 
