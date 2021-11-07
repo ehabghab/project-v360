@@ -84,15 +84,14 @@ LinearRegression::predict(std::vector<std::pair<float, float>> &input,
       predYaw -= int(predYaw / 360) * 360;
     if (predPitch > 180)
       predPitch -= int(predPitch / 180) * 180;
-    results += "("+std::to_string(predYaw) + ","+std::to_string(predPitch)+")--";
+    results +=
+        "(" + std::to_string(predYaw) + "," + std::to_string(predPitch) + ")--";
     lrPredictions.push_back(std::make_pair(predYaw, predPitch));
   }
-  results.pop_back();
-  results.pop_back();
-  fprintf(predictionLog_, "%-20s %-20s\n", std::to_string(frameId_).c_str(),
-          results.c_str());
-  frameId_++;
-
+  std::string frameOut = std::to_string(length) + "(" +
+                         std::to_string(input[length - 1].first) + "," +
+                         std::to_string(input[length - 1].second) + ")";
+  fprintf(predictionLog_, "%-50s %-20s\n", frameOut.c_str(), results.c_str());
   return lrPredictions;
 }
 
@@ -131,8 +130,7 @@ void LinearRegression::init(std::vector<std::pair<float, float>> &input) {
 
   std::string filename = "prediction_log_" + Util::getLogTimestamp() + ".txt";
   predictionLog_ = fopen(filename.c_str(), "wb");
-  fprintf(predictionLog_, "%-20s %s \n", "frame id", "predictions");
-  frameId_ = 13;
+  fprintf(predictionLog_, "%-50s %s \n", "frame id (yaw,pitch)", "predictions");
   // std::cout << "init" << std::endl;
   // std::cout << "(yawB0,yawB1) = (" << yawB0 << "," << yawB1 << ")\n";
   // std::cout << "(pitchB0,pitchB1) = (" << pitchB0 << "," << pitchB1 << ")\n";

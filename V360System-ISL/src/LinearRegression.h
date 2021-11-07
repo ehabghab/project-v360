@@ -39,7 +39,6 @@ private:
   void init(std::vector<std::pair<float, float>> &input);
 
   FILE *predictionLog_;
-  uint32_t frameId_;
 
 public:
   std::vector<std::pair<float, float>>
