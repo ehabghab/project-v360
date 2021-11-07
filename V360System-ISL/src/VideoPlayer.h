@@ -37,8 +37,6 @@ class VideoPlayer {
 
   uint32_t frameId_;
 
-  std::string playLogTimestamp_;
-
   std::map<uint32_t, std::map<uint16_t, struct Chunk>> chunks_;
 
   // key: frameId, value: set of all tiles to skip.
@@ -81,8 +79,6 @@ public:
 
   void addChunk(uint8_t *chunkPointer, uint32_t chunkSize,
                 uint32_t tileChunkIdx, uint16_t tileIdx);
-
-  void setPlayLogTimestamp(std::string playLogTimestamp);
 
   uint32_t getFrameToRenderId();
 

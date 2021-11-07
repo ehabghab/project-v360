@@ -32,13 +32,6 @@ Client::Client(std::string tilesPerFrameTracePath,
   TilePredictor *tilePredictor = new TilePredictor();
   BandwidthPredictor *bandwidthPredictor = new BandwidthPredictor();
 
-  // For logging consistency, we pass log timestamp to both:
-  // 1- Video player to log rebuffering.
-  // 2- Network layet to log info (quality, idx) for all tiles recevied.
-  std::string logsTimestamp = Util::getCurrentDateTime();
-  videoPlayer->setPlayLogTimestamp(logsTimestamp);
-  clientNetworkLayer->setRecvLogTimestamp(logsTimestamp);
-
   // Start all threads:
   // 1- receiver thread: to recive tiles.
   // 2- video player thread: to stitch and play viewport frames.

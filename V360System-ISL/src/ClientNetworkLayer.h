@@ -28,8 +28,6 @@ class ClientNetworkLayer {
   // To synchronize read and write the request List.
   std::mutex reqMutex_;
 
-  std::string recvLogTimestamp_;
-
   // TODO document what each function does.
 
   int socket_;
@@ -57,8 +55,6 @@ public:
   bool isReceived(int chunkId, uint16_t tileId);
 
   void setRequest(std::string requestList);
-
-  void setRecvLogTimestamp(std::string recvLogTimestamp);
 
   virtual ~ClientNetworkLayer();
 };

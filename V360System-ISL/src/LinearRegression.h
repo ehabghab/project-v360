@@ -7,6 +7,8 @@
  *  Created on: Sep 15, 2021
  *      Author: cbothra
  */
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include <vector>
@@ -35,6 +37,9 @@ private:
   float timeSampleInput_[kHW];
 
   void init(std::vector<std::pair<float, float>> &input);
+
+  FILE *predictionLog_;
+  uint32_t frameId_;
 
 public:
   std::vector<std::pair<float, float>>

@@ -11,6 +11,8 @@
 #include <iostream>
 #include <numeric>
 
+#include "Util.h"
+
 std::vector<std::pair<float, float>>
 LinearRegression::predict(std::vector<std::pair<float, float>> &input,
                           int length) {
@@ -73,7 +75,7 @@ LinearRegression::predict(std::vector<std::pair<float, float>> &input,
     pitchError.push_back(pitchErr);
   }
 
-  std::string outYaw = "";
+  std::string results = "";
   for (size_t i = hw_ + 1; i < pw_ + hw_; i++) {
     float predYaw = yawB0 + yawB1 * i;
     float predPitch = pitchB0 + pitchB1 * i;
@@ -82,11 +84,14 @@ LinearRegression::predict(std::vector<std::pair<float, float>> &input,
       predYaw -= int(predYaw / 360) * 360;
     if (predPitch > 180)
       predPitch -= int(predPitch / 180) * 180;
-    outYaw += std::to_string(predYaw) + ",";
+    results += "("+std::to_string(predYaw) + ","+std::to_string(predPitch)+")--";
     lrPredictions.push_back(std::make_pair(predYaw, predPitch));
   }
-  outYaw.pop_back();
-  // std::cout << outYaw << std::endl;
+  results.pop_back();
+  results.pop_back();
+  fprintf(predictionLog_, "%-20s %-20s\n", std::to_string(frameId_).c_str(),
+          results.c_str());
+  frameId_++;
 
   return lrPredictions;
 }
@@ -124,6 +129,10 @@ void LinearRegression::init(std::vector<std::pair<float, float>> &input) {
   pitchB1 = indepPitch / indepIndep;
   pitchB0 = pitchMean - (pitchB1 * indepMean);
 
+  std::string filename = "prediction_log_" + Util::getLogTimestamp() + ".txt";
+  predictionLog_ = fopen(filename.c_str(), "wb");
+  fprintf(predictionLog_, "%-20s %s \n", "frame id", "predictions");
+  frameId_ = 13;
   // std::cout << "init" << std::endl;
   // std::cout << "(yawB0,yawB1) = (" << yawB0 << "," << yawB1 << ")\n";
   // std::cout << "(pitchB0,pitchB1) = (" << pitchB0 << "," << pitchB1 << ")\n";

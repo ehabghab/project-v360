@@ -3,6 +3,7 @@
 #include <chrono>
 
 long Util::videoPlayTime = getTime();
+std::string Util::logTimestamp = getCurrentDateTime();
 
 const std::string Util::getCurrentDateTime() {
   time_t now = time(0);
@@ -32,3 +33,5 @@ long Util::getTimePassedSinceLastFrame() {
 void Util::setFramePlayTime(long FramePlayTimeInMs) {
   Util::videoPlayTime = FramePlayTimeInMs;
 }
+
+std::string Util::getLogTimestamp() { return Util::logTimestamp; }

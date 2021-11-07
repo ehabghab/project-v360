@@ -9,6 +9,7 @@
 
 class Util {
   static long videoPlayTime;
+  static std::string logTimestamp;
 
 public:
   static const std::string getCurrentDateTime();
@@ -16,4 +17,5 @@ public:
   static void sleep(long currentTime, long millisecondsToSleep);
   static long getTimePassedSinceLastFrame();
   static void setFramePlayTime(long FramePlayTimeInMs);
+  static std::string getLogTimestamp();
 };

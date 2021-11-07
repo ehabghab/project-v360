@@ -125,7 +125,7 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
   float bandwidth;
 
   FILE *recvLog;
-  std::string filename = "recv_log_" + client->recvLogTimestamp_ + ".txt";
+  std::string filename = "recv_log_" + Util::getLogTimestamp() + ".txt";
   recvLog = fopen(filename.c_str(), "wb");
   fprintf(recvLog, "%-20s %-20s %-20s %-20s %-20s %-20s \n", "chunk_id",
           "tile_idx", "quality", "chunk_size", "recv_time", "bandwidth(mbps)");
@@ -304,10 +304,6 @@ bool ClientNetworkLayer::isReceived(int chunkId, uint16_t tileId) {
     return false;
   }
   return true;
-}
-
-void ClientNetworkLayer::setRecvLogTimestamp(std::string recvLogTimestamp) {
-  recvLogTimestamp_ = recvLogTimestamp;
 }
 
 ClientNetworkLayer::~ClientNetworkLayer() {

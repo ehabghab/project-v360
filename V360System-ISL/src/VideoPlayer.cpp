@@ -178,7 +178,7 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
   std::map<uint16_t, uint8_t *> viewport;
 
   FILE *playLog;
-  std::string filename = "play_log_" + videoPlayer->playLogTimestamp_ + ".txt";
+  std::string filename = "play_log_" + Util::getLogTimestamp() + ".txt";
   playLog = fopen(filename.c_str(), "wb");
   fprintf(playLog, "%-20s %-20s %-20s %-20s\n", "frame id", "deadline",
           "render time", "skipped tiles");
@@ -486,10 +486,6 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
   fwrite(rawViewPort, sizeof(uint8_t), numberOfTiles * tileSize, myfile);
 
   fclose(myfile);*/
-}
-
-void VideoPlayer::setPlayLogTimestamp(std::string playLogTimestamp) {
-  playLogTimestamp_ = playLogTimestamp;
 }
 
 uint32_t VideoPlayer::getFrameToRenderId() { return frameId_; }
