@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <map>
 #include <vector>
 
 class LinearRegression {
@@ -36,11 +37,36 @@ private:
   float pitchInput_[kHW];
   float timeSampleInput_[kHW];
 
-  void init(std::vector<std::pair<float, float>> &input);
+  std::string vpCorrPerFrameTracePath_;
 
   FILE *predictionLog_;
 
+  std::vector<std::pair<float, float>> groundTruthCoordinates_;
+
+  void init(std::vector<std::pair<float, float>> &input);
+
+  void initPerfect();
+
 public:
+  LinearRegression(std::string vpCorrPerFrameTracePath);
+
+  /**
+   * @brief It takes the histroy --half second-- of the user vp coordinates, and
+   * predict where the user will be looking for the next second.
+   *
+   * @param input: user coordinates as vector of pairs <yaw,pitch>.
+   * @param length: this is the length of the vector (frameId)
+   * @return predicted 1-second of future vp coordinates.
+   */
   std::vector<std::pair<float, float>>
   predict(std::vector<std::pair<float, float>> &input, int length);
+
+  /**
+   * @brief This returns where the user will be looking without prediction
+   * --ground truth--.
+   *
+   * @param length: current frame Id.
+   * @return ground truth future vp coordinates.
+   */
+  std::vector<std::pair<float, float>> predictPerfect(int length);
 };

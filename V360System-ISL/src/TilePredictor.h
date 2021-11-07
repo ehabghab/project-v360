@@ -26,7 +26,7 @@ public:
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
   getPredictedTilesLR();
 
-  TilePredictor();
+  TilePredictor(std::string vpCorrPerFrameTracePath);
   uint16_t getFrameId();
 
 private:

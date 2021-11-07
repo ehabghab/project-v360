@@ -29,7 +29,7 @@ Client::Client(std::string tilesPerFrameTracePath,
       new VideoPlayer(tilesPerFrameTracePath, vpCorrPerFrameTracePath);
   Decoder *decoder = new Decoder();
   AbrAlgorithm *abr = new AbrAlgorithm(tileChunkSizesTracePath);
-  TilePredictor *tilePredictor = new TilePredictor();
+  TilePredictor *tilePredictor = new TilePredictor(vpCorrPerFrameTracePath);
   BandwidthPredictor *bandwidthPredictor = new BandwidthPredictor();
 
   // Start all threads:

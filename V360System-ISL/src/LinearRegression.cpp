@@ -6,7 +6,10 @@
  */
 #include "LinearRegression.h"
 
+#include <stdio.h>
+
 #include <algorithm>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <numeric>
@@ -76,7 +79,7 @@ LinearRegression::predict(std::vector<std::pair<float, float>> &input,
   }
 
   std::string results = "";
-  for (size_t i = hw_ + 1; i < pw_ + hw_; i++) {
+  for (size_t i = hw_ + 1; i < pw_ + hw_ + 1; i++) {
     float predYaw = yawB0 + yawB1 * i;
     float predPitch = pitchB0 + pitchB1 * i;
 
@@ -93,6 +96,30 @@ LinearRegression::predict(std::vector<std::pair<float, float>> &input,
                          std::to_string(input[length - 1].second) + ")";
   fprintf(predictionLog_, "%-50s %-20s\n", frameOut.c_str(), results.c_str());
   return lrPredictions;
+}
+
+std::vector<std::pair<float, float>>
+LinearRegression::predictPerfect(int length) {
+  std::vector<std::pair<float, float>> vpTruth;
+
+  if (!initalized) {
+    initPerfect();
+    initalized = true;
+  }
+  std::string results = "";
+  for (int i = length; i < length + 25; i++) {
+    vpTruth.push_back(std::make_pair(groundTruthCoordinates_[i - 1].first,
+                                     groundTruthCoordinates_[i - 1].second));
+    results += "(" + std::to_string(groundTruthCoordinates_[i - 1].first) +
+               "," + std::to_string(groundTruthCoordinates_[i - 1].second) +
+               ")--";
+  }
+  std::string frameOut =
+      std::to_string(length) + "(" +
+      std::to_string(groundTruthCoordinates_[length - 1].first) + "," +
+      std::to_string(groundTruthCoordinates_[length - 1].second) + ")";
+  fprintf(predictionLog_, "%-50s %-20s\n", frameOut.c_str(), results.c_str());
+  return vpTruth;
 }
 
 void LinearRegression::init(std::vector<std::pair<float, float>> &input) {
@@ -134,4 +161,28 @@ void LinearRegression::init(std::vector<std::pair<float, float>> &input) {
   // std::cout << "init" << std::endl;
   // std::cout << "(yawB0,yawB1) = (" << yawB0 << "," << yawB1 << ")\n";
   // std::cout << "(pitchB0,pitchB1) = (" << pitchB0 << "," << pitchB1 << ")\n";
+}
+
+void LinearRegression::initPerfect() {
+  std::string line;
+  std::ifstream infile(vpCorrPerFrameTracePath_);
+  while (std::getline(infile, line)) {
+    auto pos = line.find(",");
+    try {
+      auto yaw = std::stof(line.substr(0, pos));
+      auto pitch = std::stof(line.substr(pos + 1));
+      groundTruthCoordinates_.push_back(std::make_pair(yaw, pitch));
+    } catch (std::invalid_argument &e) {
+      std::cout << "Error reading ground truth\n" << line << std::endl;
+    }
+  }
+  
+  std::string filename = "prediction_log_" + Util::getLogTimestamp() + ".txt";
+  predictionLog_ = fopen(filename.c_str(), "wb");
+  fprintf(predictionLog_, "%-50s %s \n", "frame id (yaw,pitch)", "predictions");
+
+}
+
+LinearRegression::LinearRegression(std::string vpCorrPerFrameTracePath) {
+  vpCorrPerFrameTracePath_ = vpCorrPerFrameTracePath;
 }
