@@ -287,10 +287,13 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
     videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_);
     // free all tile-frames belonging to current frameId
     if (videoPlayer->frameId_ % videoPlayer->FPS_ == 0) {
-      for (auto &pair :
-           videoPlayer->decodedTileChunks_.find(playSecond)->second) {
-        for (auto &pointer : pair.second) {
-          free(pointer);
+      if (videoPlayer->decodedTileChunks_.find(playSecond) !=
+          videoPlayer->decodedTileChunks_.end()) {
+        for (auto &pair :
+             videoPlayer->decodedTileChunks_.find(playSecond)->second) {
+          for (auto &pointer : pair.second) {
+            free(pointer);
+          }
         }
       }
     }

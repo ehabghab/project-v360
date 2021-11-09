@@ -240,11 +240,7 @@ TilePredictor::getPredictedTilesLR() {
         linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_);
   }*/
 
- 
-  predictedCorr =
-        linearRegressor_->predictPerfect(frameId_);
-  
-
+  predictedCorr = linearRegressor_->predictPerfect(frameId_);
 
   uint16_t frameId = frameId_;
 

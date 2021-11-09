@@ -176,11 +176,10 @@ void LinearRegression::initPerfect() {
       std::cout << "Error reading ground truth\n" << line << std::endl;
     }
   }
-  
+
   std::string filename = "prediction_log_" + Util::getLogTimestamp() + ".txt";
   predictionLog_ = fopen(filename.c_str(), "wb");
   fprintf(predictionLog_, "%-50s %s \n", "frame id (yaw,pitch)", "predictions");
-
 }
 
 LinearRegression::LinearRegression(std::string vpCorrPerFrameTracePath) {
