@@ -9,9 +9,9 @@ import os
 
 def main():
 
-    if len(sys.argv) < 5:
+    if len(sys.argv) < 6:
         print(
-            "ERROR: python QoE.py <user_tiles_per_frame> <usr_vp_corr> <recv_log> <play_log>")
+            "ERROR: python QoE.py <user_tiles_per_frame> <usr_vp_corr> <recv_log> <play_log> <pred_log>")
         sys.exit(1)
     ground_truth = {}
     for line in open(sys.argv[1]).readlines():
@@ -67,6 +67,13 @@ def main():
         if prev_render != -1:
             rebuffer_time.append((render_time-prev_render)-40)
         prev_render = render_time
+
+    yaw_pred_per_frame = {}  # key: frame, value: list of yaw predictions
+    pitch_pred_per_frame = {}  # key: frame, value: list of pitch predictions
+    for line in open(sys.argv[5]):
+        True
+
+    sys.exit(1)
 
     bw = [100, 100, 100, 100]
     delay = [0, 20, 40, 100]
