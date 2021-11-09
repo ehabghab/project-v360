@@ -9,9 +9,9 @@ import os
 
 def main():
 
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 5:
         print(
-            "ERROR: python QoE.py <vp ground truth (tiles per frame)> <recv_log> <play_log>")
+            "ERROR: python QoE.py <user_tiles_per_frame> <usr_vp_corr> <recv_log> <play_log>")
         sys.exit(1)
     ground_truth = {}
     for line in open(sys.argv[1]).readlines():
@@ -23,12 +23,17 @@ def main():
             tiles_list.append(int(tile))
         ground_truth[frame] = tiles_list
 
-    recv_logs = []
-    for i in range(2, len(sys.argv)):
-        recv_logs.append(sys.argv[i])
+    yaws = []
+    pitches = []
+    for line in open(sys.argv[2]).readlines():
+        data = line.split(",")
+        yaws.append(float(data[0]))
+        pitches.append(float(data[1]))
+    yaws = yaws[:-25]
+    pitches = pitches[:-25]
 
     recv_chunk_quality = {}
-    for line in open(sys.argv[2]).readlines():
+    for line in open(sys.argv[3]).readlines():
         if "chunk" in line:
             continue
         data = line.split()
@@ -54,7 +59,7 @@ def main():
 
     rebuffer_time = [0]
     prev_render = -1
-    for line in open(sys.argv[3]).readlines():
+    for line in open(sys.argv[4]).readlines():
         if "frame id" in line:
             continue
         data = line.split()
@@ -69,9 +74,9 @@ def main():
     styles = ['-', '-.', '--', ':']
 
     frame_ids = [i for i in range(1, 1476)]
-    plt.figure(figsize=(12, 7))
+    plt.figure(figsize=(16, 12))
     plt.tight_layout()
-    plt.subplot(211)
+    plt.subplot(311)
     plt.plot(frame_ids, vp_quality_avg, linewidth=2,
              linestyle='-', color='dodgerblue')
     x_ticks = []
@@ -83,14 +88,14 @@ def main():
                 x_ticks.append('')
             else:
                 x_ticks.append((i/25) + 1)
-    plt.xticks(x_ticks2, x_ticks, size=12)
-    plt.yticks(size=12)
+    plt.xticks(size=12)
+    plt.yticks([0, 1, 2], ['None', 'LQ', 'HQ'], size=12)
 
     # plt.legend(loc='best', prop={'size': 10, 'weight': 'bold'})
     plt.ylabel('Viewport avg quality', size=14)
-    plt.xlabel('', size=14)
+    plt.xlabel('Frame Id', size=14)
 
-    plt.subplot(212)
+    plt.subplot(312)
     plt.plot(frame_ids, rebuffer_time, linewidth=2,
              linestyle='-', color='seagreen')
     plt.xticks(size=12)
@@ -103,6 +108,23 @@ def main():
     # plt.ylim(.93,1.01)
     # plt.xlim(-1,10)
     # plt.show()
+    plt.subplot(313)
+
+    plt.plot(frame_ids, yaws, linewidth=2,
+             linestyle='-', color='darkred', label='yaw')
+    plt.yticks(size=12)
+    plt.ylabel('Yaw', size=14)
+    plt.legend(loc='upper left', prop={'size': 10, 'weight': 'bold'})
+    plt.xlabel('Frame Id', size=14)
+    plt.xticks(size=12)
+
+    plt.twinx()
+    plt.plot(frame_ids, pitches, linewidth=2,
+             linestyle='--', color='teal', label='pitch')
+
+    plt.yticks(size=12)
+    plt.ylabel('Pitch', size=14)
+    plt.legend(loc='lower left', prop={'size': 10, 'weight': 'bold'})
 
     plt.savefig("QoE.png", bbox_inches='tight', dpi=300)
 
