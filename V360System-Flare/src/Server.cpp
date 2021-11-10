@@ -9,10 +9,12 @@
 
 #include <folly/String.h>
 #include <glog/logging.h>
+#include <linux/sockios.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -214,6 +216,9 @@ void Server::sender(Server *server, uint8_t socket) {
   // Tile Info contains chunkId, setId, and tileId
   std::vector<std::string> tileInfo;
   std::string q = "";
+  // to avoid head of line blocking we keep monitor our sending buffer size,
+  // only start send packet/chunk when there is no data pending in buffer. 
+  long pendingData;
   while (true) {
     auto tileListsTemp = server->getTileList();
 
@@ -322,10 +327,23 @@ void Server::sender(Server *server, uint8_t socket) {
         "1.1", "200 OK", "Bytes", fileSize, "video/m4s",
         chunkId + "_" + tileInfo[2], qualityPathIdx));
     VLOG(1) << "\n" << header << "-------";
-    send(socket, header.c_str(), header.size(), 0);
 
+    ioctl(socket,SIOCOUTQ, &pendingData);
+    LOG(INFO)<<"Pending data in Buffer-before:"<<pendingData<<" Bytes";
+    LOG(INFO) <<"Server_sending["<<chunkId<<"-"<<tileInfo[2]<<"], size:"<<header.size()+fileSize+4;
+    send(socket, header.c_str(), header.size(), 0);
     // send file.
     send(socket, buffer, fileSize + 4, 0);
+    ioctl(socket,SIOCOUTQ, &pendingData);
+    LOG(INFO)<<"Pending data in Buffer-afterSend:"<<pendingData<<" Bytes";
+    // wait until tcp buffer is empty.
+    while(pendingData > 500)
+    {
+      ioctl(socket,SIOCOUTQ, &pendingData);
+    }    
+    ioctl(socket,SIOCOUTQ, &pendingData);
+    LOG(INFO)<<"Pending data in Buffer-afterWait:"<<pendingData<<" Bytes\n-----";
+
     free(buffer);
   }
 }
