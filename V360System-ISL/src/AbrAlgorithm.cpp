@@ -203,8 +203,8 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     float currentVideoTime =
         (((frameIdToRender - 1) * 40.0) + Util::getTimePassedSinceLastFrame()) /
         1e3; // current video time.
-    LOG(INFO) << "Bandwidth: " << (predictedBw * 8 / 1e6)
-              << " , Next frame: " << frameIdToRender;
+    //LOG(INFO) << "Bandwidth: " << (predictedBw * 8 / 1e6)
+      //        << " , Next frame: " << frameIdToRender;
 
     for (int quality = numOfQualities; quality > 0; quality--) {
       // for all possible solutions

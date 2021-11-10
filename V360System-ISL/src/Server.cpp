@@ -329,18 +329,20 @@ void Server::sender(Server *server, uint8_t socket) {
     ioctl(socket,SIOCOUTQ, &pendingData);
     LOG(INFO)<<"Pending data in Buffer-before:"<<pendingData<<" Bytes";
     LOG(INFO) <<"Server_sending["<<chunkId<<"-"<<tileInfo[2]<<"], size:"<<header.size()+fileSize+4;
-    LOG(INFO)<<"Pending data in Buffer-after:"<<pendingData<<" Bytes";
-    while(pendingData > 1000)
-    {
-      ioctl(socket,SIOCOUTQ, &pendingData);
-    }
-    LOG(INFO)<<"Pending data in Buffer-afterWait:"<<pendingData<<" Bytes"<<"\n----";
-
-
     send(socket, header.c_str(), header.size(), 0);
-
     // send file.
     send(socket, buffer, fileSize + 4, 0);
+    ioctl(socket,SIOCOUTQ, &pendingData);
+    LOG(INFO)<<"Pending data in Buffer-afterSend:"<<pendingData<<" Bytes";
+
+    // wait until tcp buffer is empty.
+    /*while(pendingData > 500)
+    {
+      ioctl(socket,SIOCOUTQ, &pendingData);
+    }    
+    ioctl(socket,SIOCOUTQ, &pendingData);
+    LOG(INFO)<<"Pending data in Buffer-afterWait:"<<pendingData<<" Bytes\n-----";*/
+
     free(buffer);
   }
 }
