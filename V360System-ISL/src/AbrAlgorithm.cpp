@@ -214,7 +214,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
         qualityFound = true;
         // go through all classes in all frames one by one based on render
         // deadline.
-        LOG(INFO) << "Solution = " << solution;
+        //LOG(INFO) << "Solution = " << solution;
         for (auto const &tileClassesSingleFrame : frameIdSetQualitySizeSum) {
           if (tileClassesSingleFrame.first < frameIdToRender) {
             continue;
@@ -230,11 +230,11 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
           auto frameTilesDeadline =
               ((tileClassesSingleFrame.first - 1.0) * 40.0) / 1e3;
 
-          LOG(INFO) << "Frame : " << tileClassesSingleFrame.first
+          /*LOG(INFO) << "Frame : " << tileClassesSingleFrame.first
                     << " , size= " << totalFrameTileSizes
                     << "(currentTime : " << timeCascade
                     << ", frame deadline : " << frameTilesDeadline
-                    << " , download time : " << downloadTime << ")";
+                    << " , download time : " << downloadTime << ")";*/
           if (downloadTime + timeCascade < frameTilesDeadline) {
             timeCascade += downloadTime;
           } else {
@@ -261,7 +261,6 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     req += "Quality\n" + std::to_string(qIdx);
     // std::cout << req << std::endl;
     clientNetworkLayer->setRequest(req);
-
     tilesRequest.clear();
     frameIdSetQualitySizeSum.clear();
     Util::sleep(stime, ABR_FREQ);

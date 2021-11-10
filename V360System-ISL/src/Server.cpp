@@ -9,10 +9,12 @@
 
 #include <folly/String.h>
 #include <glog/logging.h>
+#include <linux/sockios.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -214,6 +216,9 @@ void Server::sender(Server *server, uint8_t socket) {
   // Tile Info contains chunkId, setId, and tileId
   std::vector<std::string> tileInfo;
   std::string q = "";
+  // to avoid head of line blocking we keep monitor our sending buffer size,
+  // only start send packet/chunk when there is no data pending in buffer. 
+  long pendingData;
   while (true) {
     auto tileListsTemp = server->getTileList();
 
@@ -244,8 +249,8 @@ void Server::sender(Server *server, uint8_t socket) {
         // check if the tile has already been sent or not.
         if (server->tilesSent_.find(std::make_pair(chunkId, tileId)) ==
             server->tilesSent_.end()) {
-          // LOG(INFO) << tileIdx << ":" << tileLists.second.size() << " = "
-          //   << tileLists.second[tileIdx];
+          //LOG(INFO) << tileIdx << ":" << tileLists.second.size() << " = "
+          //<< tileLists.second[tileIdx];
           // mark as sent since we are going to send it.
           server->tilesSent_.insert(std::make_pair(chunkId, tileId));
           break;
@@ -281,9 +286,7 @@ void Server::sender(Server *server, uint8_t socket) {
     } else { // HH
       qualityPathIdx = "2";
     }
-
     std::string chunkId = std::to_string(((stoi(tileInfo[0]) - 1) / 25) + 1);
-
     // quality/tileId/chunkId
     std::string tilePath = server->videoRootDir_ + "/" + qualityPathIdx + "/" +
                            tileInfo[2] + "/" + chunkId + ".h264";
@@ -322,6 +325,18 @@ void Server::sender(Server *server, uint8_t socket) {
         "1.1", "200 OK", "Bytes", fileSize, "video/m4s",
         chunkId + "_" + tileInfo[2], qualityPathIdx));
     VLOG(1) << "\n" << header << "-------";
+    
+    ioctl(socket,SIOCOUTQ, &pendingData);
+    LOG(INFO)<<"Pending data in Buffer-before:"<<pendingData<<" Bytes";
+    LOG(INFO) <<"Server_sending["<<chunkId<<"-"<<tileInfo[2]<<"], size:"<<header.size()+fileSize+4;
+    LOG(INFO)<<"Pending data in Buffer-after:"<<pendingData<<" Bytes";
+    while(pendingData > 1000)
+    {
+      ioctl(socket,SIOCOUTQ, &pendingData);
+    }
+    LOG(INFO)<<"Pending data in Buffer-afterWait:"<<pendingData<<" Bytes"<<"\n----";
+
+
     send(socket, header.c_str(), header.size(), 0);
 
     // send file.
@@ -353,7 +368,7 @@ Server::getResponseHeader(std::string httpVersion, std::string statusCode,
 }
 
 std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
-  // LOG(INFO) << "====" << request << "======";
+  //LOG(INFO) << "Request_server:" << request;
   std::vector<std::string> tempVec1;
   std::vector<std::string> tempVec2;
   boost::algorithm::split_regex(tempVec1, request, boost::regex("Tiles"));

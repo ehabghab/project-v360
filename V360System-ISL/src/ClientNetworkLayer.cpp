@@ -88,7 +88,7 @@ void ClientNetworkLayer::sender(ClientNetworkLayer *client) {
     if (request == "") {
       continue;
     }
-    // LOG(INFO) << request;
+    LOG(INFO) << "Request (sender) -->"<<request;
     reqHeader = client->getRequestHeader(request);
     send(client->socket_, reqHeader.c_str(), reqHeader.size(), 0);
   }
@@ -227,7 +227,9 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
 
       // tileIndex == /<tile index>/<presentation time>.h264
       // tileInfo-->first(chunk id)/second(tile id)
+
       auto tileInfo = extractTileInfo(respHeader["Tile-Index"]);
+      LOG(INFO) << "Tile received["<<tileInfo.first<<"-"<<tileInfo.second<<"]";
       client->receivedTileChunks_.insert(
           std::make_pair(tileInfo.first, tileInfo.second));
       videoPlayer->addChunk(chunk, chunkSize, tileInfo.first, tileInfo.second);
