@@ -198,8 +198,8 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     float currentVideoTime =
         (((frameIdToRender - 1) * 40.0) + Util::getTimePassedSinceLastFrame()) /
         1e3; // current video time.
-    LOG(INFO) << "Bandwidth: " << (predictedBw * 8 / 1e6)
-              << " , Next frame: " << frameIdToRender;
+    //LOG(INFO) << "Bandwidth: " << (predictedBw * 8 / 1e6)
+      //        << " , Next frame: " << frameIdToRender;
 
     for (int quality = numOfQualities; quality > 0; quality--) {
       // for all possible solutions
@@ -209,7 +209,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
         qualityFound = true;
         // go through all classes in all frames one by one based on render
         // deadline.
-        LOG(INFO) << "Solution = " << solution;
+        //LOG(INFO) << "Solution = " << solution;
         for (auto const &tileClassesSingleFrame : frameIdSetQualitySizeSum) {
           if (tileClassesSingleFrame.first < frameIdToRender) {
             continue;
@@ -225,11 +225,11 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
           auto frameTilesDeadline =
               ((tileClassesSingleFrame.first - 1.0) * 40.0) / 1e3;
 
-          LOG(INFO) << "Frame : " << tileClassesSingleFrame.first
+          /*LOG(INFO) << "Frame : " << tileClassesSingleFrame.first
                     << " , size= " << totalFrameTileSizes;
           LOG(INFO) << "currentTime : " << currentVideoTime
                     << ", frame deadline : " << frameTilesDeadline
-                    << " , download time : " << downloadTime;
+                    << " , download time : " << downloadTime;*/
           if (downloadTime + timeCascade < frameTilesDeadline) {
             timeCascade += downloadTime;
           } else {

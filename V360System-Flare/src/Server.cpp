@@ -337,10 +337,12 @@ void Server::sender(Server *server, uint8_t socket) {
     ioctl(socket,SIOCOUTQ, &pendingData);
     LOG(INFO)<<"Pending data in Buffer-afterSend:"<<pendingData<<" Bytes";
     // wait until tcp buffer is empty.
-    /*while(pendingData > 500)
+    while(pendingData > 10000)
     {
       ioctl(socket,SIOCOUTQ, &pendingData);
-    }*/
+      //LOG(INFO)<<"Pending data in Buffer-afterWait:"<<pendingData<<" Bytes\n-----";
+
+    }
     ioctl(socket,SIOCOUTQ, &pendingData);
     LOG(INFO)<<"Pending data in Buffer-afterWait:"<<pendingData<<" Bytes\n-----";
 
@@ -371,7 +373,7 @@ Server::getResponseHeader(std::string httpVersion, std::string statusCode,
 }
 
 std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
-  // LOG(INFO) << "====" << request << "======";
+  //LOG(INFO) << "Request_server:" << request;
   std::vector<std::string> tempVec1;
   std::vector<std::string> tempVec2;
   boost::algorithm::split_regex(tempVec1, request, boost::regex("Tiles"));
