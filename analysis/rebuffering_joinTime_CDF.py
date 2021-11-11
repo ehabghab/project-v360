@@ -38,7 +38,7 @@ def main():
                 file_rebuffer_time[f].append((render_time-prev_render)-40)
             prev_render = render_time
 
-    bw = [100, 100, 100, 100]
+    bw = [3.1, 100, 100, 100]
     delay = [0, 20, 40, 100]
     colors = ['black', 'dodgerblue', 'seagreen', 'darkred']
     styles = ['-', '-.', '--', ':']
@@ -60,7 +60,7 @@ def main():
     plt.legend(loc='best', prop={'size': 10, 'weight': 'bold'})
     plt.ylabel('Frac. of frames', size=14)
     plt.xlabel('rebuffering time (ms)', size=14)
-    plt.ylim(.93, 1.01)
+    plt.ylim(.85, 1.01)
     # plt.xlim(-1,10)
     # plt.show()
     plt.savefig("rebuffering.png", bbox_inches='tight', dpi=300)
