@@ -30,8 +30,10 @@ def main():
         ground_truth[frame] = tiles_list
 
     missed_tiles = {}
+    files = []
     for i in range(2, len(sys.argv)):
         fname = sys.argv[i]
+        files.append(fname)
         missed_tiles[fname] = {}
         for line in open(fname).readlines():
             if "frame id" in line:
@@ -60,25 +62,27 @@ def main():
                 fraction_missed[fname].append(
                     missed_tiles_in_frame/total_tiles_in_frame)
 
-    wait = [0, 30, 75, 112.5]  # [0, 15, 37.5, 65.25, 75]
-    colors = ['black', 'dodgerblue', 'seagreen', 'darkred']
-    styles = ['-', '-.', '--', ':']
+    #["Empty", "15KB", "37.5KB", "65.25KB", "INF"]
+    wait = ["Empty", "30KB", "75KB", "112.5KB", "INF"]
+    colors = ['black', 'dodgerblue', 'seagreen', 'darkred', 'purple']
+    styles = ['-', '-.', '--', ':', 'dotted']
 
     plt.figure(figsize=(5, 3))
     plt.tight_layout()
     plt.subplot(111)
     plt.grid(True)
     c = 0
-    for fname in sorted(fraction_missed):
+    for fname in files:
+        print(fname)
         sorted_data = np.sort(fraction_missed[fname])
         yvals = np.arange(len(sorted_data)) / float(len(sorted_data) - 1)
         plt.plot(sorted_data, yvals, linewidth=2,
-                 linestyle=styles[c], color=colors[c], label=str(wait[c])+"KB")
+                 linestyle=styles[c], color=colors[c], label=wait[c])
         c += 1
     plt.xticks(size=12)
     plt.yticks(size=12)
-    plt.xlim(0, .1)
-    plt.ylim(.9, 1)
+    plt.xlim(-0.1)
+    plt.ylim(0)
     plt.legend(loc='best', prop={'size': 10, 'weight': 'bold'})
     plt.ylabel('Fraction of frames', size=14)
     plt.xlabel('Fraction of missed tiles in frame', size=14)
