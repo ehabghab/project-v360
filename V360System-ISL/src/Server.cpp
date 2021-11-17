@@ -436,6 +436,8 @@ void start() {
 }
 
 int main(int argc, const char **argv) {
+  google::SetLogDestination(google::INFO, "server_log.txt");
+  google::InitGoogleLogging(argv[0]);  
   std::thread serverThread(start);
   serverThread.join();
   return 0;

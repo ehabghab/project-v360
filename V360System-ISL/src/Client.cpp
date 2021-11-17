@@ -67,6 +67,8 @@ int main(int argc, char **argv) {
                   "<vp_corrdinates_per_frame> <tile_chunk_sizes> <server_ip>";
     return -1;
   }
+  google::SetLogDestination(google::INFO, "client_log.txt");
+  google::InitGoogleLogging(argv[0]);  
 
   Client *client = new Client(argv[1], argv[2], argv[3], argv[4]);
   // to suppress warning
