@@ -335,10 +335,10 @@ void Server::sender(Server *server, uint8_t socket) {
     ioctl(socket,SIOCOUTQ, &pendingData);
     LOG(INFO)<<"Pending data in Buffer-afterSend:"<<pendingData<<" Bytes";
     // wait until tcp buffer is empty.
-    while(pendingData > 30000)
+    while(pendingData > 112.5 * 1e3)
     {
       ioctl(socket,SIOCOUTQ, &pendingData);
-    }    
+    }
     ioctl(socket,SIOCOUTQ, &pendingData);
     LOG(INFO)<<"Pending data in Buffer-afterWait:"<<pendingData<<" Bytes\n-----";
 

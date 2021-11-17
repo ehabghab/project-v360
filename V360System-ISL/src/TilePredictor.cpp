@@ -235,12 +235,12 @@ TilePredictor::getPredictedTilesLR() {
   std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
 
   std::vector<std::pair<float, float>> predictedCorr;
-  /*if (frameId_ >= 13) {
+  if (frameId_ >= 13) {
     predictedCorr =
         linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_);
-  }*/
+  }
 
-  predictedCorr = linearRegressor_->predictPerfect(frameId_);
+  // predictedCorr = linearRegressor_->predictPerfect(frameId_);
 
   uint16_t frameId = frameId_;
 
