@@ -1,0 +1,128 @@
+Log file created at: 2021/11/22 20:08:11
+Running on machine: ehab-OptiPlex-5070
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I1122 20:08:11.035169  8346 Server.cpp:81] Listening @ PORT:7717
+I1122 20:08:14.181972  8346 Server.cpp:95] Connected!
+I1122 20:08:14.253139  8453 Server.cpp:330] Pending data in Buffer-before:0 Bytes
+I1122 20:08:14.253145  8453 Server.cpp:331] Server_sending[1-42], size:100000162
+I1122 20:10:18.120645  8453 Server.cpp:337] Pending data in Buffer-afterSend:2887420 Bytes
+I1122 20:10:21.799172  8453 Server.cpp:343] Pending data in Buffer-afterWait:4932 Bytes
+-----
+I1122 20:10:21.802021  8453 Server.cpp:330] Pending data in Buffer-before:2036 Bytes
+I1122 20:10:21.802024  8453 Server.cpp:331] Server_sending[1-43], size:8464
+I1122 20:10:21.802039  8453 Server.cpp:337] Pending data in Buffer-afterSend:10500 Bytes
+I1122 20:10:21.810439  8453 Server.cpp:343] Pending data in Buffer-afterWait:4120 Bytes
+-----
+I1122 20:10:21.810523  8453 Server.cpp:330] Pending data in Buffer-before:4120 Bytes
+I1122 20:10:21.810525  8453 Server.cpp:331] Server_sending[1-54], size:7939
+I1122 20:10:21.810535  8453 Server.cpp:337] Pending data in Buffer-afterSend:12059 Bytes
+I1122 20:10:21.823299  8453 Server.cpp:343] Pending data in Buffer-afterWait:2147 Bytes
+-----
+I1122 20:10:21.823369  8453 Server.cpp:330] Pending data in Buffer-before:2147 Bytes
+I1122 20:10:21.823371  8453 Server.cpp:331] Server_sending[1-55], size:6955
+I1122 20:10:21.823380  8453 Server.cpp:337] Pending data in Buffer-afterSend:9102 Bytes
+I1122 20:10:21.830869  8453 Server.cpp:343] Pending data in Buffer-afterWait:4059 Bytes
+-----
+I1122 20:10:21.830921  8453 Server.cpp:330] Pending data in Buffer-before:4059 Bytes
+I1122 20:10:21.830924  8453 Server.cpp:331] Server_sending[1-66], size:7218
+I1122 20:10:21.830933  8453 Server.cpp:337] Pending data in Buffer-afterSend:11277 Bytes
+I1122 20:10:21.841584  8453 Server.cpp:343] Pending data in Buffer-afterWait:2874 Bytes
+-----
+I1122 20:10:21.841635  8453 Server.cpp:330] Pending data in Buffer-before:2874 Bytes
+I1122 20:10:21.841637  8453 Server.cpp:331] Server_sending[1-67], size:6574
+I1122 20:10:21.841647  8453 Server.cpp:337] Pending data in Buffer-afterSend:9448 Bytes
+I1122 20:10:21.848987  8453 Server.cpp:343] Pending data in Buffer-afterWait:3678 Bytes
+-----
+I1122 20:10:21.849045  8453 Server.cpp:330] Pending data in Buffer-before:3678 Bytes
+I1122 20:10:21.849046  8453 Server.cpp:331] Server_sending[1-78], size:6838
+I1122 20:10:21.849056  8453 Server.cpp:337] Pending data in Buffer-afterSend:10516 Bytes
+I1122 20:10:21.858631  8453 Server.cpp:343] Pending data in Buffer-afterWait:2494 Bytes
+-----
+I1122 20:10:21.858690  8453 Server.cpp:330] Pending data in Buffer-before:2494 Bytes
+I1122 20:10:21.858691  8453 Server.cpp:331] Server_sending[1-79], size:7175
+I1122 20:10:21.858700  8453 Server.cpp:337] Pending data in Buffer-afterSend:9669 Bytes
+I1122 20:10:21.865182  8453 Server.cpp:343] Pending data in Buffer-afterWait:4279 Bytes
+-----
+I1122 20:10:21.865232  8453 Server.cpp:330] Pending data in Buffer-before:4279 Bytes
+I1122 20:10:21.865234  8453 Server.cpp:331] Server_sending[1-90], size:8209
+I1122 20:10:21.865243  8453 Server.cpp:337] Pending data in Buffer-afterSend:12488 Bytes
+I1122 20:10:21.876854  8453 Server.cpp:343] Pending data in Buffer-afterWait:3865 Bytes
+-----
+I1122 20:10:21.876905  8453 Server.cpp:330] Pending data in Buffer-before:3865 Bytes
+I1122 20:10:21.876907  8453 Server.cpp:331] Server_sending[1-91], size:8977
+I1122 20:10:21.876916  8453 Server.cpp:337] Pending data in Buffer-afterSend:12842 Bytes
+I1122 20:10:21.887537  8453 Server.cpp:343] Pending data in Buffer-afterWait:4633 Bytes
+-----
+I1122 20:10:21.887588  8453 Server.cpp:330] Pending data in Buffer-before:4633 Bytes
+I1122 20:10:21.887589  8453 Server.cpp:331] Server_sending[1-102], size:9677
+I1122 20:10:21.887599  8453 Server.cpp:337] Pending data in Buffer-afterSend:14310 Bytes
+I1122 20:10:21.900333  8453 Server.cpp:343] Pending data in Buffer-afterWait:3885 Bytes
+-----
+I1122 20:10:21.900385  8453 Server.cpp:330] Pending data in Buffer-before:3885 Bytes
+I1122 20:10:21.900388  8453 Server.cpp:331] Server_sending[1-103], size:9414
+I1122 20:10:21.900396  8453 Server.cpp:337] Pending data in Buffer-afterSend:13299 Bytes
+I1122 20:10:21.915208  8453 Server.cpp:343] Pending data in Buffer-afterWait:2174 Bytes
+-----
+I1122 20:10:21.915298  8453 Server.cpp:330] Pending data in Buffer-before:2174 Bytes
+I1122 20:10:21.915302  8453 Server.cpp:331] Server_sending[1-41], size:9742
+I1122 20:10:21.915316  8453 Server.cpp:337] Pending data in Buffer-afterSend:11916 Bytes
+I1122 20:10:21.924667  8453 Server.cpp:343] Pending data in Buffer-afterWait:3950 Bytes
+-----
+I1122 20:10:21.924744  8453 Server.cpp:330] Pending data in Buffer-before:3950 Bytes
+I1122 20:10:21.924746  8453 Server.cpp:331] Server_sending[1-53], size:8882
+I1122 20:10:21.924758  8453 Server.cpp:337] Pending data in Buffer-afterSend:12832 Bytes
+I1122 20:10:21.935372  8453 Server.cpp:343] Pending data in Buffer-afterWait:4538 Bytes
+-----
+I1122 20:10:21.935441  8453 Server.cpp:330] Pending data in Buffer-before:4538 Bytes
+I1122 20:10:21.935444  8453 Server.cpp:331] Server_sending[1-65], size:8054
+I1122 20:10:21.935454  8453 Server.cpp:337] Pending data in Buffer-afterSend:12592 Bytes
+I1122 20:10:21.948127  8453 Server.cpp:343] Pending data in Buffer-afterWait:2262 Bytes
+-----
+I1122 20:10:21.948199  8453 Server.cpp:330] Pending data in Buffer-before:2262 Bytes
+I1122 20:10:21.948201  8453 Server.cpp:331] Server_sending[1-77], size:7314
+I1122 20:10:21.948212  8453 Server.cpp:337] Pending data in Buffer-afterSend:9576 Bytes
+I1122 20:10:21.956660  8453 Server.cpp:343] Pending data in Buffer-afterWait:4418 Bytes
+-----
+I1122 20:10:21.956725  8453 Server.cpp:330] Pending data in Buffer-before:4418 Bytes
+I1122 20:10:21.956729  8453 Server.cpp:331] Server_sending[1-89], size:10185
+I1122 20:10:21.956740  8453 Server.cpp:337] Pending data in Buffer-afterSend:14603 Bytes
+I1122 20:10:21.968479  8453 Server.cpp:343] Pending data in Buffer-afterWait:4393 Bytes
+-----
+I1122 20:10:21.968535  8453 Server.cpp:330] Pending data in Buffer-before:4393 Bytes
+I1122 20:10:21.968536  8453 Server.cpp:331] Server_sending[1-101], size:11334
+I1122 20:10:21.968549  8453 Server.cpp:337] Pending data in Buffer-afterSend:15727 Bytes
+I1122 20:10:21.985388  8453 Server.cpp:343] Pending data in Buffer-afterWait:2646 Bytes
+-----
+I1122 20:10:21.985445  8453 Server.cpp:330] Pending data in Buffer-before:2646 Bytes
+I1122 20:10:21.985446  8453 Server.cpp:331] Server_sending[1-44], size:9346
+I1122 20:10:21.985457  8453 Server.cpp:337] Pending data in Buffer-afterSend:11992 Bytes
+I1122 20:10:21.997056  8453 Server.cpp:343] Pending data in Buffer-afterWait:3554 Bytes
+-----
+I1122 20:10:21.997110  8453 Server.cpp:330] Pending data in Buffer-before:3554 Bytes
+I1122 20:10:21.997112  8453 Server.cpp:331] Server_sending[1-56], size:8599
+I1122 20:10:21.997121  8453 Server.cpp:337] Pending data in Buffer-afterSend:12153 Bytes
+I1122 20:10:22.005689  8453 Server.cpp:343] Pending data in Buffer-afterWait:4255 Bytes
+-----
+I1122 20:10:22.005743  8453 Server.cpp:330] Pending data in Buffer-before:4255 Bytes
+I1122 20:10:22.005745  8453 Server.cpp:331] Server_sending[1-68], size:6845
+I1122 20:10:22.005754  8453 Server.cpp:337] Pending data in Buffer-afterSend:11100 Bytes
+I1122 20:10:22.016328  8453 Server.cpp:343] Pending data in Buffer-afterWait:2501 Bytes
+-----
+I1122 20:10:22.016386  8453 Server.cpp:330] Pending data in Buffer-before:2501 Bytes
+I1122 20:10:22.016387  8453 Server.cpp:331] Server_sending[1-80], size:7887
+I1122 20:10:22.016398  8453 Server.cpp:337] Pending data in Buffer-afterSend:10388 Bytes
+I1122 20:10:22.024261  8453 Server.cpp:343] Pending data in Buffer-afterWait:4991 Bytes
+-----
+I1122 20:10:22.024340  8453 Server.cpp:330] Pending data in Buffer-before:4991 Bytes
+I1122 20:10:22.024343  8453 Server.cpp:331] Server_sending[1-92], size:9319
+I1122 20:10:22.024353  8453 Server.cpp:337] Pending data in Buffer-afterSend:14310 Bytes
+I1122 20:10:22.039175  8453 Server.cpp:343] Pending data in Buffer-afterWait:3527 Bytes
+-----
+I1122 20:10:22.039232  8453 Server.cpp:330] Pending data in Buffer-before:3527 Bytes
+I1122 20:10:22.039233  8453 Server.cpp:331] Server_sending[1-104], size:11831
+I1122 20:10:22.039243  8453 Server.cpp:337] Pending data in Buffer-afterSend:15358 Bytes
+I1122 20:10:22.052944  8453 Server.cpp:343] Pending data in Buffer-afterWait:4591 Bytes
+-----
+I1122 20:10:22.052999  8453 Server.cpp:330] Pending data in Buffer-before:4591 Bytes
+I1122 20:10:22.053000  8453 Server.cpp:331] Server_sending[1-114], size:10730
+I1122 20:10:22.05301
