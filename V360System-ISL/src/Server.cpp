@@ -217,7 +217,7 @@ void Server::sender(Server *server, uint8_t socket) {
   std::vector<std::string> tileInfo;
   std::string q = "";
   // to avoid head of line blocking we keep monitor our sending buffer size,
-  // only start send packet/chunk when there is no data pending in buffer. 
+  // only start send packet/chunk when there is no data pending in buffer.
   long pendingData;
   while (true) {
     auto tileListsTemp = server->getTileList();
@@ -249,7 +249,7 @@ void Server::sender(Server *server, uint8_t socket) {
         // check if the tile has already been sent or not.
         if (server->tilesSent_.find(std::make_pair(chunkId, tileId)) ==
             server->tilesSent_.end()) {
-          //LOG(INFO) << tileIdx << ":" << tileLists.second.size() << " = "
+          // LOG(INFO) << tileIdx << ":" << tileLists.second.size() << " = "
           //<< tileLists.second[tileIdx];
           // mark as sent since we are going to send it.
           server->tilesSent_.insert(std::make_pair(chunkId, tileId));
@@ -325,22 +325,23 @@ void Server::sender(Server *server, uint8_t socket) {
         "1.1", "200 OK", "Bytes", fileSize, "video/m4s",
         chunkId + "_" + tileInfo[2], qualityPathIdx));
     VLOG(1) << "\n" << header << "-------";
-    
-    ioctl(socket,SIOCOUTQ, &pendingData);
-    LOG(INFO)<<"Pending data in Buffer-before:"<<pendingData<<" Bytes";
-    LOG(INFO) <<"Server_sending["<<chunkId<<"-"<<tileInfo[2]<<"], size:"<<header.size()+fileSize+4;
+
+    ioctl(socket, SIOCOUTQ, &pendingData);
+    LOG(INFO) << "Pending data in Buffer-before:" << pendingData << " Bytes";
+    LOG(INFO) << "Server_sending[" << chunkId << "-" << tileInfo[2]
+              << "], size:" << header.size() + fileSize + 4;
     send(socket, header.c_str(), header.size(), 0);
     // send file.
     send(socket, buffer, fileSize + 4, 0);
-    ioctl(socket,SIOCOUTQ, &pendingData);
-    LOG(INFO)<<"Pending data in Buffer-afterSend:"<<pendingData<<" Bytes";
+    ioctl(socket, SIOCOUTQ, &pendingData);
+    LOG(INFO) << "Pending data in Buffer-afterSend:" << pendingData << " Bytes";
     // wait until tcp buffer is empty.
-    while(pendingData > 112.5 * 1e3)
-    {
-      ioctl(socket,SIOCOUTQ, &pendingData);
+    while (pendingData > 5 * 1e3) {
+      ioctl(socket, SIOCOUTQ, &pendingData);
     }
-    ioctl(socket,SIOCOUTQ, &pendingData);
-    LOG(INFO)<<"Pending data in Buffer-afterWait:"<<pendingData<<" Bytes\n-----";
+    ioctl(socket, SIOCOUTQ, &pendingData);
+    LOG(INFO) << "Pending data in Buffer-afterWait:" << pendingData
+              << " Bytes\n-----";
 
     free(buffer);
   }
@@ -369,7 +370,7 @@ Server::getResponseHeader(std::string httpVersion, std::string statusCode,
 }
 
 std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
-  //LOG(INFO) << "Request_server:" << request;
+  // LOG(INFO) << "Request_server:" << request;
   std::vector<std::string> tempVec1;
   std::vector<std::string> tempVec2;
   boost::algorithm::split_regex(tempVec1, request, boost::regex("Tiles"));
@@ -437,7 +438,7 @@ void start() {
 
 int main(int argc, const char **argv) {
   google::SetLogDestination(google::INFO, "server_log.txt");
-  google::InitGoogleLogging(argv[0]);  
+  google::InitGoogleLogging(argv[0]);
   std::thread serverThread(start);
   serverThread.join();
   return 0;
