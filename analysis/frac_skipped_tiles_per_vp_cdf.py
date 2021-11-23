@@ -63,9 +63,9 @@ def main():
                     missed_tiles_in_frame/total_tiles_in_frame)
 
     #["Empty", "15KB", "37.5KB", "65.25KB", "INF"]
-    wait = ["Empty", "30KB", "75KB", "112.5KB", "INF"]
-    colors = ['black', 'dodgerblue', 'seagreen', 'darkred', 'purple']
-    styles = ['-', '-.', '--', ':', 'dotted']
+    wait = ["Empty", "5KB", "15KB", "37.5KB", "INF"]
+    colors = ['black', 'blue', 'dodgerblue', 'seagreen', 'purple']
+    styles = ['-', ':', '-.', '--', 'dotted']
 
     plt.figure(figsize=(5, 3))
     plt.tight_layout()
