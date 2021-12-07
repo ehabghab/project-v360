@@ -477,8 +477,8 @@ std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
       // chunk Id _ tile Id
       std::size_t pos = tile.find("_");
       uint16_t tileId = static_cast<uint16_t>(std::stoi(tile.substr(pos + 1)));
-      int chunkId = std::stoi(tile.substr(0, pos)) + 1;
-      if (clientNetworkLayer->isReceived(chunkId, tileId)) {
+      int chunkId = std::stoi(tile.substr(0, pos));
+      if (clientNetworkLayer->isReceived(chunkId + 1, tileId)) {
         continue;
       }
       // estimated time to download the tile chunk in lowest quality possible.
