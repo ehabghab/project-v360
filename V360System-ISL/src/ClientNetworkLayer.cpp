@@ -88,7 +88,7 @@ void ClientNetworkLayer::sender(ClientNetworkLayer *client) {
     if (request == "") {
       continue;
     }
-    LOG(INFO) << "Request (sender) -->"<<request;
+    // LOG(INFO) << "Request (sender) -->"<<request;
     reqHeader = client->getRequestHeader(request);
     send(client->socket_, reqHeader.c_str(), reqHeader.size(), 0);
   }
@@ -229,9 +229,12 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
       // tileInfo-->first(chunk id)/second(tile id)
 
       auto tileInfo = extractTileInfo(respHeader["Tile-Index"]);
-      LOG(INFO) << "Tile received["<<tileInfo.first<<"-"<<tileInfo.second<<"]";
+      // LOG(INFO) << "Tile
+      // received["<<tileInfo.first<<"-"<<tileInfo.second<<"]";
       client->receivedTileChunks_.insert(
           std::make_pair(tileInfo.first, tileInfo.second));
+      std::cout << std::to_string(tileInfo.first) << ":"
+                << std::to_string(tileInfo.second) << "received!\n";
       videoPlayer->addChunk(chunk, chunkSize, tileInfo.first, tileInfo.second);
       bandwidth =
           ((chunkSize * 8.0) / 1e6) / ((etime - stime) / 1000.0); // mbps

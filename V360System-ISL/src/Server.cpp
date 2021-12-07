@@ -239,8 +239,8 @@ void Server::sender(Server *server, uint8_t socket) {
 
     // find a non duplicate tile to send.
     for (; tileIdx < tileLists.second.size(); tileIdx++) {
-      // LOG(INFO) << tileIdx << ":" << tileLists.second.size() << " = "
-      //          << tileLists.second[tileIdx];
+      LOG(INFO) << tileIdx << ":" << tileLists.second.size() << " = "
+                << tileLists.second[tileIdx];
       boost::algorithm::split_regex(tileInfo, tileLists.second[tileIdx],
                                     boost::regex("_"));
       try {
@@ -369,7 +369,7 @@ Server::getResponseHeader(std::string httpVersion, std::string statusCode,
   return header.str();
 }
 
-std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
+/*std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
   // LOG(INFO) << "Request_server:" << request;
   std::vector<std::string> tempVec1;
   std::vector<std::string> tempVec2;
@@ -392,6 +392,28 @@ std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
     for (auto const &tileId : tempVec1) {
       tiles.push_back(FrameSetId + tileId);
     }
+  }
+  return tiles;
+}*/
+
+std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
+  // LOG(INFO) << "Request_server:" << request;
+  std::vector<std::string> tempVec1;
+  std::vector<std::string> tempVec2;
+  boost::algorithm::split_regex(tempVec1, request, boost::regex("\n"));
+  std::vector<std::string> tilesReq;
+  LOG(INFO) << "Request_server:" << tempVec1[2];
+  boost::algorithm::split_regex(tilesReq, tempVec1[2], boost::regex(","));
+  std::vector<std::string> tiles;
+  for (auto const &tile : tilesReq) {
+    if (tile == "") {
+      continue;
+    }
+    std::size_t pos = tile.find('_');
+    int frameId = (stoi(tile.substr(0, pos)) * 25) + 1;
+    tiles.push_back(std::to_string(frameId) + "_0_" + tile.substr(pos + 1));
+    // std::cout<<tile<<"-->"<<std::to_string(chunkId)
+    // +"_0_"+tile.substr(pos+1)<<std::endl;
   }
   return tiles;
 }

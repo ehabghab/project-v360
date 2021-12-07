@@ -48,7 +48,7 @@ Client::Client(std::string tilesPerFrameTracePath,
 
   std::thread senderThread(ClientNetworkLayer::sender, clientNetworkLayer);
 
-  std::thread abrThread(AbrAlgorithm::runAbr, abr, tilePredictor,
+  std::thread abrThread(AbrAlgorithm::runAbrUtilityMatrix, abr, tilePredictor,
                         bandwidthPredictor, clientNetworkLayer, videoPlayer);
 
   videoPlayerThread.join();
@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     return -1;
   }
   google::SetLogDestination(google::INFO, "client_log.txt");
-  google::InitGoogleLogging(argv[0]);  
+  google::InitGoogleLogging(argv[0]);
 
   Client *client = new Client(argv[1], argv[2], argv[3], argv[4]);
   // to suppress warning

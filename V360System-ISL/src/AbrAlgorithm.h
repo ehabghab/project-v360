@@ -21,6 +21,12 @@ public:
                      ClientNetworkLayer *clientNetworkLayer,
                      VideoPlayer *videoPlayer);
 
+  static void runAbrUtilityMatrix(AbrAlgorithm *abrAlgorithm,
+                                  TilePredictor *tilePredictor,
+                                  BandwidthPredictor *bandwidthPredictor,
+                                  ClientNetworkLayer *clientNetworkLayer,
+                                  VideoPlayer *videoPlayer);
+
 private:
   // quality --> tiles --> tile chunk sizes.
   std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
@@ -49,6 +55,18 @@ private:
   uint8_t getNumberOfQualities();
   std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>> &
   getTileChunkSizePerQuality();
+
+  std::map<float, std::vector<std::string>> orderTilesByMaxUtility(
+      std::map<std::string, std::vector<float>> utilityMatrix,
+      uint16_t frameIdToRender);
+
+  std::vector<std::string> getTilesWithMaxOverallUtility(
+      std::map<std::string, std::vector<float>> utilityMatrix,
+      std::map<float, std::vector<std::string>> sortedUtilityMatrix,
+      uint16_t frameIdToRender, float estimatedBw,
+      std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
+          tileChunkSizes,
+      ClientNetworkLayer *clientNetworkLayer);
 };
 
 #endif /* ABRALGORITHM_H_ */

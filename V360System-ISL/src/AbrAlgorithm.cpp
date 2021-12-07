@@ -74,6 +74,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     // get the predicted tiles every ABR_FREQ(100ms).
     // we will have mutliple sets (e.g. viewport tiles, viewport edge tiles ,
     // further tiles, rest of tiles)
+    auto utilityMatrix = tilePredictor->getUtilityMatrixOfPredictedTilesLR();
     auto tileClassesOfFutureFrames = tilePredictor->getPredictedTilesLR();
     if (tileClassesOfFutureFrames.size() == 0) {
       break;
@@ -203,8 +204,8 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     float currentVideoTime =
         (((frameIdToRender - 1) * 40.0) + Util::getTimePassedSinceLastFrame()) /
         1e3; // current video time.
-    //LOG(INFO) << "Bandwidth: " << (predictedBw * 8 / 1e6)
-      //        << " , Next frame: " << frameIdToRender;
+    // LOG(INFO) << "Bandwidth: " << (predictedBw * 8 / 1e6)
+    //        << " , Next frame: " << frameIdToRender;
 
     for (int quality = numOfQualities; quality > 0; quality--) {
       // for all possible solutions
@@ -214,7 +215,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
         qualityFound = true;
         // go through all classes in all frames one by one based on render
         // deadline.
-        //LOG(INFO) << "Solution = " << solution;
+        // LOG(INFO) << "Solution = " << solution;
         for (auto const &tileClassesSingleFrame : frameIdSetQualitySizeSum) {
           if (tileClassesSingleFrame.first < frameIdToRender) {
             continue;
@@ -267,6 +268,369 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     videoTime += (Util::getTime() - stime);
     stime += 100;
   }
+}
+
+void AbrAlgorithm::runAbrUtilityMatrix(AbrAlgorithm *abrAlgorithm,
+                                       TilePredictor *tilePredictor,
+                                       BandwidthPredictor *bandwidthPredictor,
+                                       ClientNetworkLayer *clientNetworkLayer,
+                                       VideoPlayer *videoPlayer) {
+  // every 100ms, update tile list.
+  long stime = Util::getTime();
+  float videoTime = 0;
+
+  uint8_t numOfQualities = abrAlgorithm->getNumberOfQualities();
+  uint8_t numOfClasses;
+  auto &tileChunkSizePerQuality = abrAlgorithm->getTileChunkSizePerQuality();
+
+  // frame has multiple classes, each class has set of tiles, tiles can be of
+  // different qualities. frameId --> classes --> <tiles_q0, tiles_q1>, where
+  // tiles_q0: is the sum of all tiles in lowest qaulity.
+  std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
+      frameIdSetQualitySizeSum;
+  std::vector<std::string> tilesRequest;
+  // This set will contain all tiles in prev sets (to contain duplicates)
+  // tilechunk_tileIdx
+  std::set<std::string> tilesInPrevSets;
+  while (true) {
+
+    // get the utility matrix for all tiles to be rendered over the horizon of
+    // 25 frames.
+    auto utilityMatrix = tilePredictor->getUtilityMatrixOfPredictedTilesLR();
+    auto frameIdToRender = videoPlayer->getFrameToRenderId();
+    // sort tiles by their max utility.
+    auto orderedUtilityMatrix =
+        abrAlgorithm->orderTilesByMaxUtility(utilityMatrix, frameIdToRender);
+
+    float predictedBw =
+        (bandwidthPredictor->getMpcBandwidthPrediction() * 1e6) /
+        8.0; // Bytes Per Second
+
+    // pick tiles that would acheive the highest overall maximum utility.
+    auto request = abrAlgorithm->getTilesWithMaxOverallUtility(
+        utilityMatrix, orderedUtilityMatrix, frameIdToRender,
+        predictedBw == 0 ? 2.5 * 1e6 : predictedBw, tileChunkSizePerQuality,
+        clientNetworkLayer);
+
+    std::string req = "Tiles\n";
+    for (auto const &tile : request) {
+      req += tile + ",";
+    }
+    std::cout << req << std::endl;
+
+    req.pop_back();
+    req += "\nQuality\n" + std::to_string(0);
+    clientNetworkLayer->setRequest(req);
+    tilesRequest.clear();
+    frameIdSetQualitySizeSum.clear();
+    Util::sleep(stime, ABR_FREQ);
+    videoTime += (Util::getTime() - stime);
+    stime += 100;
+  }
+}
+
+std::map<float, std::vector<std::string>> AbrAlgorithm::orderTilesByMaxUtility(
+    std::map<std::string, std::vector<float>> utilityMatrix,
+    uint16_t frameIdToRender) {
+  float frameIdSt = utilityMatrix.find("frameIdAtCol0")->second[0];
+
+  std::map<float, std::vector<std::string>> sortedUtilityMatrix;
+  for (auto const tileChunk : utilityMatrix) {
+    if (tileChunk.first == "frameIdAtCol0") {
+      continue;
+    }
+    // 50 = number of frames in the future (25) * number of classes (2)
+    auto maxUtility = 50.0 - tileChunk.second[24];
+    // deduct the utility of the frames that have already passed deadline.
+
+    if (frameIdToRender > frameIdSt && frameIdToRender != 1) {
+      maxUtility -= tileChunk.second[frameIdToRender - frameIdSt];
+    }
+    if (sortedUtilityMatrix.find(maxUtility) == sortedUtilityMatrix.end()) {
+      std::vector<std::string> tileChunks;
+      sortedUtilityMatrix.insert(std::make_pair(maxUtility, tileChunks));
+    }
+    sortedUtilityMatrix.find(maxUtility)->second.push_back(tileChunk.first);
+  }
+  if (VLOG_IS_ON(1)) {
+    LOG(INFO) << "=== Utility Matrix [" << frameIdSt << "]===";
+
+    for (auto const tileChunk : utilityMatrix) {
+      std::string p = tileChunk.first + ":";
+      for (auto const utility : tileChunk.second) {
+        p += std::to_string(utility) + ",";
+      }
+      p.pop_back();
+      LOG(INFO) << p;
+    }
+    LOG(INFO) << "=== Sorted Utility Matrix [" << frameIdSt << "]===";
+    for (auto const utilityChunks : sortedUtilityMatrix) {
+      std::string p = std::to_string(50 - utilityChunks.first) + ":";
+      for (auto const tile : utilityChunks.second) {
+        p += tile + ",";
+      }
+      p.pop_back();
+      LOG(INFO) << p;
+    }
+  }
+  return sortedUtilityMatrix;
+}
+
+std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
+    std::map<std::string, std::vector<float>> utilityMatrix,
+    std::map<float, std::vector<std::string>> sortedUtilityMatrix,
+    uint16_t frameIdToRender, float estimatedBw,
+    std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>> tileChunkSizes,
+    ClientNetworkLayer *clientNetworkLayer) {
+  std::cout << "BW: " << estimatedBw * 8 / 1e6 << std::endl;
+  std::cout << "Frame Id: " << std::to_string(frameIdToRender) << std::endl;
+  /*
+  case 1: simple 5 tiles, all same utility.
+  utilityMatrix = {
+      {"0_102", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+                 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
+      {"0_103", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+                 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
+      {"0_42", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+                28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
+      {"0_43", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+                28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
+      {"0_44", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+                28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}}};
+
+  sortedUtilityMatrix = {{0, {"0_102", "0_103", "0_42", "0_43", "0_44"}}};
+  */
+
+  /*
+  case 2: 5 tiles, 42 has higher utilization but later deadline in compare to
+  43.
+          so, 43 should be requested first.
+
+  utilityMatrix = {
+      {"0_102", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+                 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
+      {"0_103", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+                 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
+      {"0_42", {0,  0,  0,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22,
+                24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46}},
+      {"0_43", {1.2, 3.2, 4.6, 6,  7.9, 9.5, 11, 12, 14, 16,   18, 20,  22,
+                24,  26,  28,  30, 32,  34,  36, 38, 40, 41.5, 42, 43.5}},
+      {"0_44", {1.2, 3.2, 4.6, 6,  7.9, 9.5, 11, 12, 14, 16,   18, 20,  22,
+                24,  26,  28,  30, 32,  34,  36, 38, 40, 41.5, 42, 43.5}}};
+
+  sortedUtilityMatrix = {
+      {0, {"0_102", "0_103"}}, {4, {"0_42"}}, {6.5, {"0_43", "0_44"}}};
+  */
+
+  /*utilityMatrix = {
+      {"0_102", {0,  0,  0,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+                 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
+      {"0_103", {0,  0,  0,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+                 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
+      {"0_42", {0,  0,  0,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22,
+                24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46}},
+      {"0_43", {1.2, 3.2, 4.6, 6,  7.9, 9.5, 11, 12, 14, 16,   18, 20,  22,
+                24,  26,  28,  30, 32,  34,  36, 38, 40, 41.5, 42, 43.5}},
+      {"0_44", {1.2, 3.2, 4.6, 6,  7.9, 9.5, 11, 12, 14, 16,   18, 20,  22,
+                24,  26,  28,  30, 32,  34,  36, 38, 40, 41.5, 42, 43.5}}};
+
+  sortedUtilityMatrix = {
+      {0, {"0_102", "0_103"}}, {4, {"0_42"}}, {6.5, {"0_43", "0_44"}}};*/
+
+  // all times in this function are in ms.
+  struct tileNode {
+    // tileChunk_tileId
+    std::string tile;
+    // expected time to recv tile.
+    float EstArrivalTime;
+    // expected time to transmit tile.
+    float EstDownloadTime;
+    tileNode *nextTile;
+    tileNode *prevTile;
+  };
+
+  // tile with highest priority.
+  tileNode *headTile = new tileNode();
+  // tile with lowest priority.
+  tileNode *tailTile = headTile;
+  // total utility of all tiles to be downloaded.
+  // Our goal is to maximize this.
+  float overallUtility = 0;
+
+  // This is the current time (base time).
+  float curTime = ((frameIdToRender - 1) * 40.0);
+
+  if (frameIdToRender != 1) {
+    curTime += Util::getTimePassedSinceLastFrame();
+  }
+
+  // Utility at column 0 corresponds to which frame.
+  int frameIdSt = utilityMatrix.find("frameIdAtCol0")->second[0];
+
+  // We start by choosing the lowest quality.
+  // This would maximize the number of tiles we can get.
+
+  // Tiles with highest priority first.
+  // utilityTilesPair<utility, set of tiles with this utility>
+  for (auto const &utilityTilesPair : sortedUtilityMatrix) {
+    for (auto const tile : utilityTilesPair.second) {
+      // chunk Id _ tile Id
+      std::size_t pos = tile.find("_");
+      uint16_t tileId = static_cast<uint16_t>(std::stoi(tile.substr(pos + 1)));
+      int chunkId = std::stoi(tile.substr(0, pos)) + 1;
+      if (clientNetworkLayer->isReceived(chunkId, tileId)) {
+        continue;
+      }
+      // estimated time to download the tile chunk in lowest quality possible.
+      float estDownloadTime =
+          1e3 * (tileChunkSizes.find(1)->second.find(tileId)->second[chunkId] /
+                 estimatedBw); //
+
+      // estimated arrival time of the tile.
+      float estArrivalTime = estDownloadTime + curTime;
+      // map the estimated arrival time of the tile to frame to cal. actual
+      // utility.
+      int arrvFrameId = int(estArrivalTime / 40) - frameIdSt;
+
+      float actualUtility = 0;
+      // if we expect to receive the tile within 1 sec from now, then we can
+      // estimate its utility.
+      if (arrvFrameId < 25) {
+        actualUtility =
+            utilityMatrix[tile][24] - utilityMatrix[tile][arrvFrameId];
+      }
+      overallUtility += actualUtility;
+
+      // this the first tile to add (highest priority/utility)
+      if (tailTile->tile == "") {
+
+        // This should rarely happen.
+        if (arrvFrameId > 25) {
+          LOG(ERROR)
+              << "Tile with highest priorty needs > 1 second to be received.";
+          continue;
+        }
+        tailTile->tile = tile;
+        tailTile->EstArrivalTime = estArrivalTime;
+        tailTile->EstDownloadTime = estDownloadTime;
+        tailTile->prevTile = nullptr;
+        tailTile->nextTile = nullptr;
+      } else {
+        // this pointer is used to trace over the request doubly-linkedlist
+        tileNode *trace = tailTile;
+        // this points at the best location the tile can be received at/after.
+        tileNode *potentialPosition = nullptr;
+        //  this keeps track of the new utility while as we are trying to find
+        //  the best location for the tile.
+        float updatedUtility = overallUtility;
+
+        while (trace != nullptr) {
+          // UTILITY LOSS \\
+
+          // cumlative utility vector for tile to be pushed further.
+          auto const &utilityNxtTile = utilityMatrix[trace->tile];
+          // its estimated arrival frame Id before push.
+          float oldEstArrNxtTileFrameId =
+              int((trace->EstArrivalTime) / 40) - frameIdSt;
+          // its newly estimated arrival frame Id after push.
+          float newEstArrvNxtTileFrameId =
+              int((trace->EstArrivalTime + estDownloadTime) / 40) - frameIdSt;
+          // how much utility is expected to be lost becuase of push.
+          float utilityLoss;
+          // if its estimated to be received after 1 sec, then max utility is
+          // upper bound.
+          if (newEstArrvNxtTileFrameId >= 25) {
+            utilityLoss =
+                utilityNxtTile[24] - utilityNxtTile[oldEstArrNxtTileFrameId];
+          } else {
+            // otherwise, it will be the new estimated arrival time.
+            utilityLoss = utilityNxtTile[newEstArrvNxtTileFrameId] -
+                          utilityNxtTile[oldEstArrNxtTileFrameId];
+          }
+
+          // UTILITY GAIN \\
+          // cumlative utility vector for current tile.
+          auto const &utilitycurrTile = utilityMatrix[tile];
+          // its estimated arrival frame Id before.
+          float oldEstArrCurrTileFrameId = newEstArrvNxtTileFrameId;
+          // its newly estimated arrival frame Id after push.
+
+          float newEstArrvCurrTileFrameId =
+              int(((trace->EstArrivalTime - trace->EstDownloadTime) +
+                   estDownloadTime) /
+                  40) -
+              frameIdSt;
+          // how much utility is expected to be lost becuase of push.
+          float utilityGain;
+          // if previously its estimated to be received after 1 sec, then max
+          // utility is
+          // upper bound.
+          if (oldEstArrCurrTileFrameId >= 25) {
+            utilityGain = utilitycurrTile[24] -
+                          utilitycurrTile[newEstArrvCurrTileFrameId];
+          } else {
+            // otherwise, it will be the new estimated arrival time.
+            utilityGain = utilitycurrTile[oldEstArrCurrTileFrameId] -
+                          utilitycurrTile[newEstArrvCurrTileFrameId];
+          }
+          updatedUtility = updatedUtility + utilityGain - utilityLoss;
+
+          if (utilityGain > utilityLoss) {
+            overallUtility = updatedUtility;
+            potentialPosition = trace;
+          }
+          trace = trace->prevTile;
+        }
+
+        tileNode *currTileNode = new tileNode();
+        currTileNode->tile = tile;
+        if (potentialPosition == nullptr) {
+          currTileNode->EstArrivalTime =
+              tailTile->EstArrivalTime + estDownloadTime;
+          currTileNode->prevTile = tailTile;
+          currTileNode->nextTile = nullptr;
+
+        } else {
+          currTileNode->EstArrivalTime = (potentialPosition->EstArrivalTime -
+                                          potentialPosition->EstDownloadTime) +
+                                         estDownloadTime;
+          currTileNode->prevTile = potentialPosition->prevTile;
+          currTileNode->nextTile = potentialPosition;
+          currTileNode->nextTile->prevTile = currTileNode;
+        }
+        currTileNode->EstDownloadTime = estDownloadTime;
+        if (currTileNode->prevTile != nullptr) {
+          currTileNode->prevTile->nextTile = currTileNode;
+        }
+        trace = currTileNode;
+        tailTile = currTileNode;
+        // remove all tiles node with estimated arrival frame Id >=25;
+        while (trace->nextTile != nullptr) {
+          trace->nextTile->EstArrivalTime =
+              trace->EstArrivalTime + trace->nextTile->EstDownloadTime;
+          auto estArrvNxtTileFrameId =
+              int(trace->nextTile->EstArrivalTime / 40) - frameIdSt;
+          if (estArrvNxtTileFrameId >= 25) {
+            tailTile = trace;
+            trace->nextTile->prevTile = nullptr;
+            trace->nextTile = nullptr;
+            break;
+          }
+          trace = trace->nextTile;
+          tailTile = trace;
+        }
+      }
+      curTime = tailTile->EstArrivalTime;
+      // std::cout << curTime << std::endl;
+    }
+  }
+
+  std::vector<std::string> tilesToRequest;
+  while (headTile != nullptr) {
+    tilesToRequest.push_back(headTile->tile);
+    headTile = headTile->nextTile;
+  }
+  return tilesToRequest;
 }
 
 uint8_t AbrAlgorithm::getNumberOfQualities() { return numberOfQualities_; }

@@ -7,7 +7,6 @@
 
 #include "TilePredictor.h"
 
-#include <glog/logging.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -17,6 +16,8 @@
 #include <set>
 #include <thread>
 #include <utility>
+
+#include <glog/logging.h>
 
 void TilePredictor::getViewportSquares(
     std::vector<SquareCoordinates> &vpSquares,
@@ -329,6 +330,124 @@ TilePredictor::getPredictedTilesLR() {
   return tileClassAllFrames;
 }
 
+std::map<std::string, std::vector<float>>
+TilePredictor::getUtilityMatrixOfPredictedTilesLR() {
+
+  // video join time as it only happens at the start of video sessions.
+  while (frameId_ == 0)
+    ;
+  std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
+
+  std::vector<std::pair<float, float>> predictedCorr;
+  /*if (frameId_ >= 13) {
+    predictedCorr =
+        linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_);
+  }*/
+
+  predictedCorr = linearRegressor_->predictPerfect(frameId_);
+
+  uint16_t frameId = frameId_;
+
+  // chunkId_TileId: cumlative utility
+  // keep track of what is the frameId for utility at zero.
+  std::map<std::string, std::vector<float>> utilityMatrix;
+  std::vector<float> frameIdVec = {static_cast<float>(frameId - 1)};
+  utilityMatrix.insert(std::make_pair("frameIdAtCol0", frameIdVec));
+
+  for (uint16_t idx = 0; idx < 25; idx++) { // per frame
+    if (frameId >= 1475) {
+      break;
+    }
+    int chunkId = ((frameId + idx) - 1) / 25;
+
+    std::pair<float, float> viewportCenter;
+    // use static predictor.
+    if (predictedCorr.size() == 0) {
+      viewportCenter = vpGroundTruth_[frameId_ - 1];
+    } else {
+      viewportCenter = predictedCorr[idx];
+    }
+
+    for (auto &vpResolution : vpResolutions) { // per vp-class
+      // find viewport squares.
+      std::vector<SquareCoordinates> vpSqrs;
+      getViewportSquares(vpSqrs, viewportCenter, vpResolution);
+
+      // key: fraction area of tile that overlaps with viewport.
+      // value: list of all tiles.
+
+      std::map<float, std::vector<uint16_t>> tilesSortedByArea;
+      sortTileSetByArea(tilesSortedByArea, vpSqrs,
+                        vpResolution.first * vpResolution.second);
+
+      for (auto const &tileSet : tilesSortedByArea) {
+        // if the tiles do not overlap with viewport then skip.
+        if ((1 - tileSet.first) == 0) {
+          continue;
+        }
+        // go over all tiles in the set.
+        for (auto const &tile : tileSet.second) {
+          std::string key =
+              std::to_string(chunkId) + "_" + std::to_string(tile);
+          if (utilityMatrix.find(key) == utilityMatrix.end()) {
+            std::vector<float> cumlativeTileUtility(
+                25, 0); // lookahead frames is 25.
+            utilityMatrix.insert(std::make_pair(key, cumlativeTileUtility));
+          }
+          utilityMatrix.find(key)->second[idx] += (1 - tileSet.first);
+        }
+
+        if (VLOG_IS_ON(1)) {
+          std::string tileToPrint = "1_30";
+          bool found = false;
+
+          std::string vLogTiles;
+          for (auto const &tile : tileSet.second) {
+            std::string key =
+                std::to_string(chunkId) + "_" + std::to_string(tile);
+
+            if (key == tileToPrint) {
+              found = true;
+            }
+            vLogTiles += std::to_string(tile) + ",";
+          }
+          if (found) {
+            VLOG(0) << "Fraction of area in viewport:" << (1 - tileSet.first)
+                    << " [ " << std::to_string(frameId + idx) << " ] ";
+
+            VLOG(0) << vLogTiles;
+          }
+        }
+      }
+    }
+  }
+
+  for (auto &tileUtility : utilityMatrix) {
+    for (uint8_t idx = 1; idx < tileUtility.second.size(); idx++) {
+      tileUtility.second[idx] += tileUtility.second[idx - 1];
+    }
+  }
+
+  if (VLOG_IS_ON(1)) {
+
+    std::string tileToPrint = "1_30";
+    for (auto &tileUtility : utilityMatrix) {
+      if (tileUtility.first != tileToPrint) {
+        continue;
+      }
+      std::string tile = tileUtility.first + ":";
+      for (auto const utility : tileUtility.second) {
+        tile += std::to_string(utility) + ",  ";
+      }
+      tile.pop_back();
+      tile.pop_back();
+      tile.pop_back();
+      LOG(INFO) << tile;
+    }
+  }
+  return utilityMatrix;
+}
+
 std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
 TilePredictor::getPredictedTilesStatic() {
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
@@ -398,7 +517,7 @@ TilePredictor::getPredictedTilesStatic() {
           tileClassMap.find(tileClass)->second.push_back(tile);
         }
 
-        if (VLOG_IS_ON(1)) {
+        if (VLOG_IS_ON(0)) {
           VLOG(1) << "Fraction of area in viewport:" << (1 - tiles.first);
           std::string vLogTiles;
           for (auto const &tile : tiles.second) {
