@@ -233,8 +233,8 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
       // received["<<tileInfo.first<<"-"<<tileInfo.second<<"]";
       client->receivedTileChunks_.insert(
           std::make_pair(tileInfo.first, tileInfo.second));
-      std::cout << std::to_string(tileInfo.first) << ":"
-                << std::to_string(tileInfo.second) << "received!\n";
+      // std::cout << std::to_string(tileInfo.first) << ":"
+      //          << std::to_string(tileInfo.second) << "received!\n";
       videoPlayer->addChunk(chunk, chunkSize, tileInfo.first, tileInfo.second);
       bandwidth =
           ((chunkSize * 8.0) / 1e6) / ((etime - stime) / 1000.0); // mbps
