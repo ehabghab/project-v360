@@ -315,7 +315,7 @@ void AbrAlgorithm::runAbrUtilityMatrix(AbrAlgorithm *abrAlgorithm,
     for (auto const &tile : request) {
       req += tile + ",";
     }
-    std::cout << req << std::endl;
+    // std::cout << req << std::endl;
 
     req.pop_back();
     req += "\nQuality\n" + std::to_string(0);
@@ -339,7 +339,7 @@ std::map<float, std::vector<std::string>> AbrAlgorithm::orderTilesByMaxUtility(
       continue;
     }
     // 50 = number of frames in the future (25) * number of classes (2)
-    auto maxUtility = 50.0 - tileChunk.second[24];
+    auto maxUtility = tileChunk.second[24]; // 50.0 - tileChunk.second[24];
     // deduct the utility of the frames that have already passed deadline.
 
     if (frameIdToRender > frameIdSt && frameIdToRender != 1) {
@@ -381,8 +381,8 @@ std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
     uint16_t frameIdToRender, float estimatedBw,
     std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>> tileChunkSizes,
     ClientNetworkLayer *clientNetworkLayer) {
-  std::cout << "BW: " << estimatedBw * 8 / 1e6 << std::endl;
-  std::cout << "Frame Id: " << std::to_string(frameIdToRender) << std::endl;
+  // std::cout << "BW: " << estimatedBw * 8 / 1e6 << std::endl;
+  // std::cout << "Frame Id: " << std::to_string(frameIdToRender) << std::endl;
   /*
   case 1: simple 5 tiles, all same utility.
   utilityMatrix = {
@@ -434,7 +434,7 @@ std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
                 24,  26,  28,  30, 32,  34,  36, 38, 40, 41.5, 42, 43.5}}};
 
   sortedUtilityMatrix = {
-      {0, {"0_102", "0_103"}}, {4, {"0_42"}}, {6.5, {"0_43", "0_44"}}};*/
+      {50, {"0_102", "0_103"}}, {46, {"0_42"}}, {43.5, {"0_43", "0_44"}}};*/
 
   // all times in this function are in ms.
   struct tileNode {
@@ -574,7 +574,7 @@ std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
           }
           updatedUtility = updatedUtility + utilityGain - utilityLoss;
 
-          if (utilityGain > utilityLoss) {
+          if (updatedUtility >= overallUtility) {
             overallUtility = updatedUtility;
             potentialPosition = trace;
           }
@@ -596,6 +596,9 @@ std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
           currTileNode->prevTile = potentialPosition->prevTile;
           currTileNode->nextTile = potentialPosition;
           currTileNode->nextTile->prevTile = currTileNode;
+          if (potentialPosition == headTile) {
+            headTile = currTileNode;
+          }
         }
         currTileNode->EstDownloadTime = estDownloadTime;
         if (currTileNode->prevTile != nullptr) {
