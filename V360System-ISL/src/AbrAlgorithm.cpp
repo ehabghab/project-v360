@@ -339,7 +339,7 @@ std::map<float, std::vector<std::string>> AbrAlgorithm::orderTilesByMaxUtility(
       continue;
     }
     // 50 = number of frames in the future (25) * number of classes (2)
-    auto maxUtility = tileChunk.second[24]; // 50.0 - tileChunk.second[24];
+    auto maxUtility = 50.0 - tileChunk.second[24];
     // deduct the utility of the frames that have already passed deadline.
 
     if (frameIdToRender > frameIdSt && frameIdToRender != 1) {
