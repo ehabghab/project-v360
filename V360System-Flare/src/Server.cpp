@@ -217,7 +217,7 @@ void Server::sender(Server *server, uint8_t socket) {
   std::vector<std::string> tileInfo;
   std::string q = "";
   // to avoid head of line blocking we keep monitor our sending buffer size,
-  // only start send packet/chunk when there is no data pending in buffer. 
+  // only start send packet/chunk when there is no data pending in buffer.
   long pendingData;
   while (true) {
     auto tileListsTemp = server->getTileList();
@@ -328,23 +328,24 @@ void Server::sender(Server *server, uint8_t socket) {
         chunkId + "_" + tileInfo[2], qualityPathIdx));
     VLOG(1) << "\n" << header << "-------";
 
-    ioctl(socket,SIOCOUTQ, &pendingData);
-    LOG(INFO)<<"Pending data in Buffer-before:"<<pendingData<<" Bytes";
-    LOG(INFO) <<"Server_sending["<<chunkId<<"-"<<tileInfo[2]<<"], size:"<<header.size()+fileSize+4;
+    ioctl(socket, SIOCOUTQ, &pendingData);
+    LOG(INFO) << "Pending data in Buffer-before:" << pendingData << " Bytes";
+    LOG(INFO) << "Server_sending[" << chunkId << "-" << tileInfo[2]
+              << "], size:" << header.size() + fileSize + 4;
     send(socket, header.c_str(), header.size(), 0);
     // send file.
     send(socket, buffer, fileSize + 4, 0);
-    ioctl(socket,SIOCOUTQ, &pendingData);
-    LOG(INFO)<<"Pending data in Buffer-afterSend:"<<pendingData<<" Bytes";
+    ioctl(socket, SIOCOUTQ, &pendingData);
+    LOG(INFO) << "Pending data in Buffer-afterSend:" << pendingData << " Bytes";
     // wait until tcp buffer is empty.
-    while(pendingData > 30000)
-    {
-      ioctl(socket,SIOCOUTQ, &pendingData);
-      //LOG(INFO)<<"Pending data in Buffer-afterWait:"<<pendingData<<" Bytes\n-----";
-
+    while (pendingData > 5 * 1e3) {
+      ioctl(socket, SIOCOUTQ, &pendingData);
+      // LOG(INFO)<<"Pending data in Buffer-afterWait:"<<pendingData<<"
+      // Bytes\n-----";
     }
-    ioctl(socket,SIOCOUTQ, &pendingData);
-    LOG(INFO)<<"Pending data in Buffer-afterWait:"<<pendingData<<" Bytes\n-----";
+    ioctl(socket, SIOCOUTQ, &pendingData);
+    LOG(INFO) << "Pending data in Buffer-afterWait:" << pendingData
+              << " Bytes\n-----";
 
     free(buffer);
   }
@@ -373,7 +374,7 @@ Server::getResponseHeader(std::string httpVersion, std::string statusCode,
 }
 
 std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
-  //LOG(INFO) << "Request_server:" << request;
+  // LOG(INFO) << "Request_server:" << request;
   std::vector<std::string> tempVec1;
   std::vector<std::string> tempVec2;
   boost::algorithm::split_regex(tempVec1, request, boost::regex("Tiles"));
