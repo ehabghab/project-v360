@@ -1,0 +1,4 @@
+1. Create the full YUV frames are created using either moving or centre viewport script.
+2. Create the .mp4 video file using:
+   ffmpeg -f image2 -c:v rawvideo -pixel_format yuv420p -r 25 -video_size 3840x1920 -i %d.yuv -c:v libx264 output.mp4
+ 
