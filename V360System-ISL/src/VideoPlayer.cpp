@@ -8,6 +8,7 @@
 #include "VideoPlayer.h"
 
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/regex.hpp>
@@ -60,6 +61,13 @@ VideoPlayer::VideoPlayer(std::string tilesPerFrameTracePath,
     } catch (std::invalid_argument &e) {
       std::cout << "Error reading ground truth\n" << line << std::endl;
     }
+  }
+  std::string dirName = "yuv_frames_" + Util::getLogTimestamp();
+
+  //+Util::getLogTimestamp().c_str()
+  if (mkdir(dirName.c_str(),0777) != 0)
+  {
+    LOG(ERROR)<<"could not create directory for yuv frames";
   }
 
   frameId_ = 1;
@@ -478,9 +486,9 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
     numOfRows++;
   } // end of stitching loop
 
-  /*FILE *myfile;
+  FILE *myfile;
 
-  std::string filename =
+  std::string filename = "yuv_frames_" + Util::getLogTimestamp()+"/"+
       std::to_string(frameId) + "_" + std::to_string(tilesInRow * 320) + "X" +
       std::to_string(viewportLinkedList.size() * 160) + ".yuv";
 
@@ -488,7 +496,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
 
   fwrite(rawViewPort, sizeof(uint8_t), numberOfTiles * tileSize, myfile);
 
-  fclose(myfile);*/
+  fclose(myfile);
 }
 
 uint32_t VideoPlayer::getFrameToRenderId() { return frameId_; }
