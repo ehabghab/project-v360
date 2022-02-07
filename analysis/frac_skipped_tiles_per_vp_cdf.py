@@ -6,10 +6,10 @@ from os import system
 import sys
 import os
 
-# plt.rcParams.update({
-#    "text.usetex": True,
-#    "font.family": "sans-serif",
-#    "font.sans-serif": ["Helvetica"]})
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Helvetica"]})
 
 
 def main():
@@ -60,11 +60,11 @@ def main():
 
             if total_tiles_in_frame != 0:
                 fraction_missed[fname].append(
-                    missed_tiles_in_frame/total_tiles_in_frame)
+                    missed_tiles_in_frame*100./total_tiles_in_frame)
 
     #["Empty", "15KB", "37.5KB", "65.25KB", "INF"]
-    wait = ["basic-skip", "uility-skip", "15KB", "37.5KB", "INF"]
-    colors = ['black', 'blue', 'dodgerblue', 'seagreen', 'purple']
+    wait = ["Utility", "Flare"]
+    colors = ['dodgerblue', 'black', 'seagreen', 'purple']
     styles = ['-', ':', '-.', '--', 'dotted']
 
     plt.figure(figsize=(5, 3))
@@ -74,10 +74,15 @@ def main():
     c = 0
     for fname in files:
         print(fname)
+        for i in range(1, 101):
+            for j in range(0, 10):
+                perc = i+(j/10.)
+                print(str(perc)+":  " +
+                      str(np.percentile(fraction_missed[fname], perc)))
         sorted_data = np.sort(fraction_missed[fname])
-        print(np.percentile(fraction_missed[fname], 50))
-        print(np.percentile(fraction_missed[fname], 90))
-        yvals = np.arange(len(sorted_data)) / float(len(sorted_data) - 1)
+        yvals = np.arange(len(sorted_data)) * 100. / \
+            float(len(sorted_data) - 1)
+        print(np.percentile(sorted_data, 50))
         plt.plot(sorted_data, yvals, linewidth=2,
                  linestyle=styles[c], color=colors[c], label=wait[c])
         c += 1
@@ -85,10 +90,11 @@ def main():
     plt.yticks(size=12)
     plt.xlim(-0.1)
     plt.ylim(0)
-    plt.legend(loc='best', prop={'size': 10, 'weight': 'bold'})
-    plt.ylabel('Fraction of frames', size=14)
-    plt.xlabel('Fraction of missed tiles in frame', size=14)
-    plt.savefig("frac_skipped_tiles_per_vp.png", bbox_inches='tight', dpi=300)
+    plt.legend(loc='best', prop={'size': 12, 'weight': 'bold'})
+    plt.ylabel('\% of frames', size=12)
+    plt.xlabel('\% of missed tiles in frame', size=12)
+    plt.savefig("frac_skipped_tiles_per_vp.png",
+                format="png", bbox_inches='tight', dpi=300)
 
 
 # how often user change, how many tiles.
