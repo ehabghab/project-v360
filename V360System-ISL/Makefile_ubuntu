@@ -2,10 +2,10 @@
 all: client server
 
 client: Client.o  Decoder.o VideoPlayer.o AbrAlgorithm.o BandwidthPredictor.o ClientNetworkLayer.o TilePredictor.o Util.o  LinearRegression.o
-	g++   -o ./build/client  ./build/AbrAlgorithm.o ./build/BandwidthPredictor.o ./build/Client.o ./build/ClientNetworkLayer.o ./build/Decoder.o ./build/TilePredictor.o ./build/VideoPlayer.o  ./build/Util.o  ./build/LinearRegression.o  -lfolly -lglog  -lavutil -lavformat -lavcodec -lswscale -lpthread  -lfmt -ldl -lboost_regex -lboost_system -ldouble-conversion
+	g++   -o ./build/client  ./build/AbrAlgorithm.o ./build/BandwidthPredictor.o ./build/Client.o ./build/ClientNetworkLayer.o ./build/Decoder.o ./build/TilePredictor.o ./build/VideoPlayer.o  ./build/Util.o  ./build/LinearRegression.o  -lfolly -lglog -lgflags -lavutil -lavformat -lavcodec -lswscale -lpthread  -lfmt -ldl -lboost_regex -lboost_system -ldouble-conversion
 
 server: Server.o
-	g++ -o ./build/server ./build/Server.o -lpthread -ldl -lfmt -lboost_regex -ldouble-conversion -lglog 
+	g++ -o ./build/server ./build/Server.o -lpthread -ldl -lfmt -lboost_regex -ldouble-conversion -lglog -lgflags
 
 Client.o: ./src/Client.cpp ./src/Client.h
 	g++ -std=c++14 -D__GXX_EXPERIMENTAL_CXX0X__ -O0 -g -Wall -c -fmessage-length=0 ./src/Client.cpp -o ./build/Client.o

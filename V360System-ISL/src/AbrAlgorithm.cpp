@@ -47,11 +47,11 @@ AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesTracePath) {
   numberOfQualities_ = tileChunkSizePerQuality_.size();
 }
 
-void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
-                          TilePredictor *tilePredictor,
-                          BandwidthPredictor *bandwidthPredictor,
-                          ClientNetworkLayer *clientNetworkLayer,
-                          VideoPlayer *videoPlayer) {
+void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
+                            TilePredictor *tilePredictor,
+                            BandwidthPredictor *bandwidthPredictor,
+                            ClientNetworkLayer *clientNetworkLayer,
+                            VideoPlayer *videoPlayer) {
   // every 100ms, update tile list.
   long stime = Util::getTime();
   float videoTime = 0;
@@ -74,7 +74,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
     // get the predicted tiles every ABR_FREQ(100ms).
     // we will have mutliple sets (e.g. viewport tiles, viewport edge tiles ,
     // further tiles, rest of tiles)
-    auto tileClassesOfFutureFrames = tilePredictor->getPredictedTilesLR();
+    auto tileClassesOfFutureFrames = tilePredictor->getPredictedTilesFlareLR();
     if (tileClassesOfFutureFrames.size() == 0) {
       break;
     }
@@ -269,11 +269,11 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
   }
 }
 
-void AbrAlgorithm::runAbrUtilityMatrix(AbrAlgorithm *abrAlgorithm,
-                                       TilePredictor *tilePredictor,
-                                       BandwidthPredictor *bandwidthPredictor,
-                                       ClientNetworkLayer *clientNetworkLayer,
-                                       VideoPlayer *videoPlayer) {
+void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
+                              TilePredictor *tilePredictor,
+                              BandwidthPredictor *bandwidthPredictor,
+                              ClientNetworkLayer *clientNetworkLayer,
+                              VideoPlayer *videoPlayer) {
   // every 100ms, update tile list.
   long stime = Util::getTime();
   float videoTime = 0;
@@ -295,7 +295,7 @@ void AbrAlgorithm::runAbrUtilityMatrix(AbrAlgorithm *abrAlgorithm,
 
     // get the utility matrix for all tiles to be rendered over the horizon of
     // 25 frames.
-    auto utilityMatrix = tilePredictor->getUtilityMatrixOfPredictedTilesLR();
+    auto utilityMatrix = tilePredictor->getPredictedTilesUtilityLR();
     auto frameIdToRender = videoPlayer->getFrameToRenderId();
     // sort tiles by their max utility.
     auto orderedUtilityMatrix =

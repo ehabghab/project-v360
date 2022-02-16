@@ -19,14 +19,18 @@
 #include <unistd.h>
 
 #include <algorithm>
-#include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
 #include <ctime>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <thread>
 #include <vector>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/format.hpp>
+#include <gflags/gflags.h>
+
+DEFINE_bool(utilityAbr, true, "true : utility, false : flare");
 
 Server::Server() {
   videoRootDir_ = "/home/ehab/Desktop/Project-V360/split/YuvW12H12";
@@ -144,8 +148,14 @@ void Server::reciever(Server *server, uint8_t socket) {
          * Otherwise, add it. read more about boost::algorithm::split_regex:
          * https://www.boost.org/doc/libs/1_51_0/doc/html/boost/algorithm/split_regex.html
          * */
-
-        auto tiles = server->parseRequestIntoTiles(requestsVecTemp[idx]);
+        std::vector<std::string> tiles;
+        if (FLAGS_utilityAbr) {
+          LOG(INFO) << "Utility";
+          tiles = server->parseUtilityRequestIntoTiles(requestsVecTemp[idx]);
+        } else {
+          LOG(INFO) << "Flare";
+          tiles = server->parseFlareRequestIntoTiles(requestsVecTemp[idx]);
+        }
         auto quality = server->parseRequestIntoQuality(requestsVecTemp[idx]);
         server->addTileList(tiles, quality);
       }
@@ -369,7 +379,8 @@ Server::getResponseHeader(std::string httpVersion, std::string statusCode,
   return header.str();
 }
 
-/*std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
+std::vector<std::string>
+Server::parseFlareRequestIntoTiles(std::string request) {
   // LOG(INFO) << "Request_server:" << request;
   std::vector<std::string> tempVec1;
   std::vector<std::string> tempVec2;
@@ -394,9 +405,10 @@ Server::getResponseHeader(std::string httpVersion, std::string statusCode,
     }
   }
   return tiles;
-}*/
+}
 
-std::vector<std::string> Server::parseRequestIntoTiles(std::string request) {
+std::vector<std::string>
+Server::parseUtilityRequestIntoTiles(std::string request) {
   // LOG(INFO) << "Request_server:" << request;
   std::vector<std::string> tempVec1;
   std::vector<std::string> tempVec2;
@@ -458,9 +470,11 @@ void start() {
   assert(server != nullptr);
 }
 
-int main(int argc, const char **argv) {
+int main(int argc, char **argv) {
   google::SetLogDestination(google::INFO, "server_log.txt");
   google::InitGoogleLogging(argv[0]);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
+
   std::thread serverThread(start);
   serverThread.join();
   return 0;

@@ -16,12 +16,12 @@
 class AbrAlgorithm {
 public:
   AbrAlgorithm(std::string tileChunkSizesTracePath);
-  static void runAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
+  static void flareAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
                      BandwidthPredictor *bandwidthPredictor,
                      ClientNetworkLayer *clientNetworkLayer,
                      VideoPlayer *videoPlayer);
 
-  static void runAbrUtilityMatrix(AbrAlgorithm *abrAlgorithm,
+  static void utilityAbr(AbrAlgorithm *abrAlgorithm,
                                   TilePredictor *tilePredictor,
                                   BandwidthPredictor *bandwidthPredictor,
                                   ClientNetworkLayer *clientNetworkLayer,

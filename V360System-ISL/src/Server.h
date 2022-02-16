@@ -48,7 +48,8 @@ class Server {
    * vector of the tiles in the following format "chunkId_setId_tileId" ordered
    * by priority where tile at index 0 has the highest priority.
    */
-  std::vector<std::string> parseRequestIntoTiles(std::string request);
+  std::vector<std::string> parseFlareRequestIntoTiles(std::string request);
+  std::vector<std::string> parseUtilityRequestIntoTiles(std::string request);
 
   // retrun the quality from request.
   uint8_t parseRequestIntoQuality(std::string request);
