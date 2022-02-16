@@ -17,7 +17,11 @@
 #include <thread>
 #include <utility>
 
+#include <gflags/gflags.h>
 #include <glog/logging.h>
+
+DEFINE_bool(predLR, true,
+            "true: use linear regression, false: perfect predictor");
 
 void TilePredictor::getViewportSquares(
     std::vector<SquareCoordinates> &vpSquares,
@@ -226,7 +230,7 @@ float TilePredictor::getFractionOfTileInVP(
 }
 
 std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
-TilePredictor::getPredictedTilesLR() {
+TilePredictor::getPredictedTilesFlareLR() {
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
       tileClassAllFrames;
 
@@ -236,13 +240,17 @@ TilePredictor::getPredictedTilesLR() {
   std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
 
   std::vector<std::pair<float, float>> predictedCorr;
-  if (frameId_ >= 13) {
-    predictedCorr =
-        linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_);
+
+  if (FLAGS_predLR) {
+    LOG(INFO) << "Linear Regression";
+    if (frameId_ >= 13) {
+      predictedCorr =
+          linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_);
+    }
+  } else {
+    LOG(INFO) << "Perfect predictor";
+    predictedCorr = linearRegressor_->predictPerfect(frameId_);
   }
-
-  // predictedCorr = linearRegressor_->predictPerfect(frameId_);
-
   uint16_t frameId = frameId_;
 
   for (uint16_t idx = 0; idx < 25; idx++) { // per frame
@@ -331,7 +339,7 @@ TilePredictor::getPredictedTilesLR() {
 }
 
 std::map<std::string, std::vector<float>>
-TilePredictor::getUtilityMatrixOfPredictedTilesLR() {
+TilePredictor::getPredictedTilesUtilityLR() {
 
   // video join time as it only happens at the start of video sessions.
   while (frameId_ == 0)
@@ -339,12 +347,16 @@ TilePredictor::getUtilityMatrixOfPredictedTilesLR() {
   std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
 
   std::vector<std::pair<float, float>> predictedCorr;
-  if (frameId_ >= 13) {
-    predictedCorr =
-        linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_);
+  if (FLAGS_predLR) {
+    LOG(INFO) << "Linear Regression";
+    if (frameId_ >= 13) {
+      predictedCorr =
+          linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_);
+    }
+  } else {
+    LOG(INFO) << "Perfect predictor";
+    predictedCorr = linearRegressor_->predictPerfect(frameId_);
   }
-
-  // predictedCorr = linearRegressor_->predictPerfect(frameId_);
 
   uint16_t frameId = frameId_;
 

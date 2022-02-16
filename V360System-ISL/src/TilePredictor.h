@@ -24,10 +24,10 @@ public:
   getPredictedTilesStatic();
 
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
-  getPredictedTilesLR();
+  getPredictedTilesFlareLR();
 
   std::map<std::string, std::vector<float>>
-  getUtilityMatrixOfPredictedTilesLR();
+  getPredictedTilesUtilityLR();
 
   TilePredictor(std::string vpCorrPerFrameTracePath);
   uint16_t getFrameId();

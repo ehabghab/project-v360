@@ -9,12 +9,15 @@
 
 #include <thread>
 
+#include <gflags/gflags.h>
+#include <glog/logging.h>
+
 #include "AbrAlgorithm.h"
 #include "ClientNetworkLayer.h"
 #include "Decoder.h"
 #include "Util.h"
 #include "VideoPlayer.h"
-#include "glog/logging.h"
+DEFINE_bool(utilityAbr, true, "true : utility, false : flare");
 
 Client::Client(std::string tilesPerFrameTracePath,
                std::string vpCorrPerFrameTracePath,
@@ -47,9 +50,18 @@ Client::Client(std::string tilesPerFrameTracePath,
                                        decoder);
 
   std::thread senderThread(ClientNetworkLayer::sender, clientNetworkLayer);
-
-  std::thread abrThread(AbrAlgorithm::runAbrUtilityMatrix, abr, tilePredictor,
-                        bandwidthPredictor, clientNetworkLayer, videoPlayer);
+  std::thread abrThread;
+  if (FLAGS_utilityAbr) {
+    abrThread =
+        std::thread(AbrAlgorithm::utilityAbr, abr, tilePredictor,
+                    bandwidthPredictor, clientNetworkLayer, videoPlayer);
+    LOG(INFO) << "Utility";
+  } else {
+    abrThread =
+        std::thread(AbrAlgorithm::flareAbr, abr, tilePredictor,
+                    bandwidthPredictor, clientNetworkLayer, videoPlayer);
+    LOG(INFO) << "Flare";
+  }
 
   videoPlayerThread.join();
 
@@ -69,6 +81,7 @@ int main(int argc, char **argv) {
   }
   google::SetLogDestination(google::INFO, "client_log.txt");
   google::InitGoogleLogging(argv[0]);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   Client *client = new Client(argv[1], argv[2], argv[3], argv[4]);
   // to suppress warning
