@@ -56,7 +56,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
   long stime = Util::getTime();
   float videoTime = 0;
 
-  uint8_t numOfQualities = 1;//abrAlgorithm->getNumberOfQualities();
+  uint8_t numOfQualities = abrAlgorithm->getNumberOfQualities();
   uint8_t numOfClasses;
   auto &tileChunkSizePerQuality = abrAlgorithm->getTileChunkSizePerQuality();
 
@@ -193,7 +193,7 @@ void AbrAlgorithm::runAbr(AbrAlgorithm *abrAlgorithm,
         numOfQualities, numOfClasses + 1);
     // current video time is the time of the last played frame + time
     // passed since last frame was rendered.
-    int qIdx = 1;
+    int qIdx = 2;
     bool qualityFound;
     float currentVideoTime =
         (((frameIdToRender - 1) * 40.0) + Util::getTimePassedSinceLastFrame()) /
