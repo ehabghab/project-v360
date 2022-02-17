@@ -9,8 +9,8 @@ from numpy.core.fromnumeric import sort
 
 plt.rcParams.update({
     "text.usetex": True,
-    "font.family": "sans-serif",
-    "font.sans-serif": ["Helvetica"]
+    "font.family": "Times",
+    "font.sans-serif": ["Times"]
 })
 
 
@@ -43,34 +43,36 @@ def main():
             if x > 0:
                 c += 1
                 rebus.append(x)
-    print(c)
-    print(sum(rebus))
 
     bw = [3.1, 100, 100, 100]
     delay = [0, 20, 40, 100]
-    colors = ['black', 'dodgerblue', 'seagreen', 'darkred']
-    styles = ['-', '-.', '--', ':']
-    plt.figure(figsize=(5, 3))
+    colors = ['dodgerblue', 'seagreen', 'darkred']
+    styles = ['-', ':', '--', ]
+    plt.figure(figsize=(4, 2))
     plt.tight_layout()
     c = 0
     for f in sorted(file_rebuffer_time):
-        print(f)
+        if "user13" in f:
+            label = "uid = 13"
+        else:
+            label = "uid = 3"
+
         #label = str(bw[c])+"mbps_"+str(delay[c])+"ms"
         sorted_data = np.sort(file_rebuffer_time[f])
         yvals = np.arange(len(sorted_data)) * 100. / \
             float(len(sorted_data) - 1)
-        print(yvals)
         plt.plot(sorted_data, yvals, linewidth=2,
-                 linestyle=styles[c], color=colors[c])
+                 linestyle=styles[c], color=colors[c], label=label)
         c += 1
 
-    plt.xticks(size=12)
-    plt.yticks(size=12)
-
-    #plt.legend(loc='best', prop={'size': 12, 'weight': 'bold'})
+    plt.xticks(size=10)
+    plt.yticks(size=10)
+    plt.grid(True)
+    plt.legend(loc='best', prop={'size': 10,
+               'weight': 'bold'}, edgecolor="black")
     plt.ylabel('\% of frames', size=12)
     plt.xlabel('Rebuffering (ms)', size=12)
-    plt.ylim(85, 100.1)
+    plt.ylim(75, 100.1)
     # plt.xlim(-1,10)
     # plt.show()
     plt.savefig("rebuffering.png", format="png", bbox_inches='tight', dpi=300)
