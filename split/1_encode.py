@@ -3,54 +3,51 @@ import os
 import sys
 import subprocess
 
+
 def main():
     if len(sys.argv) < 2:
-        print "Error: python encode.py <dir>"
+        print("Error: python encode.py <dir>")
         sys.exit(1)
-    dir = sys.argv[1].replace("./","").replace("/","")
+    dir = sys.argv[1].replace("./", "").replace("/", "")
 
     frameWidth = 3840
     frameHeight = 1920
-    widthTiles = int(24)
-    heightTiles = int(18)
+    widthTiles = int(12)
+    heightTiles = int(12)
     heightRange = frameHeight/heightTiles
     widthRange = frameWidth/widthTiles
     try:
         os.mkdir(dir+"/encoded")
     except OSError as error:
         True
-    for i in range(0,heightTiles): #row
-        for j in range(0,widthTiles):
+    for i in range(0, heightTiles):  # row
+        for j in range(0, widthTiles):
             stHeightRange = heightRange*i
             enHeightRange = heightRange*(i+1)
             stWidthRange = widthRange*j
             enWidthRange = widthRange*(j+1)
             if i == heightTiles - 1:
                 enHeightRange = frameHeight
-            if j == widthTiles -1 :
+            if j == widthTiles - 1:
                 enWidthRange = frameWidth
             w = enWidthRange-stWidthRange
             h = enHeightRange-stHeightRange
 
             f = dir+"/raw_tiles/r_"+str(i+1)+"_c_"+str(j+1)+".yuv"
             #o = dir+"/encoded/"+str(i+1)+"_c_"+str(j+1)+".mp4"
-            o = dir+"/encoded/"+str(i*24+(j+1))+".mp4"
+            o = dir+"/encoded/"+str(i*12+(j+1))+".mp4"
 
-            #no B frames
+            # no B frames
             #command = "ffmpeg -f rawvideo -pix_fmt yuv420p -s:v "+str(w)+"x"+str(h)+" -r 25 -i "+f +" -g 5 -crf 24 -bf 0 -c:v libx264 "+o
 
-<<<<<<< HEAD
-            command = "ffmpeg -f rawvideo -pix_fmt yuv420p -s:v "+str(w)+"x"+str(h)+" -r 25 -i "+f +" -x264opts 'keyint=100:min-keyint=100:no-scenecut' -crf 18 -bf 0 -c:v libx264 "+o
-=======
-            command = "ffmpeg -f rawvideo -pix_fmt yuv420p -s:v "+str(w)+"x"+str(h)+" -r 25 -i "+f +" -x264opts 'keyint=25:min-keyint=25:no-scenecut' -crf 18 -bf 0 -c:v libx264 "+o
->>>>>>> f3a316188b7a7e58c5d4fbc8cbede79838a9d87a
+            command = "ffmpeg -f rawvideo -pix_fmt yuv420p -s:v " + \
+                str(w)+"x"+str(h)+" -r 25 -i "+f + \
+                " -x264opts 'keyint=25:min-keyint=25:no-scenecut' -crf 43 -bf 0 -c:v libx264 "+o
 
-            process = subprocess.Popen(command,stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
+            process = subprocess.Popen(
+                command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             stdout, stderr = process.communicate()
 
 
-
-
-
 if __name__ == "__main__":
-        main()
+    main()
