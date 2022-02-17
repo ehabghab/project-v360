@@ -318,7 +318,7 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
     // std::cout << req << std::endl;
 
     req.pop_back();
-    req += "\nQuality\n" + std::to_string(0);
+    req += "\nQuality\n" + std::to_string(1);
     clientNetworkLayer->setRequest(req);
     tilesRequest.clear();
     frameIdSetQualitySizeSum.clear();
@@ -482,7 +482,7 @@ std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
       }
       // estimated time to download the tile chunk in lowest quality possible.
       float estDownloadTime =
-          1e3 * (tileChunkSizes.find(1)->second.find(tileId)->second[chunkId] /
+          1e3 * (tileChunkSizes.find(2)->second.find(tileId)->second[chunkId] /
                  estimatedBw); //
 
       // estimated arrival time of the tile.
