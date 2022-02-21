@@ -258,7 +258,7 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
     for (auto const &tileSet : tilesRequest) {
       req += tileSet + "\n";
     }
-    req += "Quality\n" + std::to_string(2);
+    req += "Quality\n" + std::to_string(qIdx);
     // std::cout << req << std::endl;
     clientNetworkLayer->setRequest(req);
     tilesRequest.clear();
