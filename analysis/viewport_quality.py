@@ -1,5 +1,6 @@
 
 
+import re
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
@@ -44,17 +45,20 @@ def main():
                 chunk_id)+"_"+str(tile_id)] = quality
 
     skipped_tiles = {}
-    for line in open("results_Feb_16th[utility_flare_new_video]/result_5.5_flare_usr13/play_log_2022-02-17_08_16_36.txt").readlines():
-        if "frame" in line:
-            continue
-        data = line.split()
-        if len(data) == 4:
-            frame = int(data[0])
-            skipped_tiles[frame] = []
-            for tile in data[3].split(","):
-                skipped_tiles[frame].append(int(tile))
+    for recv_log in recv_logs:
+        skipped_tiles[recv_log] = {}
+        for line in open(recv_log.replace("recv_", "play_"), "r").readlines():
+            if "frame" in line:
+                continue
+            data = line.split()
+            if len(data) == 4:
+                frame = int(data[0])
+                skipped_tiles[recv_log][frame] = []
+                for tile in data[3].split(","):
+                    skipped_tiles[recv_log][frame].append(int(tile))
 
     vp_quality_avg = {}
+
     for recv_log in recv_chunk_quality:
         vp_quality_avg[recv_log] = []
         for frame in sorted(ground_truth):
@@ -65,20 +69,14 @@ def main():
             total_tiles = 0.
             for tile in ground_truth[frame]:
                 key = str(chunk_id)+"_"+str(tile)
+                # if frame not received, add bg quality.
                 if recv_chunk_quality[recv_log].get(key) is None:
-                    if "utility_skip_usr13" in recv_log:
-                        quality_sum += 1
-                    else:
-                        quality_sum += 0
-                else:
-                    if "flare_skip" in recv_log:
-                        if skipped_tiles.get(frame) is not None:
-                            if tile not in skipped_tiles[frame]:
-                                quality_sum += recv_chunk_quality[recv_log][key]
-                        else:
-                            quality_sum += recv_chunk_quality[recv_log][key]
-                    else:
+                    quality_sum += 1
+                else:  # if frame is received then add quality.
+                    if skipped_tiles[recv_log].get(frame) is None or tile not in skipped_tiles[recv_log][frame]:
                         quality_sum += recv_chunk_quality[recv_log][key]
+                    else:
+                        quality_sum += 1
                 total_tiles += 1.
             if total_tiles != 0:
                 vp_quality_avg[recv_log].append(quality_sum/total_tiles)
@@ -87,12 +85,13 @@ def main():
     delay = [0, 20, 40, 100]
     colors = ['dodgerblue', 'seagreen', 'darkred']
     styles = ['-', ':', '--']
-    labels = ["utility", "flare-skip", "flare-buff"]
+    labels = ["utility-4.5mbps", "flare-4.5mbps", "flare-buff"]
 
     plt.figure(figsize=(4, 2))
     plt.tight_layout()
     c = 0
     for f in recv_logs:
+        print(f)
         label = str(bw[c])+"mbps_"+str(delay[c])+"ms"
         sorted_data = np.sort(vp_quality_avg[f])
         yvals = np.arange(len(sorted_data)) * 100.0 / \

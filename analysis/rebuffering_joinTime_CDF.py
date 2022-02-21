@@ -57,6 +57,9 @@ def main():
         else:
             label = "uid = 3"
 
+        print(label)
+        for i in range(94, 101):
+            print(str(i)+":"+str(np.percentile(file_rebuffer_time[f], i)))
         #label = str(bw[c])+"mbps_"+str(delay[c])+"ms"
         sorted_data = np.sort(file_rebuffer_time[f])
         yvals = np.arange(len(sorted_data)) * 100. / \
