@@ -429,7 +429,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
     numOfRows++;
   } // end of stitching loop
 
-  /*FILE *myfile;
+  FILE *myfile;
 
   std::string filename =
       std::to_string(frameId) + "_" + std::to_string(tilesInRow * 320) + "X" +
@@ -439,7 +439,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
 
   fwrite(rawViewPort, sizeof(uint8_t), numberOfTiles * tileSize, myfile);
 
-  fclose(myfile);*/
+  fclose(myfile);
 }
 
 void VideoPlayer::setPlayLogTimestamp(std::string playLogTimestamp) {
