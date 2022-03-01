@@ -88,7 +88,7 @@ def main():
         yvals = np.arange(len(sorted_data)) * 100. / \
             float(len(sorted_data) - 1)
         plt.plot(sorted_data, yvals, linewidth=2,
-                 linestyle=styles[c], color=colors[c], label=user_map[c])
+                 linestyle=styles[c], color=colors[c], label="exp"+str(c+1))
         c += 1
     plt.xticks(size=10)
     plt.yticks(size=10)

@@ -71,12 +71,18 @@ def main():
                 key = str(chunk_id)+"_"+str(tile)
                 # if frame not received, add bg quality.
                 if recv_chunk_quality[recv_log].get(key) is None:
-                    quality_sum += 1
+                    if "5.5_flare" in recv_log:
+                        quality_sum += 0
+                    else:
+                        quality_sum += 1
                 else:  # if frame is received then add quality.
                     if skipped_tiles[recv_log].get(frame) is None or tile not in skipped_tiles[recv_log][frame]:
                         quality_sum += recv_chunk_quality[recv_log][key]
                     else:
-                        quality_sum += 1
+                        if "5.5_flare" in recv_log:
+                            quality_sum += 0
+                        else:
+                            quality_sum += 1
                 total_tiles += 1.
             if total_tiles != 0:
                 vp_quality_avg[recv_log].append(quality_sum/total_tiles)
@@ -85,7 +91,7 @@ def main():
     delay = [0, 20, 40, 100]
     colors = ['dodgerblue', 'seagreen', 'darkred']
     styles = ['-', ':', '--']
-    labels = ["utility-4.5mbps", "flare-4.5mbps", "flare-buff"]
+    labels = ["Utility", "Flare-skip", "Flare-rebuffer"]
 
     plt.figure(figsize=(4, 2))
     plt.tight_layout()

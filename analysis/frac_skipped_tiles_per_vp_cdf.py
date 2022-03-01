@@ -63,7 +63,7 @@ def main():
                     missed_tiles_in_frame*100./total_tiles_in_frame)
 
     #["Empty", "15KB", "37.5KB", "65.25KB", "INF"]
-    wait = ["Utility", "Flare"]
+    wait = ["exp1", "exp2", "exp3"]
     colors = ['dodgerblue', 'black', 'seagreen', 'purple']
     styles = ['-', ':', '-.', '--', 'dotted']
 
@@ -74,15 +74,9 @@ def main():
     c = 0
     for fname in files:
         print(fname)
-        for i in range(1, 101):
-            for j in range(0, 10):
-                perc = i+(j/10.)
-                print(str(perc)+":  " +
-                      str(np.percentile(fraction_missed[fname], perc)))
         sorted_data = np.sort(fraction_missed[fname])
         yvals = np.arange(len(sorted_data)) * 100. / \
             float(len(sorted_data) - 1)
-        print(np.percentile(sorted_data, 50))
         plt.plot(sorted_data, yvals, linewidth=2,
                  linestyle=styles[c], color=colors[c], label=wait[c])
         c += 1
