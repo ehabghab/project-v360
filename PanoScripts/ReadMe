@@ -1,0 +1,21 @@
+Scripts: 
+
+* getAllTileValueness.m: We specify the set, videos here.
+* calcTileValueness.m: we specify the secs of the video here and users too (line7)
+* calcTileMse.m: We specify users here: (line 109)
+
+Output is in ratio directory. 
+
+Other comments:
+
+The MATLAB files run with following changes:
+ 
+* CalSJND_FAST_GPU2.m: remove gpuArray. Ex: GPU_lambda= gpuArray(lambda). This can be GPU_lambda = (lamda)
+* MATLAB is using VideoReader function to read a video. This reads the dimensions of video incorrectly sometimes. 
+  Better to hardcode line 112 and 113 of calcTileMse.m with H = 1440 and W = 2880.
+* The main script (which calls others) is getAllTileValueness.m. 
+  In this script, please comment lines 24, 25, 26, 29, 30, 31. MATLAB reads the video duration incorrectly.
+ 
+Run the getAllTileValueness.m. 
+[If you run the system as it is, it will take a lot of time. We could choose a subset of videos and users.]. 
+ 
