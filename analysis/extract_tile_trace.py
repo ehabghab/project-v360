@@ -125,8 +125,8 @@ def getTiles(map, cx, cy, tileWidth, tileHeight):
 
     y1 = math.ceil(y1 / tileHeight) * tileHeight
     y2 = math.ceil(y2 / tileHeight) * tileHeight
-    print("("+str(x5)+","+str(y2)+")  --->   "+"("+str(x6)+","+str(y2)+")")
-    print("("+str(x3)+","+str(y1)+")  --->   "+"("+str(x4)+","+str(y1)+")")
+    #print("("+str(x5)+","+str(y2)+")  --->   "+"("+str(x6)+","+str(y2)+")")
+    #print("("+str(x3)+","+str(y1)+")  --->   "+"("+str(x4)+","+str(y1)+")")
     if not h and not v:
         for j in range(int(y2), int(y1)-1, -tileHeight):
             for i in range(int(x5), int(x6)+1, tileWidth):
@@ -228,7 +228,7 @@ def getData(data, video, chunkLength, tileWidth, tileHeight, tileMap):
                     yaws[uID].append(yaw)
                     pitches[uID].append(pitch)
                     prevFrameTime += 40
-                    tiles, wastage = getTiles(
+                    tiles = getTiles(
                         tileMap, yaw, pitch, tileWidth, tileHeight)
                     if watched_frames_in_tiles[uID].get(chunkID, None) == None:
                         watched_frames_in_tiles[uID][chunkID] = {}
@@ -246,17 +246,12 @@ def getData(data, video, chunkLength, tileWidth, tileHeight, tileMap):
                             FOVNum)
 
                     # for each frame watched in a tile what was the area used.
-                    for tile in wastage:
-                        if wasted_area_in_watched_frame[uID][chunkID].get(tile, None) == None:
-                            wasted_area_in_watched_frame[uID][chunkID][tile] = {
-                            }
-                        wasted_area_in_watched_frame[uID][chunkID][tile][FOVNum] = wastage[tile]
 
                     # the FPS for that second.
                     num_frames_in_tile[uID][chunkID] = FOVNum
                     FOVNum += 1
 
-    return watched_frames_in_tiles, num_frames_in_tile, num_tiles_in_FOV, wasted_area_in_watched_frame, yaws, pitches
+    return watched_frames_in_tiles, num_frames_in_tile, num_tiles_in_FOV, yaws, pitches
 
 
 def main():
@@ -308,8 +303,8 @@ def main():
         for tileWidth, tileHeight in zip((widths), (heights)):
             tileMap = generateMAP(tileWidth, tileHeight)
             watched_frames_in_tiles, num_frames_in_tile, num_tiles_in_FOV,\
-                wasted_area_in_watched_frame, yaws, pitches = getData(data, video, chunkLength,
-                                                                      tileWidth, tileHeight, tileMap)
+                yaws, pitches = getData(data, video, chunkLength,
+                                        tileWidth, tileHeight, tileMap)
 
         for uID in yaws:
             fi = open("traces_system/vp_corr_per_frame_user_" +
