@@ -119,48 +119,52 @@ def getTiles(map, cx, cy, tileWidth, tileHeight):
     tiles = set()
 
     x3 = int(x3 / tileWidth) * tileWidth
-    x4 = int(x4 / tileWidth) * tileWidth
     x5 = int(x5 / tileWidth) * tileWidth
-    x6 = int(x6 / tileWidth) * tileWidth
+    x4 = (int(x4 / tileWidth) * tileWidth +
+          1) if x4 % 30 != 0 else (int(x4 / tileWidth) * tileWidth)
+    x6 = (int(x6 / tileWidth) * tileWidth +
+          1) if x6 % 30 != 0 else (int(x6 / tileWidth) * tileWidth)
 
-    y1 = math.ceil(y1 / tileHeight) * tileHeight
+    y1 = ((math.ceil(y1 / tileHeight) * tileHeight) -
+          1) if y1 % 15 != 0 else (math.ceil(y1 / tileHeight) * tileHeight)
     y2 = math.ceil(y2 / tileHeight) * tileHeight
     #print("("+str(x5)+","+str(y2)+")  --->   "+"("+str(x6)+","+str(y2)+")")
     #print("("+str(x3)+","+str(y1)+")  --->   "+"("+str(x4)+","+str(y1)+")")
     if not h and not v:
-        for j in range(int(y2), int(y1)-1, -tileHeight):
-            for i in range(int(x5), int(x6)+1, tileWidth):
+        for j in range(int(y2), int(y1), -tileHeight):
+            for i in range(int(x5), int(x6), tileWidth):
                 tiles.add(map[i][j])
 
     elif not h and v:
         for j in range(int(y2), int(0), -tileHeight):
-            for i in range(int(x5), int(x6)+1, tileWidth):
+            for i in range(int(x5), int(x6), tileWidth):
                 tiles.add(map[i][j])
 
-        for j in range(int(180), int(y1)-1, -tileHeight):
-            for i in range(int(x3), int(x4)+1, tileWidth):
+        for j in range(int(180), int(y1), -tileHeight):
+            for i in range(int(x3), int(x4), tileWidth):
                 tiles.add(map[i][j])
 
     elif h and not v:
-        for j in range(int(y2), int(y1)-1, -tileHeight):
-            for i in range(int(0), int(x4)+1, tileWidth):
+        for j in range(int(y2), int(y1), -tileHeight):
+            for i in range(int(0), int(x4), tileWidth):
                 tiles.add(map[i][j])
 
-        for j in range(int(y2), int(y1)-1, -tileHeight):
+        for j in range(int(y2), int(y1), -tileHeight):
             for i in range(int(x5), int(360), tileWidth):
                 tiles.add(map[i][j])
 
     else:
-        for j in range(int(180), int(y1)-1, -tileHeight):
-            for i in range(int(0), int(x4)+1, tileWidth):
+
+        for j in range(int(180), int(y1), -tileHeight):
+            for i in range(int(0), int(x4), tileWidth):
                 tiles.add(map[i][j])
 
-        for j in range(int(180), int(y1)-1, -tileHeight):
+        for j in range(int(180), int(y1), -tileHeight):
             for i in range(int(x3), int(360), tileWidth):
                 tiles.add(map[i][j])
 
         for j in range(int(y2), int(0), -tileHeight):
-            for i in range(int(0), int(x6)+1, tileWidth):
+            for i in range(int(0), int(x6), tileWidth):
                 tiles.add(map[i][j])
 
         for j in range(int(y2), int(0), -tileHeight):
@@ -255,14 +259,6 @@ def getData(data, video, chunkLength, tileWidth, tileHeight, tileMap):
 
 
 def main():
-    """tileWidth = 30
-    tileHeight = 15
-    cx = 330
-    cy = 150
-    tileMap = generateMAP(tileWidth, tileHeight)
-    print(sorted(getTiles(tileMap, cx, cy, tileWidth, tileHeight)))
-    plotMap(tileMap, cx, cy, tileWidth, tileHeight)
-    sys.exit(1)"""
     # get filenames of all traces.
     files = list()
     for (dirpath, dirnames, filenames) in walk("./traces"):
