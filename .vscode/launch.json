@@ -4,30 +4,29 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-            {
-            "name": "ISL-debug",
+        {
+            "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/client",
-            "args": [
-                "/home/ehab/Desktop/Project-V360/split/tiles_per_frame_user_3.txt",
-                "/home/ehab/Desktop/Project-V360/split/vp_corr_per_frame_user_3.txt",
-                "/home/ehab/Desktop/Project-V360/split/quality_tile_sizes.txt",
-                "100.64.0.2",
-                "-utilityAbr=0"
-            ],
+            "program": "enter program name, for example ${workspaceFolder}/a.out",
+            "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
-                }]
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }

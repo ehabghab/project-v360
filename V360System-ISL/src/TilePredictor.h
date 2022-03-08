@@ -31,6 +31,11 @@ public:
 
   TilePredictor(std::string vpCorrPerFrameTracePath);
   uint16_t getFrameId();
+  
+  // key1: High/low quality tiles
+  // key2: (1 - fraction of overlapping with VP per tile)
+  // value: list of tiles. 
+  std::map<std::string,std::map<float, std::vector<uint16_t>>>& getUrgetTilesLists();
 
 private:
   struct SquareCoordinates {
