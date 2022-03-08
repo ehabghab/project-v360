@@ -65,9 +65,8 @@ VideoPlayer::VideoPlayer(std::string tilesPerFrameTracePath,
   std::string dirName = "yuv_frames_" + Util::getLogTimestamp();
 
   //+Util::getLogTimestamp().c_str()
-  if (mkdir(dirName.c_str(),0777) != 0)
-  {
-    LOG(ERROR)<<"could not create directory for yuv frames";
+  if (mkdir(dirName.c_str(), 0777) != 0) {
+    LOG(ERROR) << "could not create directory for yuv frames";
   }
 
   frameId_ = 1;
@@ -488,8 +487,9 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
 
   FILE *myfile;
 
-  std::string filename = "yuv_frames_" + Util::getLogTimestamp()+"/"+
-      std::to_string(frameId) + "_" + std::to_string(tilesInRow * 320) + "X" +
+  std::string filename =
+      "yuv_frames_" + Util::getLogTimestamp() + "/" + std::to_string(frameId) +
+      "_" + std::to_string(tilesInRow * 320) + "X" +
       std::to_string(viewportLinkedList.size() * 160) + ".yuv";
 
   myfile = fopen(filename.c_str(), "wb");

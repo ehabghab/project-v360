@@ -1,8 +1,7 @@
 #include "Util.h"
 
-
 #include <chrono>
-#include <functional> 
+#include <functional>
 #include <iostream>
 
 #include <gflags/gflags.h>
@@ -12,7 +11,8 @@ long Util::videoPlayTime = getTime();
 std::string Util::logTimestamp = getCurrentDateTime();
 std::map<uint16_t, std::pair<float, float>> Util::tileCoordinates;
 std::map<uint16_t, std::pair<float, float>> Util::tileResolutions;
-std::map<std::string,std::map<float,std::vector<uint16_t>>> Util::corrdinatesToTilesTable;
+std::map<std::string, std::map<float, std::vector<uint16_t>>>
+    Util::corrdinatesToTilesTable;
 
 const std::string Util::getCurrentDateTime() {
   time_t now = time(0);
@@ -47,7 +47,7 @@ void Util::setFramePlayTime(long FramePlayTimeInMs) {
 std::string Util::getLogTimestamp() { return Util::logTimestamp; }
 
 void Util::init() {
-    uint16_t c = 1;
+  uint16_t c = 1;
   for (float y = 180; y > 0; y -= 15) {
     for (float x = 0; x < 360; x += 30) {
       Util::tileCoordinates.insert(std::make_pair(c, std::make_pair(x, y)));
@@ -55,14 +55,12 @@ void Util::init() {
       c++;
     }
   }
-  //Util::constructCorrdinatesToTilesTable();
+  // Util::constructCorrdinatesToTilesTable();
 }
 
-
-void Util::getViewportSquares(
-    std::vector<SqCoordinates> &vpSquares,
-    std::pair<float, float> viewportCenter,
-    std::pair<int, int> viewportResolution) {
+void Util::getViewportSquares(std::vector<SqCoordinates> &vpSquares,
+                              std::pair<float, float> viewportCenter,
+                              std::pair<int, int> viewportResolution) {
   // find viewport coordinates.
   float baseX1 = viewportCenter.first - (viewportResolution.first / 2.0);
   float baseX2 = viewportCenter.first + (viewportResolution.first / 2.0);
@@ -111,7 +109,7 @@ void Util::getViewportSquares(
   if (!horizontalFlip && !verticalFlip) {
     // only one square.
     SqCoordinates vp = {std::make_pair(x3, y2), std::make_pair(x4, y2),
-                            std::make_pair(x1, y1), std::make_pair(x2, y1)};
+                        std::make_pair(x1, y1), std::make_pair(x2, y1)};
     vpSquares = {vp};
   } else if (!horizontalFlip && verticalFlip) {
     // viewport has two squares due to overlapping over y = 0.
@@ -130,41 +128,33 @@ void Util::getViewportSquares(
   } else if (horizontalFlip && !verticalFlip) {
     // viewport has two squares due to overlapping over x = 0 or x = 360.
     SqCoordinates vpPart1 = {std::make_pair(0, y2), std::make_pair(x4, y2),
-                                 std::make_pair(0, y1), std::make_pair(x2, y1)};
+                             std::make_pair(0, y1), std::make_pair(x2, y1)};
 
-    SqCoordinates vpPart2 = {
-        std::make_pair(x3, y2), std::make_pair(360, y2), std::make_pair(x1, y1),
-        std::make_pair(360, y1)};
+    SqCoordinates vpPart2 = {std::make_pair(x3, y2), std::make_pair(360, y2),
+                             std::make_pair(x1, y1), std::make_pair(360, y1)};
     vpSquares = {vpPart1, vpPart2};
   } else if (horizontalFlip && verticalFlip) {
     // viewport has three squares due to nested overlapping over x = 0 or x =
     // 360 and y = 0.
 
-      SqCoordinates vpPart1 = {
-          std::make_pair(0, 180), std::make_pair(x2, 180), std::make_pair(0, y1),
-          std::make_pair(x2, y1)};
+    SqCoordinates vpPart1 = {std::make_pair(0, 180), std::make_pair(x2, 180),
+                             std::make_pair(0, y1), std::make_pair(x2, y1)};
 
-      SqCoordinates vpPart2 = {std::make_pair(x1, 180),
-                                   std::make_pair(360, 180), std::make_pair(x1, y1),
-                                   std::make_pair(360, y1)};
+    SqCoordinates vpPart2 = {std::make_pair(x1, 180), std::make_pair(360, 180),
+                             std::make_pair(x1, y1), std::make_pair(360, y1)};
 
-      SqCoordinates vpPart3 = {
-          std::make_pair(0, y2), std::make_pair(x4, y2),
-          std::make_pair(0, 0), std::make_pair(x4, 0)};
-    
-      SqCoordinates vpPart4 = {std::make_pair(x3, y2),
-                                   std::make_pair(360, y2), std::make_pair(x3, 0),
-                                   std::make_pair(360, 0)};
-      vpSquares = {vpPart1, vpPart2, vpPart3,vpPart4};
-    
-  } 
+    SqCoordinates vpPart3 = {std::make_pair(0, y2), std::make_pair(x4, y2),
+                             std::make_pair(0, 0), std::make_pair(x4, 0)};
 
+    SqCoordinates vpPart4 = {std::make_pair(x3, y2), std::make_pair(360, y2),
+                             std::make_pair(x3, 0), std::make_pair(360, 0)};
+    vpSquares = {vpPart1, vpPart2, vpPart3, vpPart4};
+  }
 }
 
-float Util::getFractionOfTileInVP(
-    std::vector<SqCoordinates> &partialVPs,
-    std::pair<float, float> tileCorrdinates,
-    std::pair<float, float> tileDimensions) {
+float Util::getFractionOfTileInVP(std::vector<SqCoordinates> &partialVPs,
+                                  std::pair<float, float> tileCorrdinates,
+                                  std::pair<float, float> tileDimensions) {
   float fracOfTileInVP = 0.0;
 
   for (auto const &sqrCoor : partialVPs) {
@@ -187,11 +177,13 @@ float Util::getFractionOfTileInVP(
 
 void Util::getViewportTilesSortedByArea(
     std::map<float, std::vector<uint16_t>> &tileRanksByArea,
-    std::pair<float, float> viewportCenter,std::pair<int, int> viewportResolution) {
+    std::pair<float, float> viewportCenter,
+    std::pair<int, int> viewportResolution) {
   // per tile in frame get the fraction of its area that overlaps with
   // viewport.
   std::vector<SqCoordinates> vpSqrs;
-  Util::getViewportSquares(std::ref(vpSqrs),viewportCenter,viewportResolution);
+  Util::getViewportSquares(std::ref(vpSqrs), viewportCenter,
+                           viewportResolution);
   int vpArea = viewportResolution.first * viewportResolution.second;
 
   float vpSize = 0;
@@ -218,15 +210,14 @@ void Util::getViewportTilesSortedByArea(
 }
 
 void Util::constructCorrdinatesToTilesTable() {
-  
+
   std::pair<float, float> viewportCenter;
   std::pair<int, int> viewportResolution;
 
-  // vp classes [360-100]x[180-100] (all tiles)  
-  for (int vpResolutionD1 = 100; vpResolutionD1 >=100; vpResolutionD1-=10)
-  {
-    for (int vpResolutionD2 = 100; vpResolutionD2 >=100; vpResolutionD2-=10)
-    {
+  // vp classes [360-100]x[180-100] (all tiles)
+  for (int vpResolutionD1 = 100; vpResolutionD1 >= 100; vpResolutionD1 -= 10) {
+    for (int vpResolutionD2 = 100; vpResolutionD2 >= 100;
+         vpResolutionD2 -= 10) {
       viewportResolution.first = vpResolutionD1;
       viewportResolution.second = vpResolutionD2;
       for (int y = 180; y > 0; y -= 15) {
@@ -235,9 +226,13 @@ void Util::constructCorrdinatesToTilesTable() {
           std::map<float, std::vector<uint16_t>> tileRanksByArea;
           viewportCenter.first = x;
           viewportCenter.second = y;
-          Util::getViewportTilesSortedByArea(std::ref(tileRanksByArea),viewportCenter,viewportResolution);
-          std::string key = std::to_string(x)+"_"+std::to_string(y)+","+std::to_string(vpResolutionD1)+"_"+ std::to_string(vpResolutionD2);
-          Util::corrdinatesToTilesTable.insert(std::make_pair(key,tileRanksByArea));
+          Util::getViewportTilesSortedByArea(
+              std::ref(tileRanksByArea), viewportCenter, viewportResolution);
+          std::string key = std::to_string(x) + "_" + std::to_string(y) + "," +
+                            std::to_string(vpResolutionD1) + "_" +
+                            std::to_string(vpResolutionD2);
+          Util::corrdinatesToTilesTable.insert(
+              std::make_pair(key, tileRanksByArea));
         }
       }
     }

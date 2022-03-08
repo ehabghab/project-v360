@@ -17,15 +17,15 @@ class AbrAlgorithm {
 public:
   AbrAlgorithm(std::string tileChunkSizesTracePath);
   static void flareAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
-                     BandwidthPredictor *bandwidthPredictor,
-                     ClientNetworkLayer *clientNetworkLayer,
-                     VideoPlayer *videoPlayer);
+                       BandwidthPredictor *bandwidthPredictor,
+                       ClientNetworkLayer *clientNetworkLayer,
+                       VideoPlayer *videoPlayer);
 
   static void utilityAbr(AbrAlgorithm *abrAlgorithm,
-                                  TilePredictor *tilePredictor,
-                                  BandwidthPredictor *bandwidthPredictor,
-                                  ClientNetworkLayer *clientNetworkLayer,
-                                  VideoPlayer *videoPlayer);
+                         TilePredictor *tilePredictor,
+                         BandwidthPredictor *bandwidthPredictor,
+                         ClientNetworkLayer *clientNetworkLayer,
+                         VideoPlayer *videoPlayer);
 
 private:
   // quality --> tiles --> tile chunk sizes.

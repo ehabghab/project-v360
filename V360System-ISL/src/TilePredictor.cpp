@@ -17,9 +17,9 @@
 #include <thread>
 #include <utility>
 
+#include "Util.h"
 #include <gflags/gflags.h>
 #include <glog/logging.h>
-#include "Util.h"
 
 DEFINE_bool(predLR, true,
             "true: use linear regression, false: perfect predictor");
@@ -258,8 +258,8 @@ void TilePredictor::sortTileSetByArea(
   }
 }
 
-std::map<std::string,std::map<float, std::vector<uint16_t>>>& TilePredictor::getUrgetTilesLists()
-{
+std::map<std::string, std::map<float, std::vector<uint16_t>>> &
+TilePredictor::getUrgetTilesLists() {
   while (frameId_ == 0)
     ;
   std::vector<std::pair<float, float>> predictedCorr;
@@ -274,49 +274,47 @@ std::map<std::string,std::map<float, std::vector<uint16_t>>>& TilePredictor::get
     predictedCorr = linearRegressor_->predictPerfect(frameId_);
   }
   uint16_t frame = frameId_;
-  float highQwindow = 13; // half second 25FPS/2; 
-  
-
+  float highQwindow = 13; // half second 25FPS/2;
 
   // key: high quality (HQ)/ low quality (LQ)
   // value: list of urgent tiles sorted by their overlapping area with viewport.
-  std::map<std::string,std::map<float, std::vector<uint16_t>>> urgentTiles;
+  std::map<std::string, std::map<float, std::vector<uint16_t>>> urgentTiles;
 
-  if(predictedCorr.size() == 0) {
+  if (predictedCorr.size() == 0) {
     // low quality tiles = all tiles
     std::vector<uint16_t> allTiles;
-    for (uint16_t id = 1; id <=144;id++)
-    {
-        allTiles.push_back(id);
+    for (uint16_t id = 1; id <= 144; id++) {
+      allTiles.push_back(id);
     }
-    std::map<float,std::vector<uint16_t>> lqTiles;
-    lqTiles.insert(std::make_pair(0,allTiles));
-    urgentTiles.insert(std::make_pair("LQ",lqTiles));
+    std::map<float, std::vector<uint16_t>> lqTiles;
+    lqTiles.insert(std::make_pair(0, allTiles));
+    urgentTiles.insert(std::make_pair("LQ", lqTiles));
 
-    auto const vpCorr = vpGroundTruth_[frameId_-1];
+    auto const vpCorr = vpGroundTruth_[frameId_ - 1];
     std::map<float, std::vector<uint16_t>> tileRanksByArea;
-    Util::getViewportTilesSortedByArea(tileRanksByArea,vpCorr,std::make_pair(100,100));
+    Util::getViewportTilesSortedByArea(tileRanksByArea, vpCorr,
+                                       std::make_pair(100, 100));
     std::vector<uint16_t> hQTiles;
-    for (auto const& tileSet : tileRanksByArea) {
+    for (auto const &tileSet : tileRanksByArea) {
       if (tileSet.first == 1) {
         break;
       }
-      for(auto const& tile : tileSet.second) {
-          hQTiles.push_back(tile);
+      for (auto const &tile : tileSet.second) {
+        hQTiles.push_back(tile);
       }
     }
-    std::map<float,std::vector<uint16_t>> hqTiles;
-    hqTiles.insert(std::make_pair(0,allTiles));
-    urgentTiles.insert(std::make_pair("HQ",hqTiles));
-  }
-  else
-  {
-    int yawDir = 0; // positive: right
+    std::map<float, std::vector<uint16_t>> hqTiles;
+    hqTiles.insert(std::make_pair(0, allTiles));
+    urgentTiles.insert(std::make_pair("HQ", hqTiles));
+  } else {
+    int yawDir = 0;   // positive: right
     int pitchDir = 0; // positive: up
-    for (int idx = 1; idx < predictedCorr.size();idx++)
-    {
-      predictedCorr[idx].first - predictedCorr[idx-1].first >= 0 ? yawDir++:yawDir--;
-      predictedCorr[idx].second - predictedCorr[idx-1].second >= 0 ? pitchDir++:pitchDir--;
+    for (int idx = 1; idx < predictedCorr.size(); idx++) {
+      predictedCorr[idx].first - predictedCorr[idx - 1].first >= 0 ? yawDir++
+                                                                   : yawDir--;
+      predictedCorr[idx].second - predictedCorr[idx - 1].second >= 0
+          ? pitchDir++
+          : pitchDir--;
     }
 
     float yawMaxDisp = 0;
@@ -326,99 +324,109 @@ std::map<std::string,std::map<float, std::vector<uint16_t>>>& TilePredictor::get
 
     // low quality tiles (high quality)
     // 1. first find the max displacement (for the first half secodns).
-    // 2. vp corrdinate will be the middle point, and size is max disp * 1.2 (1.1)
-
+    // 2. vp corrdinate will be the middle point, and size is max disp * 1.2
+    // (1.1)
 
     // find the maximum  predicted user displacement.
-    for (int frameIdx = 1; frameIdx < predictedCorr.size();frameIdx++)
-    {
-        if (yawDir >= 0) { // right
-          yawMaxDisp+= predictedCorr[frameIdx].first < predictedCorr[frameIdx-1].first? 
-                          (predictedCorr[frameIdx].first + 360) - predictedCorr[frameIdx-1].first : 
-                                  predictedCorr[frameIdx].first - predictedCorr[frameIdx-1].first;
-        }
-        else { // left
-          yawMaxDisp += predictedCorr[frameIdx].first > predictedCorr[frameIdx-1].first ? 
-                      ((predictedCorr[frameIdx-1].first + 360) - predictedCorr[frameIdx].first) : 
-                      predictedCorr[frameIdx-1].first - predictedCorr[frameIdx].first;
-        }
+    for (int frameIdx = 1; frameIdx < predictedCorr.size(); frameIdx++) {
+      if (yawDir >= 0) { // right
+        yawMaxDisp +=
+            predictedCorr[frameIdx].first < predictedCorr[frameIdx - 1].first
+                ? (predictedCorr[frameIdx].first + 360) -
+                      predictedCorr[frameIdx - 1].first
+                : predictedCorr[frameIdx].first -
+                      predictedCorr[frameIdx - 1].first;
+      } else { // left
+        yawMaxDisp +=
+            predictedCorr[frameIdx].first > predictedCorr[frameIdx - 1].first
+                ? ((predictedCorr[frameIdx - 1].first + 360) -
+                   predictedCorr[frameIdx].first)
+                : predictedCorr[frameIdx - 1].first -
+                      predictedCorr[frameIdx].first;
+      }
 
-        if(pitchDir >= 0) { // up
-          pitchMaxDisp+= predictedCorr[frameIdx].second < predictedCorr[frameIdx-1].second?
-                            ((predictedCorr[frameIdx].second + 180 )- predictedCorr[frameIdx-1].second):
-                                       (predictedCorr[frameIdx].second- predictedCorr[frameIdx-1].second);
-        }
-        else { // down
-          pitchMaxDisp+= predictedCorr[frameIdx].second > predictedCorr[frameIdx-1].second?
-                            ((predictedCorr[frameIdx-1].second + 180 )- predictedCorr[frameIdx].second):
-                                       (predictedCorr[frameIdx-1].second- predictedCorr[frameIdx].second);
-        }
-        if (frameIdx == highQwindow) {
-          yawMaxDispHq = yawMaxDisp;
-          pitchMaxDispHq = pitchMaxDisp;
-        }
+      if (pitchDir >= 0) { // up
+        pitchMaxDisp +=
+            predictedCorr[frameIdx].second < predictedCorr[frameIdx - 1].second
+                ? ((predictedCorr[frameIdx].second + 180) -
+                   predictedCorr[frameIdx - 1].second)
+                : (predictedCorr[frameIdx].second -
+                   predictedCorr[frameIdx - 1].second);
+      } else { // down
+        pitchMaxDisp +=
+            predictedCorr[frameIdx].second > predictedCorr[frameIdx - 1].second
+                ? ((predictedCorr[frameIdx - 1].second + 180) -
+                   predictedCorr[frameIdx].second)
+                : (predictedCorr[frameIdx - 1].second -
+                   predictedCorr[frameIdx].second);
+      }
+      if (frameIdx == highQwindow) {
+        yawMaxDispHq = yawMaxDisp;
+        pitchMaxDispHq = pitchMaxDisp;
+      }
     }
 
-    yawMaxDisp = yawMaxDisp > 360? 360 : yawMaxDisp;
-    yawMaxDispHq = yawMaxDispHq > 360? 360 : yawMaxDispHq;
+    yawMaxDisp = yawMaxDisp > 360 ? 360 : yawMaxDisp;
+    yawMaxDispHq = yawMaxDispHq > 360 ? 360 : yawMaxDispHq;
 
-    pitchMaxDisp = pitchMaxDisp > 180? 180 : pitchMaxDisp;
-    pitchMaxDispHq = pitchMaxDispHq > 180? 180 : pitchMaxDispHq;
+    pitchMaxDisp = pitchMaxDisp > 180 ? 180 : pitchMaxDisp;
+    pitchMaxDispHq = pitchMaxDispHq > 180 ? 180 : pitchMaxDispHq;
 
     float yawCorrLq = -1;
     float pitchCorrLq = -1;
     float yawCorrHq = -1;
     float pitchCorrHq = -1;
 
-    if (yawDir > 0 ) { // right
-        yawCorrLq = predictedCorr[0].first + (yawMaxDisp / 2.0);
-        yawCorrLq = yawCorrLq > 360? yawCorrLq - 360 : yawCorrLq;
+    if (yawDir > 0) { // right
+      yawCorrLq = predictedCorr[0].first + (yawMaxDisp / 2.0);
+      yawCorrLq = yawCorrLq > 360 ? yawCorrLq - 360 : yawCorrLq;
 
-        yawCorrHq = predictedCorr[0].first + (yawMaxDispHq / 2.0);
-        yawCorrHq = yawCorrHq > 360? yawCorrHq - 360 : yawCorrHq;
-    }
-    else { // left
-        yawCorrLq = predictedCorr[0].first - (yawMaxDisp / 2.0);
-        yawCorrLq = yawCorrLq < 0? yawCorrLq + 360 : yawCorrLq;
+      yawCorrHq = predictedCorr[0].first + (yawMaxDispHq / 2.0);
+      yawCorrHq = yawCorrHq > 360 ? yawCorrHq - 360 : yawCorrHq;
+    } else { // left
+      yawCorrLq = predictedCorr[0].first - (yawMaxDisp / 2.0);
+      yawCorrLq = yawCorrLq < 0 ? yawCorrLq + 360 : yawCorrLq;
 
-        yawCorrHq = predictedCorr[0].first - (yawMaxDispHq / 2.0);
-        yawCorrHq = yawCorrHq < 0? yawCorrHq + 360 : yawCorrHq;
+      yawCorrHq = predictedCorr[0].first - (yawMaxDispHq / 2.0);
+      yawCorrHq = yawCorrHq < 0 ? yawCorrHq + 360 : yawCorrHq;
     }
-    
+
     if (pitchDir > 0) { // up
       pitchCorrLq = predictedCorr[0].second + (pitchMaxDisp / 2.0);
-      pitchCorrLq = pitchCorrLq > 180? pitchCorrLq - 180 : pitchCorrLq;
-      
+      pitchCorrLq = pitchCorrLq > 180 ? pitchCorrLq - 180 : pitchCorrLq;
+
       pitchCorrHq = predictedCorr[0].second + (pitchMaxDispHq / 2.0);
-      pitchCorrHq = pitchCorrHq > 180? pitchCorrHq - 180 : pitchCorrHq;
-    }
-    else { // down
+      pitchCorrHq = pitchCorrHq > 180 ? pitchCorrHq - 180 : pitchCorrHq;
+    } else { // down
       pitchCorrLq = predictedCorr[0].second - (pitchMaxDisp / 2.0);
-      pitchCorrLq = pitchCorrLq < 0? pitchCorrLq + 180 : pitchCorrLq;
-      
+      pitchCorrLq = pitchCorrLq < 0 ? pitchCorrLq + 180 : pitchCorrLq;
+
       pitchCorrHq = predictedCorr[0].second - (pitchMaxDispHq / 2.0);
-      pitchCorrHq = pitchCorrHq < 0? pitchCorrHq + 180 : pitchCorrHq;
+      pitchCorrHq = pitchCorrHq < 0 ? pitchCorrHq + 180 : pitchCorrHq;
     }
 
-    int vpLqDimYaw = int((100+yawMaxDisp)*1.2);
-    int vpLqDimPitch = int((100+pitchMaxDisp*1.2));
-    std::pair<float, float> viewportCenterLq(yawCorrLq,pitchCorrLq);
-    std::pair<int, int> viewportDimentionLq(vpLqDimYaw > 360 ? 360: vpLqDimYaw,vpLqDimPitch > 180 ? 180: vpLqDimPitch);
+    int vpLqDimYaw = int((100 + yawMaxDisp) * 1.2);
+    int vpLqDimPitch = int((100 + pitchMaxDisp * 1.2));
+    std::pair<float, float> viewportCenterLq(yawCorrLq, pitchCorrLq);
+    std::pair<int, int> viewportDimentionLq(vpLqDimYaw > 360 ? 360 : vpLqDimYaw,
+                                            vpLqDimPitch > 180 ? 180
+                                                               : vpLqDimPitch);
     std::map<float, std::vector<uint16_t>> tileRanksByAreaLq;
-    Util::getViewportTilesSortedByArea(tileRanksByAreaLq,viewportCenterLq,viewportDimentionLq);
-    urgentTiles.insert(std::make_pair("LQ",tileRanksByAreaLq));
+    Util::getViewportTilesSortedByArea(tileRanksByAreaLq, viewportCenterLq,
+                                       viewportDimentionLq);
+    urgentTiles.insert(std::make_pair("LQ", tileRanksByAreaLq));
 
-    int vpHqDimYaw = int((100+yawMaxDispHq)*1.1);
-    int vpHqDimPitch = int((100+pitchMaxDispHq*1.1));
+    int vpHqDimYaw = int((100 + yawMaxDispHq) * 1.1);
+    int vpHqDimPitch = int((100 + pitchMaxDispHq * 1.1));
 
-    std::pair<float, float> viewportCenterHq(yawCorrHq,pitchCorrHq);
-    std::pair<int, int> viewportDimentionHq(vpHqDimYaw > 360 ? 360: vpHqDimYaw,vpHqDimPitch > 180 ? 180: vpHqDimPitch);
+    std::pair<float, float> viewportCenterHq(yawCorrHq, pitchCorrHq);
+    std::pair<int, int> viewportDimentionHq(vpHqDimYaw > 360 ? 360 : vpHqDimYaw,
+                                            vpHqDimPitch > 180 ? 180
+                                                               : vpHqDimPitch);
     std::map<float, std::vector<uint16_t>> tileRanksByAreaHq;
-    Util::getViewportTilesSortedByArea(tileRanksByAreaHq,viewportCenterHq,viewportDimentionHq);
-    urgentTiles.insert(std::make_pair("HQ",tileRanksByAreaHq));
-
-
-
+    Util::getViewportTilesSortedByArea(tileRanksByAreaHq, viewportCenterHq,
+                                       viewportDimentionHq);
+    urgentTiles.insert(std::make_pair("HQ", tileRanksByAreaHq));
   }
   return urgentTiles;
 }
@@ -476,16 +484,17 @@ TilePredictor::getPredictedTilesFlareLR() {
 
     for (auto &vpResolution : vpResolutions) { // per vp-class
       // find viewport squares.
-      //std::vector<SquareCoordinates> vpSqrs;
-      //getViewportSquares(vpSqrs, viewportCenter, vpResolution);
+      // std::vector<SquareCoordinates> vpSqrs;
+      // getViewportSquares(vpSqrs, viewportCenter, vpResolution);
 
       // key: fraction area of tile that overlaps with viewport.
       // value: list of all tiles.
 
       std::map<float, std::vector<uint16_t>> tilesSortedByArea;
-      //sortTileSetByArea(tilesSortedByArea, vpSqrs,
-        //                vpResolution.first * vpResolution.second);
-      Util::getViewportTilesSortedByArea(std::ref(tilesSortedByArea),viewportCenter,vpResolution);
+      // sortTileSetByArea(tilesSortedByArea, vpSqrs,
+      //                vpResolution.first * vpResolution.second);
+      Util::getViewportTilesSortedByArea(std::ref(tilesSortedByArea),
+                                         viewportCenter, vpResolution);
 
       for (auto const &tileSet : tilesSortedByArea) {
         // if the tiles do not overlap with viewport then skip.

@@ -74,7 +74,7 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
     // get the predicted tiles every ABR_FREQ(100ms).
     // we will have mutliple sets (e.g. viewport tiles, viewport edge tiles ,
     // further tiles, rest of tiles)
-    auto& urgetTiles = tilePredictor->getUrgetTilesLists();
+    auto &urgetTiles = tilePredictor->getUrgetTilesLists();
     auto tileClassesOfFutureFrames = tilePredictor->getPredictedTilesFlareLR();
     if (tileClassesOfFutureFrames.size() == 0) {
       break;
@@ -270,10 +270,9 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
   }
 }
 
-void urgetTilesCreateRequest(std::map<std::string,std::map<float,std::vector<uint16_t>>> urgetTiles, ClientNetworkLayer *clientNetworkLayer)
-{
-  
-}
+void urgetTilesCreateRequest(
+    std::map<std::string, std::map<float, std::vector<uint16_t>>> urgetTiles,
+    ClientNetworkLayer *clientNetworkLayer) {}
 
 void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
                               TilePredictor *tilePredictor,
@@ -301,7 +300,7 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
 
     // get the utility matrix for all tiles to be rendered over the horizon of
     // 25 frames.
-    auto& urgetTiles = tilePredictor->getUrgetTilesLists();
+    auto &urgetTiles = tilePredictor->getUrgetTilesLists();
     auto utilityMatrix = tilePredictor->getPredictedTilesUtilityLR();
     auto frameIdToRender = videoPlayer->getFrameToRenderId();
     // sort tiles by their max utility.
