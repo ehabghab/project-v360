@@ -74,7 +74,11 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
     // get the predicted tiles every ABR_FREQ(100ms).
     // we will have mutliple sets (e.g. viewport tiles, viewport edge tiles ,
     // further tiles, rest of tiles)
-    auto &urgetTiles = tilePredictor->getUrgetTilesLists();
+    
+    // key: high quality (HQ)/ low quality (LQ)
+    // value: list of urgent tiles sorted by their overlapping area with viewport.
+    std::map<std::string, std::map<float, std::vector<uint16_t>>> urgentTiles;
+    tilePredictor->getUrgetTilesLists(urgentTiles);
     auto tileClassesOfFutureFrames = tilePredictor->getPredictedTilesFlareLR();
     if (tileClassesOfFutureFrames.size() == 0) {
       break;
@@ -300,7 +304,8 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
 
     // get the utility matrix for all tiles to be rendered over the horizon of
     // 25 frames.
-    auto &urgetTiles = tilePredictor->getUrgetTilesLists();
+    std::map<std::string, std::map<float, std::vector<uint16_t>>> urgentTiles;
+    tilePredictor->getUrgetTilesLists(urgentTiles);
     auto utilityMatrix = tilePredictor->getPredictedTilesUtilityLR();
     auto frameIdToRender = videoPlayer->getFrameToRenderId();
     // sort tiles by their max utility.

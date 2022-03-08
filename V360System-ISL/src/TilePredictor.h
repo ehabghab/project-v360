@@ -34,8 +34,8 @@ public:
   // key1: High/low quality tiles
   // key2: (1 - fraction of overlapping with VP per tile)
   // value: list of tiles.
-  std::map<std::string, std::map<float, std::vector<uint16_t>>> &
-  getUrgetTilesLists();
+  void
+  getUrgetTilesLists(std::map<std::string, std::map<float, std::vector<uint16_t>>> & urgentTiles);
 
 private:
   struct SquareCoordinates {

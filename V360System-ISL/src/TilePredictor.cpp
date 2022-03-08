@@ -258,8 +258,8 @@ void TilePredictor::sortTileSetByArea(
   }
 }
 
-std::map<std::string, std::map<float, std::vector<uint16_t>>> &
-TilePredictor::getUrgetTilesLists() {
+void 
+TilePredictor::getUrgetTilesLists(std::map<std::string, std::map<float, std::vector<uint16_t>>>& urgentTiles) {
   while (frameId_ == 0)
     ;
   std::vector<std::pair<float, float>> predictedCorr;
@@ -276,10 +276,6 @@ TilePredictor::getUrgetTilesLists() {
   uint16_t frame = frameId_;
   float highQwindow = 13; // half second 25FPS/2;
 
-  // key: high quality (HQ)/ low quality (LQ)
-  // value: list of urgent tiles sorted by their overlapping area with viewport.
-  std::map<std::string, std::map<float, std::vector<uint16_t>>> urgentTiles;
-
   if (predictedCorr.size() == 0) {
     // low quality tiles = all tiles
     std::vector<uint16_t> allTiles;
@@ -294,18 +290,7 @@ TilePredictor::getUrgetTilesLists() {
     std::map<float, std::vector<uint16_t>> tileRanksByArea;
     Util::getViewportTilesSortedByArea(tileRanksByArea, vpCorr,
                                        std::make_pair(100, 100));
-    std::vector<uint16_t> hQTiles;
-    for (auto const &tileSet : tileRanksByArea) {
-      if (tileSet.first == 1) {
-        break;
-      }
-      for (auto const &tile : tileSet.second) {
-        hQTiles.push_back(tile);
-      }
-    }
-    std::map<float, std::vector<uint16_t>> hqTiles;
-    hqTiles.insert(std::make_pair(0, allTiles));
-    urgentTiles.insert(std::make_pair("HQ", hqTiles));
+    urgentTiles.insert(std::make_pair("HQ", tileRanksByArea));
   } else {
     int yawDir = 0;   // positive: right
     int pitchDir = 0; // positive: up
@@ -428,7 +413,6 @@ TilePredictor::getUrgetTilesLists() {
                                        viewportDimentionHq);
     urgentTiles.insert(std::make_pair("HQ", tileRanksByAreaHq));
   }
-  return urgentTiles;
 }
 
 std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
