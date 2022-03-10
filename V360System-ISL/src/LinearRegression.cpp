@@ -115,7 +115,6 @@ void LinearRegression::predictPerfect(
       std::to_string(groundTruthCoordinates_[length - 1].first) + "," +
       std::to_string(groundTruthCoordinates_[length - 1].second) + ")";
   fprintf(predictionLog_, "%-50s %-20s\n", frameOut.c_str(), results.c_str());
-  return vpTruth;
 }
 
 void LinearRegression::init(std::vector<std::pair<float, float>> &input) {
