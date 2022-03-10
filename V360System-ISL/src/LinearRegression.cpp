@@ -16,15 +16,14 @@
 
 #include "Util.h"
 
-std::vector<std::pair<float, float>>
-LinearRegression::predict(std::vector<std::pair<float, float>> &input,
-                          int length) {
+void LinearRegression::predict(
+    std::vector<std::pair<float, float>> &lrPredictions,
+    std::vector<std::pair<float, float>> &input, int length) {
   if (!initalized) {
     init(std::ref(input));
     initalized = true;
   }
 
-  std::vector<std::pair<float, float>> lrPredictions;
   std::vector<float> pitchError; // for storing the pitch error values
   std::vector<float> yawError;   // for storing the yaw error values
 
@@ -95,13 +94,10 @@ LinearRegression::predict(std::vector<std::pair<float, float>> &input,
                          std::to_string(input[length - 1].first) + "," +
                          std::to_string(input[length - 1].second) + ")";
   fprintf(predictionLog_, "%-50s %-20s\n", frameOut.c_str(), results.c_str());
-  return lrPredictions;
 }
 
-std::vector<std::pair<float, float>>
-LinearRegression::predictPerfect(int length) {
-  std::vector<std::pair<float, float>> vpTruth;
-
+void LinearRegression::predictPerfect(
+    std::vector<std::pair<float, float>> vpTruth, int length) {
   if (!initalized) {
     initPerfect();
     initalized = true;
