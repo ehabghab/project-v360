@@ -34,14 +34,14 @@ void LinearRegression::predict(
     // Assuming the ground truth is [1,2,3,4,5,6] with 6 being most recent.
     yawInput_[hw_ - i] = input[length - i].first;
     pitchInput_[hw_ - i] = input[length - i].second;
-    timeSampleInput_[i] = i;
+    timeSampleInput_[i - 1] = i;
   }
   // std::cout << "=========" << std::endl;
-  std::string yawInput = "";
+  /*std::string yawInput = "";
   for (int i = 0; i < hw_; i++) {
     yawInput += std::to_string(yawInput_[i]) + ",";
   }
-  yawInput.pop_back();
+  yawInput.pop_back();*/
   // std::cout << yawInput << std::endl;
   /*Training Phase*/
   // Since there are {hw_} values in our dataset and we want to run for 4*HW
