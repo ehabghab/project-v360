@@ -26,29 +26,31 @@ DEFINE_bool(predLR, true,
 
 void TilePredictor::getViewportSquares(
     std::vector<SquareCoordinates> &vpSquares,
-    std::pair<float, float> viewportCenter,
-    std::pair<int, int> viewportResolution) {
+    std::pair<float, float> &viewportCenter,
+    std::pair<int, int> &viewportResolution) {
   // find viewport coordinates.
   float baseX1 = viewportCenter.first - (viewportResolution.first / 2.0);
   float baseX2 = viewportCenter.first + (viewportResolution.first / 2.0);
 
   // 0: viewport is not wrapping.
-  int horizontalFlip = 0;
+  bool horizontalFlip = false;
 
   // 0: viewport is not wrapping, 1: wrapping over y = 0; 2: wrapping over y =
   // 180.
-  int verticalFlip = 0;
+  int verticalFlip = false;
 
   // frame in degrees [0 - 360] in width, and [0-180] in height.
 
   // viewport is wrapping over x = 0.
   if (baseX1 < 0) {
     baseX1 += 360;
+    horizontalFlip = true;
   }
 
   // viewport is wrapping over x = 360.
   if (baseX2 > 360) {
     baseX2 -= 360;
+    horizontalFlip = true;
   }
 
   float x1 = baseX1;
@@ -57,15 +59,8 @@ void TilePredictor::getViewportSquares(
 
   // viewport is wrapping over y = 0.
   if (y1 < 0) {
-    y1 = 180 - (y1 + 180);
-    x1 = baseX1 + 180;
-    x2 = baseX2 + 180;
-    if (x1 > 360) {
-      x1 = x1 - 360;
-    }
-    if (x2 > 360) {
-      x2 = x2 - 360;
-    }
+    y1 = y1 + 180;
+    verticalFlip = true;
   }
 
   float x3 = baseX1;
@@ -74,40 +69,16 @@ void TilePredictor::getViewportSquares(
 
   // viewport is wrapping over y = 180.
   if (y2 > 180) {
-    y2 = 180 - (y2 - 180);
-    x3 = baseX1 + 180;
-    x4 = baseX2 + 180;
-    if (x3 > 360) {
-      x3 = x3 - 360;
-    }
-
-    if (x4 > 360) {
-      x4 = x4 - 360;
-    }
+    y2 = y2 - 180;
+    verticalFlip = true;
   }
 
-  if (x1 > x2 || x3 > x4) {
-    // left edge x coordinate > right edge x coordinate
-    horizontalFlip = 1;
-  }
-
-  if (x1 != x3) {
-    // left edges are not aligned.
-    if ((180 - viewportCenter.second) > (viewportCenter.second)) {
-      // the center y coor. is closer to y = 0, than y = 180!
-      verticalFlip = 1;
-    } else {
-      verticalFlip = 2;
-    }
-  }
-
-  // 6 cases of overlapping, get viewport squares.
-  if (horizontalFlip == 0 && verticalFlip == 0) {
+  if (!horizontalFlip && !verticalFlip) {
     // only one square.
     SquareCoordinates vp = {std::make_pair(x3, y2), std::make_pair(x4, y2),
                             std::make_pair(x1, y1), std::make_pair(x2, y1)};
     vpSquares = {vp};
-  } else if (horizontalFlip == 0 && verticalFlip == 1) {
+  } else if (!horizontalFlip && verticalFlip) {
     // viewport has two squares due to overlapping over y = 0.
     SquareCoordinates vpPart1 = {
         std::make_pair(x3, y2),
@@ -116,22 +87,12 @@ void TilePredictor::getViewportSquares(
         std::make_pair(x3, 0), std::make_pair(x4, 0)};
 
     SquareCoordinates vpPart2 = {
-        std::make_pair(x1, y1),
+        std::make_pair(x1, 180),
         std::make_pair(x2, // @suppress("Invalid arguments")
-                       y1),
-        std::make_pair(x1, 0), std::make_pair(x2, 0)};
-    vpSquares = {vpPart1, vpPart2};
-  } else if (horizontalFlip == 0 && verticalFlip == 2) {
-    // viewport has two squares due to overlapping over y = 180.
-    SquareCoordinates vpPart1 = {
-        std::make_pair(x3, 180), std::make_pair(x4, 180),
-        std::make_pair(x3, y2), std::make_pair(x4, y2)};
-
-    SquareCoordinates vpPart2 = {
-        std::make_pair(x1, 180), std::make_pair(x2, 180),
+                       180),
         std::make_pair(x1, y1), std::make_pair(x2, y1)};
     vpSquares = {vpPart1, vpPart2};
-  } else if (horizontalFlip == 1 && verticalFlip == 0) {
+  } else if (horizontalFlip && !verticalFlip) {
     // viewport has two squares due to overlapping over x = 0 or x = 360.
     SquareCoordinates vpPart1 = {std::make_pair(0, y2), std::make_pair(x4, y2),
                                  std::make_pair(0, y1), std::make_pair(x2, y1)};
@@ -140,76 +101,32 @@ void TilePredictor::getViewportSquares(
         std::make_pair(x3, y2), std::make_pair(360, y2), std::make_pair(x1, y1),
         std::make_pair(360, y1)};
     vpSquares = {vpPart1, vpPart2};
-  } else if (horizontalFlip == 1 && verticalFlip == 1) {
+  } else if (horizontalFlip && verticalFlip) {
     // viewport has three squares due to nested overlapping over x = 0 or x =
     // 360 and y = 0.
 
-    if (x2 < x1) {
-      SquareCoordinates vpPart1 = {std::make_pair(0, y1),
-                                   std::make_pair(x2, y1), std::make_pair(0, 0),
-                                   std::make_pair(x2, 0)};
+    SquareCoordinates vpPart1 = {std::make_pair(0, 180),
+                                 std::make_pair(x2, 180), std::make_pair(0, y1),
+                                 std::make_pair(x2, y1)};
 
-      SquareCoordinates vpPart2 = {
-          std::make_pair(x3, y2), std::make_pair(x4, y2), std::make_pair(x3, 0),
-          std::make_pair(x4, 0)};
+    SquareCoordinates vpPart2 = {
+        std::make_pair(x1, 180), std::make_pair(360, 180),
+        std::make_pair(x1, y1), std::make_pair(360, y1)};
 
-      SquareCoordinates vpPart3 = {
-          std::make_pair(x1, y1), std::make_pair(360, y1),
-          std::make_pair(x1, 0), std::make_pair(360, 0)};
-      vpSquares = {vpPart1, vpPart2, vpPart3};
-    } else if (x4 < x3) {
-      SquareCoordinates vpPart1 = {std::make_pair(0, y2),
-                                   std::make_pair(x4, y2), std::make_pair(0, 0),
-                                   std::make_pair(x4, 0)};
+    SquareCoordinates vpPart3 = {std::make_pair(0, y2), std::make_pair(x4, y2),
+                                 std::make_pair(0, 0), std::make_pair(x4, 0)};
 
-      SquareCoordinates vpPart2 = {
-          std::make_pair(x1, y1), std::make_pair(x2, y1), std::make_pair(x1, 0),
-          std::make_pair(x2, 0)};
-
-      SquareCoordinates vpPart3 = {
-          std::make_pair(x3, y2), std::make_pair(360, y2),
-          std::make_pair(x3, 0), std::make_pair(360, 0)};
-      vpSquares = {vpPart1, vpPart2, vpPart3};
-    }
-
-  } else if (horizontalFlip == 1 && verticalFlip == 2) {
-    // viewport has three squares due to nested overlapping over x = 0 or x =
-    // 360 and y = 180.
-
-    if (x2 < x1) {
-      SquareCoordinates vpPart1 = {
-          std::make_pair(0, 180), std::make_pair(x2, 180),
-          std::make_pair(0, y1), std::make_pair(x2, y1)};
-
-      SquareCoordinates vpPart2 = {
-          std::make_pair(x3, 180), std::make_pair(x4, 180),
-          std::make_pair(x3, y2), std::make_pair(x4, y2)};
-
-      SquareCoordinates vpPart3 = {
-          std::make_pair(x1, 180), std::make_pair(360, 180),
-          std::make_pair(x1, y1), std::make_pair(360, y1)};
-      vpSquares = {vpPart1, vpPart2, vpPart3};
-    } else if (x4 < x3) {
-      SquareCoordinates vpPart1 = {
-          std::make_pair(0, 180), std::make_pair(x4, 180),
-          std::make_pair(0, y2), std::make_pair(x4, y2)};
-
-      SquareCoordinates vpPart2 = {
-          std::make_pair(x1, 180), std::make_pair(x2, 180),
-          std::make_pair(x1, y1), std::make_pair(x2, y1)};
-
-      SquareCoordinates vpPart3 = {
-          std::make_pair(x3, 180), std::make_pair(360, 180),
-          std::make_pair(x3, y2), std::make_pair(360, y2)};
-      vpSquares = {vpPart1, vpPart2, vpPart3};
-    }
+    SquareCoordinates vpPart4 = {std::make_pair(x3, y2),
+                                 std::make_pair(360, y2), std::make_pair(x3, 0),
+                                 std::make_pair(360, 0)};
+    vpSquares = {vpPart1, vpPart2, vpPart3, vpPart4};
   }
 }
 
 float TilePredictor::getFractionOfTileInVP(
     std::vector<SquareCoordinates> &partialVPs,
-    std::pair<float, float> tileCorrdinates,
-    std::pair<float, float> tileDimensions) {
+    std::pair<float, float> &tileCorrdinates,
+    std::pair<float, float> &tileDimensions) {
   float fracOfTileInVP = 0.0;
 
   for (auto const &sqrCoor : partialVPs) {
@@ -232,12 +149,16 @@ float TilePredictor::getFractionOfTileInVP(
 
 void TilePredictor::sortTileSetByArea(
     std::map<float, std::vector<uint16_t>> &tileRanksByArea,
-    std::vector<SquareCoordinates> &vpSqrs, int vpArea) {
+    std::pair<float, float> &viewportCenter,
+    std::pair<int, int> &viewportResolution) {
   // per tile in frame get the fraction of its area that overlaps with
   // viewport.
+  std::vector<SquareCoordinates> vpSqrs;
+  getViewportSquares(vpSqrs, viewportCenter, viewportResolution);
+  int vpArea = viewportResolution.first * viewportResolution.second;
   float vpSize = 0;
-  for (auto const &tileId : tileCoordinates_) {
-    float frac = getFractionOfTileInVP(std::ref(vpSqrs), tileId.second,
+  for (auto &tileId : tileCoordinates_) {
+    float frac = getFractionOfTileInVP(vpSqrs, tileId.second,
                                        tileResolutions_[tileId.first]);
     vpSize += frac;
 
@@ -252,27 +173,36 @@ void TilePredictor::sortTileSetByArea(
   // Sanity check that getFractionOfTileInVP is working properly.
   vpSize = vpSize * 30 * 15;
   if (vpSize <= vpArea - .1 || vpSize >= vpArea + .1) {
+    for (auto &pair : vpSqrs) {
+      std::cout << "(" << pair.upperLeft.first << "," << pair.upperLeft.second
+                << ")"
+                << "(" << pair.upperRight.first << "," << pair.upperRight.second
+                << ")\n";
+      std::cout << "(" << pair.lowerLeft.first << "," << pair.lowerLeft.second
+                << ")"
+                << "(" << pair.lowerRight.first << "," << pair.lowerRight.second
+                << ")\n";
+    }
     LOG(ERROR) << "Fraction of tiles covering viewport"
                   " does not match with viewport true size "
                << vpSize;
   }
 }
 
-void 
-TilePredictor::getUrgetTilesLists(std::map<std::string, std::map<float, std::vector<uint16_t>>>& urgentTiles) {
+void TilePredictor::getUrgetTilesLists(
+    std::map<std::string, std::map<float, std::vector<uint16_t>>> &urgentTiles,
+    std::vector<std::pair<float, float>> &predictedCorr) {
+
+  // this should return the high quality based on model
+  // flare then use similar method to background.
+  // utility return the utility matrix for the next .5 seconds.
+  // to do change the function that returns the utility matrix to
+  // take the number of frames and predict corr as input and vp corrdinates
+  // size.
+  // add function in tilePredictor to return LR corrdinates.
+
   while (frameId_ == 0)
     ;
-  std::vector<std::pair<float, float>> predictedCorr;
-  if (FLAGS_predLR) {
-    LOG(INFO) << "Linear Regression";
-    if (frameId_ >= 13) {
-      predictedCorr =
-          linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_);
-    }
-  } else {
-    LOG(INFO) << "Perfect predictor";
-    predictedCorr = linearRegressor_->predictPerfect(frameId_);
-  }
   uint16_t frame = frameId_;
   float highQwindow = 13; // half second 25FPS/2;
 
@@ -286,10 +216,10 @@ TilePredictor::getUrgetTilesLists(std::map<std::string, std::map<float, std::vec
     lqTiles.insert(std::make_pair(0, allTiles));
     urgentTiles.insert(std::make_pair("LQ", lqTiles));
 
-    auto const vpCorr = vpGroundTruth_[frameId_ - 1];
+    auto &vpCorr = vpGroundTruth_[frameId_ - 1];
+    std::pair<int, int> vpResolution(100, 100);
     std::map<float, std::vector<uint16_t>> tileRanksByArea;
-    Util::getViewportTilesSortedByArea(tileRanksByArea, vpCorr,
-                                       std::make_pair(100, 100));
+    sortTileSetByArea(tileRanksByArea, vpCorr, vpResolution);
     urgentTiles.insert(std::make_pair("HQ", tileRanksByArea));
   } else {
     int yawDir = 0;   // positive: right
@@ -397,8 +327,7 @@ TilePredictor::getUrgetTilesLists(std::map<std::string, std::map<float, std::vec
                                             vpLqDimPitch > 180 ? 180
                                                                : vpLqDimPitch);
     std::map<float, std::vector<uint16_t>> tileRanksByAreaLq;
-    Util::getViewportTilesSortedByArea(tileRanksByAreaLq, viewportCenterLq,
-                                       viewportDimentionLq);
+    sortTileSetByArea(tileRanksByAreaLq, viewportCenterLq, viewportDimentionLq);
     urgentTiles.insert(std::make_pair("LQ", tileRanksByAreaLq));
 
     int vpHqDimYaw = int((100 + yawMaxDispHq) * 1.1);
@@ -409,8 +338,7 @@ TilePredictor::getUrgetTilesLists(std::map<std::string, std::map<float, std::vec
                                             vpHqDimPitch > 180 ? 180
                                                                : vpHqDimPitch);
     std::map<float, std::vector<uint16_t>> tileRanksByAreaHq;
-    Util::getViewportTilesSortedByArea(tileRanksByAreaHq, viewportCenterHq,
-                                       viewportDimentionHq);
+    sortTileSetByArea(tileRanksByAreaHq, viewportCenterHq, viewportDimentionHq);
     urgentTiles.insert(std::make_pair("HQ", tileRanksByAreaHq));
   }
 }
@@ -430,12 +358,12 @@ TilePredictor::getPredictedTilesFlareLR() {
   if (FLAGS_predLR) {
     LOG(INFO) << "Linear Regression";
     if (frameId_ >= 13) {
-      predictedCorr =
-          linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_);
+      linearRegressor_->predict(predictedCorr, std::ref(vpGroundTruth_),
+                                frameId_);
     }
   } else {
     LOG(INFO) << "Perfect predictor";
-    predictedCorr = linearRegressor_->predictPerfect(frameId_);
+    linearRegressor_->predictPerfect(predictedCorr, frameId_);
   }
   uint16_t frameId = frameId_;
 
@@ -477,8 +405,8 @@ TilePredictor::getPredictedTilesFlareLR() {
       std::map<float, std::vector<uint16_t>> tilesSortedByArea;
       // sortTileSetByArea(tilesSortedByArea, vpSqrs,
       //                vpResolution.first * vpResolution.second);
-      Util::getViewportTilesSortedByArea(std::ref(tilesSortedByArea),
-                                         viewportCenter, vpResolution);
+      sortTileSetByArea(std::ref(tilesSortedByArea), viewportCenter,
+                        vpResolution);
 
       for (auto const &tileSet : tilesSortedByArea) {
         // if the tiles do not overlap with viewport then skip.
@@ -527,26 +455,14 @@ TilePredictor::getPredictedTilesFlareLR() {
   return tileClassAllFrames;
 }
 
-std::map<std::string, std::vector<float>>
-TilePredictor::getPredictedTilesUtilityLR() {
+std::map<std::string, std::vector<float>> TilePredictor::buildUtilityMatrix(
+    std::vector<std::pair<float, float>> &predictedCorr,
+    std::vector<std::pair<int, int>> &vpResolutions,
+    uint8_t numberOfFutureFrames) {
 
   // video join time as it only happens at the start of video sessions.
   while (frameId_ == 0)
     ;
-  std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
-
-  std::vector<std::pair<float, float>> predictedCorr;
-  if (FLAGS_predLR) {
-    LOG(INFO) << "Linear Regression";
-    if (frameId_ >= 13) {
-      predictedCorr =
-          linearRegressor_->predict(std::ref(vpGroundTruth_), frameId_);
-    }
-  } else {
-    LOG(INFO) << "Perfect predictor";
-    predictedCorr = linearRegressor_->predictPerfect(frameId_);
-  }
-
   uint16_t frameId = frameId_;
 
   // chunkId_TileId: cumlative utility
@@ -555,7 +471,7 @@ TilePredictor::getPredictedTilesUtilityLR() {
   std::vector<float> frameIdVec = {static_cast<float>(frameId - 1)};
   utilityMatrix.insert(std::make_pair("frameIdAtCol0", frameIdVec));
 
-  for (uint16_t idx = 0; idx < 25; idx++) { // per frame
+  for (uint8_t idx = 0; idx < numberOfFutureFrames; idx++) { // per frame
     if (frameId >= 1475) {
       break;
     }
@@ -571,15 +487,11 @@ TilePredictor::getPredictedTilesUtilityLR() {
 
     for (auto &vpResolution : vpResolutions) { // per vp-class
       // find viewport squares.
-      std::vector<SquareCoordinates> vpSqrs;
-      getViewportSquares(vpSqrs, viewportCenter, vpResolution);
 
       // key: fraction area of tile that overlaps with viewport.
       // value: list of all tiles.
-
       std::map<float, std::vector<uint16_t>> tilesSortedByArea;
-      sortTileSetByArea(tilesSortedByArea, vpSqrs,
-                        vpResolution.first * vpResolution.second);
+      sortTileSetByArea(tilesSortedByArea, viewportCenter, vpResolution);
 
       for (auto const &tileSet : tilesSortedByArea) {
         // if the tiles do not overlap with viewport then skip.
@@ -657,7 +569,7 @@ TilePredictor::getPredictedTilesStatic() {
   // video join time as it only happens at the start of video sessions.
   while (frameId_ == 0)
     ;
-  std::vector<std::pair<int, int>> vpCorrs = {{100, 100}, {120, 120}};
+  std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
 
   // Todo fix
   uint16_t frameId = frameId_;
@@ -685,18 +597,16 @@ TilePredictor::getPredictedTilesStatic() {
     // This set will contain all tiles in prev set. all tiles in set are
     // unique.
     std::set<uint16_t> tilesInPrevSets;
-    for (auto &vpCorr : vpCorrs) {
+    for (auto &vpResolution : vpResolutions) {
       // find viewport squares.
-      std::vector<SquareCoordinates> vpSqrs;
-      getViewportSquares(vpSqrs, viewportCenter, vpCorr);
 
       // key: fraction area of tile that overlaps with viewport.
       // value: all tiles with fraction of area overlapping with viewport
       // equals to key.
-      std::map<float, std::vector<uint16_t>> tileRanksByArea;
-      sortTileSetByArea(tileRanksByArea, vpSqrs, vpCorr.first * vpCorr.second);
+      std::map<float, std::vector<uint16_t>> tilesSortedByArea;
+      sortTileSetByArea(tilesSortedByArea, viewportCenter, vpResolution);
 
-      for (auto const &tiles : tileRanksByArea) {
+      for (auto const &tiles : tilesSortedByArea) {
         // if the tiles do not overlap with viewport then skip.
         if ((1 - tiles.first) == 0) {
           continue;
@@ -773,3 +683,16 @@ TilePredictor::TilePredictor(std::string vpCorrPerFrameTracePath) {
 }
 
 uint16_t TilePredictor::getFrameId() { return frameId_; }
+
+void TilePredictor::getPredictedCorr(
+    std::vector<std::pair<float, float>> &predictedCorr) {
+  if (FLAGS_predLR) {
+    LOG(INFO) << "Linear Regression";
+    if (frameId_ >= 13) {
+      linearRegressor_->predict(predictedCorr, vpGroundTruth_, frameId_);
+    }
+  } else {
+    LOG(INFO) << "Perfect predictor";
+    linearRegressor_->predictPerfect(predictedCorr, frameId_);
+  }
+}

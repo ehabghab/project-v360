@@ -4,7 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-            {
+        {
             "name": "ISL-debug",
             "type": "cppdbg",
             "request": "launch",
@@ -14,7 +14,7 @@
                 "/home/ehab/Desktop/Project-V360/split/vp_corr_per_frame_user_3.txt",
                 "/home/ehab/Desktop/Project-V360/split/quality_tile_sizes.txt",
                 "100.64.0.2",
-                "-utilityAbr=0"
+                "-utilityAbr=1"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -27,7 +27,8 @@
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
-                }]
+                }
+            ]
         }
     ]
 }

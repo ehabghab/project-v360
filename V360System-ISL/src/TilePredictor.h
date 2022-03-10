@@ -26,7 +26,10 @@ public:
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
   getPredictedTilesFlareLR();
 
-  std::map<std::string, std::vector<float>> getPredictedTilesUtilityLR();
+  std::map<std::string, std::vector<float>>
+  buildUtilityMatrix(std::vector<std::pair<float, float>> &predictedCorr,
+                     std::vector<std::pair<int, int>> &vpResolutions,
+                     uint8_t numberOfFutureFrames);
 
   TilePredictor(std::string vpCorrPerFrameTracePath);
   uint16_t getFrameId();
@@ -34,8 +37,12 @@ public:
   // key1: High/low quality tiles
   // key2: (1 - fraction of overlapping with VP per tile)
   // value: list of tiles.
-  void
-  getUrgetTilesLists(std::map<std::string, std::map<float, std::vector<uint16_t>>> & urgentTiles);
+  void getUrgetTilesLists(
+      std::map<std::string, std::map<float, std::vector<uint16_t>>>
+          &urgentTiles,
+      std::vector<std::pair<float, float>> &predictedCorr);
+
+  void getPredictedCorr(std::vector<std::pair<float, float>> &predictedCorr);
 
 private:
   struct SquareCoordinates {
@@ -63,20 +70,21 @@ private:
    * and returns it as multiple squares in case of overlapping.
    */
   void getViewportSquares(std::vector<SquareCoordinates> &vpSquares,
-                          std::pair<float, float> viewportCenter,
-                          std::pair<int, int> viewportResolution);
+                          std::pair<float, float> &viewportCenter,
+                          std::pair<int, int> &viewportResolution);
 
   /*
    *  This takes tile coordinates, and viewport squares as input,
    *  and returns the fraction of tile that overlap with viewport as output.
    */
   float getFractionOfTileInVP(std::vector<SquareCoordinates> &partialVPs,
-                              std::pair<float, float> tileCorrdinates,
-                              std::pair<float, float> tileDimensions);
+                              std::pair<float, float> &tileCorrdinates,
+                              std::pair<float, float> &tileDimensions);
 
   void
   sortTileSetByArea(std::map<float, std::vector<uint16_t>> &tileRanksByArea,
-                    std::vector<SquareCoordinates> &vpSqrs, int vpArea);
+                    std::pair<float, float> &viewportCenter,
+                    std::pair<int, int> &viewportResolution);
 
   std::pair<float, float> getVpCoordinate();
 };

@@ -15,7 +15,6 @@
 #include "AbrAlgorithm.h"
 #include "ClientNetworkLayer.h"
 #include "Decoder.h"
-#include "Util.h"
 #include "VideoPlayer.h"
 DEFINE_bool(utilityAbr, true, "true : utility, false : flare");
 
@@ -26,7 +25,6 @@ Client::Client(std::string tilesPerFrameTracePath,
   // 1- Network layer (sender and receiver).
   // 2- Video player along with the decoder.
   // 3- ABR algorithm along with tile and bandwidth predictors.
-  Util::init();
   ClientNetworkLayer *clientNetworkLayer = new ClientNetworkLayer(serverIp);
   VideoPlayer *videoPlayer =
       new VideoPlayer(tilesPerFrameTracePath, vpCorrPerFrameTracePath);

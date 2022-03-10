@@ -67,6 +67,15 @@ private:
       std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
           tileChunkSizes,
       ClientNetworkLayer *clientNetworkLayer);
+
+
+void urgetTilesCreateRequest(
+    uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
+    std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
+        &tileChunkSizePerQuality,
+    std::map<std::string, std::map<float, std::vector<uint16_t>>> &urgetTiles);
+
 };
+
 
 #endif /* ABRALGORITHM_H_ */
