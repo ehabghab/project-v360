@@ -37,10 +37,13 @@ public:
   // key1: High/low quality tiles
   // key2: (1 - fraction of overlapping with VP per tile)
   // value: list of tiles.
-  void getUrgetTilesLists(
+  void getUrgetTilesListsTemp(
       std::map<std::string, std::map<float, std::vector<uint16_t>>>
           &urgentTiles,
       std::vector<std::pair<float, float>> &predictedCorr);
+
+  void getUrgetTilesList(std::map<float, std::vector<uint16_t>> &urgentTiles,
+                         std::vector<std::pair<float, float>> &predictedCorr);
 
   void getPredictedCorr(std::vector<std::pair<float, float>> &predictedCorr);
 

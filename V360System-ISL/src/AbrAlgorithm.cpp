@@ -81,8 +81,8 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
     // value: list of urgent tiles sorted by their overlapping area with
     // viewport.
     std::map<std::string, std::map<float, std::vector<uint16_t>>> urgentTiles;
-    tilePredictor->getPredictedCorr(predictedCorr);
-    tilePredictor->getUrgetTilesLists(urgentTiles, predictedCorr);
+    // tilePredictor->getPredictedCorr(predictedCorr);
+    // tilePredictor->getUrgetTilesLists(urgentTiles, predictedCorr);
     auto tileClassesOfFutureFrames = tilePredictor->getPredictedTilesFlareLR();
     if (tileClassesOfFutureFrames.size() == 0) {
       break;
@@ -278,18 +278,46 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
   }
 }
 
-void AbrAlgorithm::urgetTilesCreateRequest(
+std::pair<std::string, int> AbrAlgorithm::buildBackgroundTilesRequest(
     uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
-    std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
-        &tileChunkSizePerQuality,
-    std::map<std::string, std::map<float, std::vector<uint16_t>>> &urgetTiles) {
+    std::map<float, std::vector<uint16_t>> &urgetTiles) {
 
-  // TODO
-  // check if we have the background tiles for the next 60 frames.
-  // for thoes that we don't, create a list of them along with their total size.
+  // Objective: get all urgent tiles in lowest quality for the next two seconds
 
-  // similarly for foreground, but for foreground pass the tiles to Utility
-  // algorithm to return the right ordering.
+  // find the chunk ids correspond to the next two seconds.
+  int chunkId = (((frameIdToRender)-1) / 25);
+  std::vector<int> chunkIds = {chunkId, chunkId + 1};
+  if ((frameIdToRender - 1) % 25 != 0) {
+    chunkIds.push_back(chunkId + 2);
+  }
+
+  std::vector<std::string> tilesReq(chunkIds.size());
+
+  int size = 0;
+  int idx;
+  for (auto &tileSet : urgetTiles) {
+    if (tileSet.first == 1) {
+      continue;
+    }
+    for (auto &tile : tileSet.second) {
+      for (idx = 0; idx < chunkIds.size(); idx++) {
+        if (!clientNetworkLayer->isReceived(chunkIds[idx] + 1, tile)) {
+          tilesReq[idx] +=
+              std::to_string(chunkIds[idx]) + "_" + std::to_string(tile) + ",";
+          size += tileChunkSizePerQuality_.find(1)
+                      ->second.find(tile)
+                      ->second[chunkIds[idx]];
+        }
+      }
+    }
+  }
+
+  std::string finalRequest = "";
+  for (auto &request : tilesReq) {
+    finalRequest += request;
+  }
+  std::pair<std::string, int> reqSize = {finalRequest, size};
+  return reqSize;
 }
 
 void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
@@ -305,31 +333,28 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
   uint8_t numOfClasses;
   auto &tileChunkSizePerQuality = abrAlgorithm->getTileChunkSizePerQuality();
 
-  // frame has multiple classes, each class has set of tiles, tiles can be of
-  // different qualities. frameId --> classes --> <tiles_q0, tiles_q1>, where
-  // tiles_q0: is the sum of all tiles in lowest qaulity.
-  std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
-      frameIdSetQualitySizeSum;
-  std::vector<std::string> tilesRequest;
   // This set will contain all tiles in prev sets (to contain duplicates)
   // tilechunk_tileIdx
   std::vector<std::pair<float, float>> predictedCorr;
-  std::vector<std::pair<int, int>> vpResolutions;
-  vpResolutions.push_back(std::make_pair(100, 100));
-  vpResolutions.push_back(std::make_pair(120, 120));
+  std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
   while (true) {
 
-    // get the utility matrix for all tiles to be rendered over the horizon of
-    // 25 frames.
-    std::map<std::string, std::map<float, std::vector<uint16_t>>> urgentTiles;
-    // tilePredictor->getUrgetTilesLists(urgentTiles, predictedCorr);
+    // retrieve the predicted tiles using linear regression.
     predictedCorr.clear();
-
     tilePredictor->getPredictedCorr(predictedCorr);
+    auto frameIdToRender = videoPlayer->getFrameToRenderId();
 
+    // generate a list of all required background tiles.
+    std::map<float, std::vector<uint16_t>> urgentTiles;
+    tilePredictor->getUrgetTilesList(urgentTiles, predictedCorr);
+    auto urgentTileRequestAndSize = abrAlgorithm->buildBackgroundTilesRequest(
+        frameIdToRender, clientNetworkLayer, urgentTiles);
+
+    // generate the utility matrix for predicted-to-render tiles in the next 25
+    // frames (1sec).
     auto utilityMatrix =
         tilePredictor->buildUtilityMatrix(predictedCorr, vpResolutions, 25);
-    auto frameIdToRender = videoPlayer->getFrameToRenderId();
+
     // sort tiles by their max utility.
     auto orderedUtilityMatrix =
         abrAlgorithm->orderTilesByMaxUtility(utilityMatrix, frameIdToRender);
@@ -344,17 +369,16 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
         predictedBw == 0 ? 2.5 * 1e6 : predictedBw, tileChunkSizePerQuality,
         clientNetworkLayer);
 
-    std::string req = "Tiles\n";
-    for (auto const &tile : request) {
+    /*std::cout << std::to_string(frameIdToRender) << "----"
+              << urgentTileRequestAndSize.second << std::endl;
+    std::cout << urgentTileRequestAndSize.first << std::endl;*/
+    std::string req = "Tiles\n" + urgentTileRequestAndSize.first;
+    /*for (auto const &tile : request) {
       req += tile + ",";
-    }
-    // std::cout << req << std::endl;
-
+    }*/
     req.pop_back();
-    req += "\nQuality\n" + std::to_string(1);
+    req += "\nQuality\n" + std::to_string(0);
     clientNetworkLayer->setRequest(req);
-    tilesRequest.clear();
-    frameIdSetQualitySizeSum.clear();
     Util::sleep(stime, ABR_FREQ);
     videoTime += (Util::getTime() - stime);
     stime += 100;

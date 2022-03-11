@@ -189,7 +189,114 @@ void TilePredictor::sortTileSetByArea(
   }
 }
 
-void TilePredictor::getUrgetTilesLists(
+void TilePredictor::getUrgetTilesList(
+    std::map<float, std::vector<uint16_t>> &urgentTiles,
+    std::vector<std::pair<float, float>> &predictedCorr) {
+
+  // this should return the high quality based on model
+  // flare then use similar method to background.
+  // utility return the utility matrix for the next .5 seconds.
+  // to do change the function that returns the utility matrix to
+  // take the number of frames and predict corr as input and vp corrdinates
+  // size.
+  // add function in tilePredictor to return LR corrdinates.
+
+  while (frameId_ == 0)
+    ;
+  uint16_t frame = frameId_;
+  float highQwindow = 13; // half second 25FPS/2;
+
+  if (predictedCorr.size() == 0) {
+    // low quality tiles = all tiles
+    std::vector<uint16_t> allTiles;
+    for (uint16_t id = 1; id <= 144; id++) {
+      allTiles.push_back(id);
+    }
+    urgentTiles.insert(std::make_pair(0, allTiles));
+  } else {
+    int yawDir = 0;   // positive: right
+    int pitchDir = 0; // positive: up
+    for (int idx = 1; idx < predictedCorr.size(); idx++) {
+      predictedCorr[idx].first - predictedCorr[idx - 1].first >= 0 ? yawDir++
+                                                                   : yawDir--;
+      predictedCorr[idx].second - predictedCorr[idx - 1].second >= 0
+          ? pitchDir++
+          : pitchDir--;
+    }
+
+    float yawMaxDisp = 0;
+    float pitchMaxDisp = 0;
+    // low quality tiles (high quality)
+    // find the max displacement (for the first half secodns).
+
+    // find the maximum  predicted user displacement.
+    for (int frameIdx = 1; frameIdx < predictedCorr.size(); frameIdx++) {
+      if (yawDir >= 0) { // right
+        yawMaxDisp +=
+            predictedCorr[frameIdx].first < predictedCorr[frameIdx - 1].first
+                ? (predictedCorr[frameIdx].first + 360) -
+                      predictedCorr[frameIdx - 1].first
+                : predictedCorr[frameIdx].first -
+                      predictedCorr[frameIdx - 1].first;
+      } else { // left
+        yawMaxDisp +=
+            predictedCorr[frameIdx].first > predictedCorr[frameIdx - 1].first
+                ? ((predictedCorr[frameIdx - 1].first + 360) -
+                   predictedCorr[frameIdx].first)
+                : predictedCorr[frameIdx - 1].first -
+                      predictedCorr[frameIdx].first;
+      }
+
+      if (pitchDir >= 0) { // up
+        pitchMaxDisp +=
+            predictedCorr[frameIdx].second < predictedCorr[frameIdx - 1].second
+                ? ((predictedCorr[frameIdx].second + 180) -
+                   predictedCorr[frameIdx - 1].second)
+                : (predictedCorr[frameIdx].second -
+                   predictedCorr[frameIdx - 1].second);
+      } else { // down
+        pitchMaxDisp +=
+            predictedCorr[frameIdx].second > predictedCorr[frameIdx - 1].second
+                ? ((predictedCorr[frameIdx - 1].second + 180) -
+                   predictedCorr[frameIdx].second)
+                : (predictedCorr[frameIdx - 1].second -
+                   predictedCorr[frameIdx].second);
+      }
+    }
+
+    yawMaxDisp = yawMaxDisp > 360 ? 360 : yawMaxDisp;
+    pitchMaxDisp = pitchMaxDisp > 180 ? 180 : pitchMaxDisp;
+
+    float yawCorrLq = -1;
+    float pitchCorrLq = -1;
+
+    if (yawDir > 0) { // right
+      yawCorrLq = predictedCorr[0].first + (yawMaxDisp / 2.0);
+      yawCorrLq = yawCorrLq > 360 ? yawCorrLq - 360 : yawCorrLq;
+    } else { // left
+      yawCorrLq = predictedCorr[0].first - (yawMaxDisp / 2.0);
+      yawCorrLq = yawCorrLq < 0 ? yawCorrLq + 360 : yawCorrLq;
+    }
+
+    if (pitchDir > 0) { // up
+      pitchCorrLq = predictedCorr[0].second + (pitchMaxDisp / 2.0);
+      pitchCorrLq = pitchCorrLq > 180 ? pitchCorrLq - 180 : pitchCorrLq;
+    } else { // down
+      pitchCorrLq = predictedCorr[0].second - (pitchMaxDisp / 2.0);
+      pitchCorrLq = pitchCorrLq < 0 ? pitchCorrLq + 180 : pitchCorrLq;
+    }
+
+    int vpLqDimYaw = int((100 + yawMaxDisp) * 1);
+    int vpLqDimPitch = int((100 + pitchMaxDisp * 1));
+    std::pair<float, float> viewportCenterLq(yawCorrLq, pitchCorrLq);
+    std::pair<int, int> viewportDimentionLq(vpLqDimYaw > 360 ? 360 : vpLqDimYaw,
+                                            vpLqDimPitch > 180 ? 180
+                                                               : vpLqDimPitch);
+    sortTileSetByArea(urgentTiles, viewportCenterLq, viewportDimentionLq);
+  }
+}
+
+void TilePredictor::getUrgetTilesListsTemp(
     std::map<std::string, std::map<float, std::vector<uint16_t>>> &urgentTiles,
     std::vector<std::pair<float, float>> &predictedCorr) {
 

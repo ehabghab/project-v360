@@ -418,7 +418,7 @@ Server::parseUtilityRequestIntoTiles(std::string request) {
   boost::algorithm::split_regex(tilesReq, tempVec1[2], boost::regex(","));
   std::vector<std::string> tiles;
   for (auto const &tile : tilesReq) {
-    if (tile == "") {
+    if (tile == "" || tile == "Quality") {
       continue;
     }
     std::size_t pos = tile.find('_');

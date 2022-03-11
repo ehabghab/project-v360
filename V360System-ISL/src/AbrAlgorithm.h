@@ -68,14 +68,21 @@ private:
           tileChunkSizes,
       ClientNetworkLayer *clientNetworkLayer);
 
-
-void urgetTilesCreateRequest(
-    uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
-    std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
-        &tileChunkSizePerQuality,
-    std::map<std::string, std::map<float, std::vector<uint16_t>>> &urgetTiles);
-
+  /**
+   * @brief This function will take all urgent tiles that user may view in the
+   *        future (next two seconds). Then, it will check if the client
+   *        received the tile already or not. If not, then add to request.
+   *
+   * @param frameIdToRender: this the frame the client player will play next.
+   * @param clientNetworkLayer: this checks whether tile has been received in
+   *        the buffer or not.
+   * @param urgetTiles: list of critical tiles to the user for the next 2-sec
+   * @return std::pair<std::string, int>, it returns all tiles in one string
+   *         along with their total size
+   */
+  std::pair<std::string, int> buildBackgroundTilesRequest(
+      uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
+      std::map<float, std::vector<uint16_t>> &urgetTiles);
 };
-
 
 #endif /* ABRALGORITHM_H_ */
