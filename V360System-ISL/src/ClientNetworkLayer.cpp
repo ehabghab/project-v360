@@ -248,7 +248,7 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
               std::to_string(bandwidth).c_str());
       fflush(recvLog);
 
-      bandwidthPredictor->addTileBandwidth(bandwidth);
+      bandwidthPredictor->addTileInfo(chunkSize, etime - stime);
 
       stime = -1;
     }
