@@ -19,17 +19,16 @@ class BandwidthPredictor {
   // tiles within the same second will have their own sum/avg.
 
   // keep track of the bandwidth for the latest download tiles.
-  float bandwidthSum_;
   int numOfChunks_;
-  std::mutex bandwidthMutex_;
-  std::vector<std::pair<int, float>> avgBandwidths_;
-
-  std::pair<int, float> getAvgDownloadTime();
+  uint32_t tileSizesSum_;
+  int totalDownloadTimeInMS_;
+  std::vector<std::pair<uint32_t, int>> tilesHistory_;
+  std::pair<uint32_t, int> getCurrentTilesInfo();
+  std::mutex tileInfoMutex_;
 
 public:
   BandwidthPredictor();
-  virtual ~BandwidthPredictor();
-  void addTileBandwidth(float downloadTime);
+  void addTileInfo(uint32_t tileSize, int downloadTimeInMS);
   float getMpcBandwidthPrediction();
 };
 

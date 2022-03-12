@@ -11,53 +11,42 @@
 #include <iostream>
 
 BandwidthPredictor::BandwidthPredictor() {
-  bandwidthSum_ = 0.0;
   numOfChunks_ = 0;
-  avgBandwidths_ = {};
+  tileSizesSum_ = 0;
+  totalDownloadTimeInMS_ = 0;
+  tilesHistory_ = {};
 }
 
-void BandwidthPredictor::addTileBandwidth(float bandwidth) {
-  if (std::isinf(bandwidth)) {
-    return;
-  }
-  bandwidthMutex_.lock();
-  bandwidthSum_ += bandwidth;
-  numOfChunks_++;
-  bandwidthMutex_.unlock();
+void BandwidthPredictor::addTileInfo(uint32_t tileSize, int downloadTimeInMS) {
+  tileInfoMutex_.lock();
+  tileSizesSum_ += tileSize;
+  totalDownloadTimeInMS_ += downloadTimeInMS;
+  numOfChunks_ += 0;
+  tileInfoMutex_.unlock();
 }
 
-std::pair<int, float> BandwidthPredictor::getAvgDownloadTime() {
-
-  // get the average of bandwidth for all received so far.
-  // then empty the downloadTime_;
-
-  // TODO store sum, num.
-
-  bandwidthMutex_.lock();
-  std::pair<int, float> avgParameters = {numOfChunks_, bandwidthSum_};
-  bandwidthSum_ = 0.0;
-  numOfChunks_ = 0;
-  bandwidthMutex_.unlock();
+std::pair<uint32_t, int> BandwidthPredictor::getCurrentTilesInfo() {
+  tileInfoMutex_.lock();
+  std::pair<uint32_t, int> avgParameters = {tileSizesSum_,
+                                            totalDownloadTimeInMS_};
+  tileSizesSum_ = 0;
+  totalDownloadTimeInMS_ = 0;
+  tileInfoMutex_.unlock();
   return avgParameters;
 }
 
 float BandwidthPredictor::getMpcBandwidthPrediction() {
 
   // ToDo return mpc avg.
+  tilesHistory_.push_back(getCurrentTilesInfo());
 
-  avgBandwidths_.push_back(getAvgDownloadTime());
-  int timeStartIdx =
-      avgBandwidths_.size() < 50 ? 0 : avgBandwidths_.size() - 50;
-  float predictedBandwidthSum = 0;
-  int totalNumOfChunks = 0;
-  for (timeStartIdx; timeStartIdx < avgBandwidths_.size(); timeStartIdx++) {
-
-    predictedBandwidthSum += avgBandwidths_[timeStartIdx].second;
-    totalNumOfChunks += avgBandwidths_[timeStartIdx].first;
+  int timeStartIdx = tilesHistory_.size() < 50 ? 0 : tilesHistory_.size() - 50;
+  long totalTimeMS = 0;
+  uint64_t totalNumOfChunks = 0;
+  for (timeStartIdx; timeStartIdx < tilesHistory_.size(); timeStartIdx++) {
+    totalNumOfChunks += tilesHistory_[timeStartIdx].first;
+    totalTimeMS += tilesHistory_[timeStartIdx].second;
   }
-
-  return predictedBandwidthSum == 0 ? 0
-                                    : predictedBandwidthSum / totalNumOfChunks;
+  // Bytes / MS
+  return totalTimeMS == 0 ? 0 : totalNumOfChunks * 1e3 / totalTimeMS;
 }
-
-BandwidthPredictor::~BandwidthPredictor() {}
