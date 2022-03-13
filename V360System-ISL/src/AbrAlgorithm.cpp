@@ -200,8 +200,7 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
     //    2       1
     //    1       1
     float predictedBw =
-        (bandwidthPredictor->getMpcBandwidthPrediction() * 1e6) /
-        8.0; // Bytes Per Second
+        bandwidthPredictor->getMpcBandwidthPrediction(); // Bytes Per Second
 
     auto qualitiesAssignments = abrAlgorithm->getPossibleQualityAssignment(
         numOfQualities, numOfClasses + 1);
