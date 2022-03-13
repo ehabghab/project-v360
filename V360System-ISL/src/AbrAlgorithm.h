@@ -56,14 +56,15 @@ private:
   std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>> &
   getTileChunkSizePerQuality();
 
-  std::map<float, std::vector<std::string>> orderTilesByMaxUtility(
-      std::map<std::string, std::vector<float>> utilityMatrix,
+  std::map<float, std::vector<std::pair<int, uint16_t>>> orderTilesByMaxUtility(
+      std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
       uint16_t frameIdToRender);
 
   std::vector<std::string> getTilesWithMaxOverallUtility(
-      std::map<std::string, std::vector<float>> utilityMatrix,
-      std::map<float, std::vector<std::string>> sortedUtilityMatrix,
-      uint16_t frameIdToRender, float estimatedBw,
+      std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+      std::map<float, std::vector<std::pair<int, uint16_t>>>
+          sortedTilesByUtility,
+      uint16_t frameIdToRender, float estimatedBw, float base1Time,
       std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
           tileChunkSizes,
       ClientNetworkLayer *clientNetworkLayer);
@@ -80,7 +81,11 @@ private:
    * @return std::pair<std::string, int>, it returns all tiles in one string
    *         along with their total size
    */
-  std::pair<std::string, int> buildBackgroundTilesRequest(
+  std::pair<std::string, int> buildBackgroundUrgentTilesRequest(
+      uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
+      std::map<float, std::vector<uint16_t>> &urgetTiles);
+
+  std::vector<std::pair<std::string, int>> getBackgroundLessUrgentTilesInfo(
       uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
       std::map<float, std::vector<uint16_t>> &urgetTiles);
 };

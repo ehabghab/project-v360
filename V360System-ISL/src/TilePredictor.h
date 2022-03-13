@@ -26,7 +26,18 @@ public:
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
   getPredictedTilesFlareLR();
 
-  std::map<std::string, std::vector<float>>
+  /**
+   * @brief This function calculates the utility for all to-be-recevied tiles in
+   *        the next 2 seconds.
+   *
+   * @param predictedCorr: the predicted user corrdinates using LR.
+   * @param vpResolutions: different viewport corrdinates (classes)
+   * @param numberOfFutureFrames (number of future frames to lookahead (2
+   * seconds unless otherwise.))
+   * @return std::map<std::pair<int, uint16_t>, std::vector<float>>
+   *         <chunkId, tileId>: vecotr<utility if received by frame (vec index)>
+   */
+  std::map<std::pair<int, uint16_t>, std::vector<float>>
   buildUtilityMatrix(std::vector<std::pair<float, float>> &predictedCorr,
                      std::vector<std::pair<int, int>> &vpResolutions,
                      uint8_t numberOfFutureFrames);

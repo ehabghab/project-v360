@@ -562,7 +562,8 @@ TilePredictor::getPredictedTilesFlareLR() {
   return tileClassAllFrames;
 }
 
-std::map<std::string, std::vector<float>> TilePredictor::buildUtilityMatrix(
+std::map<std::pair<int, uint16_t>, std::vector<float>>
+TilePredictor::buildUtilityMatrix(
     std::vector<std::pair<float, float>> &predictedCorr,
     std::vector<std::pair<int, int>> &vpResolutions,
     uint8_t numberOfFutureFrames) {
@@ -573,10 +574,10 @@ std::map<std::string, std::vector<float>> TilePredictor::buildUtilityMatrix(
   uint16_t frameId = frameId_;
 
   // chunkId_TileId: cumlative utility
-  // keep track of what is the frameId for utility at zero.
-  std::map<std::string, std::vector<float>> utilityMatrix;
-  std::vector<float> frameIdVec = {static_cast<float>(frameId - 1)};
-  utilityMatrix.insert(std::make_pair("frameIdAtCol0", frameIdVec));
+  std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix;
+
+  // keep track of what is the frameId for utility at zero (base frame id)
+  utilityMatrix.insert({{-1, -1}, {static_cast<float>(frameId - 1)}});
 
   for (uint8_t idx = 0; idx < numberOfFutureFrames; idx++) { // per frame
     if (frameId >= 1475) {
@@ -607,8 +608,7 @@ std::map<std::string, std::vector<float>> TilePredictor::buildUtilityMatrix(
         }
         // go over all tiles in the set.
         for (auto const &tile : tileSet.second) {
-          std::string key =
-              std::to_string(chunkId) + "_" + std::to_string(tile);
+          std::pair<int, uint16_t> key{chunkId, tile};
           if (utilityMatrix.find(key) == utilityMatrix.end()) {
             std::vector<float> cumlativeTileUtility(
                 25, 0); // lookahead frames is 25.
@@ -617,14 +617,14 @@ std::map<std::string, std::vector<float>> TilePredictor::buildUtilityMatrix(
           utilityMatrix.find(key)->second[idx] += (1 - tileSet.first);
         }
 
+        // sanity check
         if (VLOG_IS_ON(1)) {
-          std::string tileToPrint = "1_30";
+          std::pair<int, uint16_t> tileToPrint{1, 30};
           bool found = false;
 
           std::string vLogTiles;
           for (auto const &tile : tileSet.second) {
-            std::string key =
-                std::to_string(chunkId) + "_" + std::to_string(tile);
+            std::pair<int, uint16_t> key{chunkId, tile};
 
             if (key == tileToPrint) {
               found = true;
@@ -648,14 +648,16 @@ std::map<std::string, std::vector<float>> TilePredictor::buildUtilityMatrix(
     }
   }
 
+  // print all tiles along with their utility.
   if (VLOG_IS_ON(1)) {
 
-    std::string tileToPrint = "1_30";
+    std::pair<int, uint16_t> tileToPrint{1, 30};
     for (auto &tileUtility : utilityMatrix) {
       if (tileUtility.first != tileToPrint) {
         continue;
       }
-      std::string tile = tileUtility.first + ":";
+      std::string tile = std::to_string(tileUtility.first.first) + "_" +
+                         std::to_string(tileUtility.first.second) + ":";
       for (auto const utility : tileUtility.second) {
         tile += std::to_string(utility) + ",  ";
       }

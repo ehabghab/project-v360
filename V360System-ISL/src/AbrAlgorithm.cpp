@@ -278,46 +278,79 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
   }
 }
 
-std::pair<std::string, int> AbrAlgorithm::buildBackgroundTilesRequest(
+std::pair<std::string, int> AbrAlgorithm::buildBackgroundUrgentTilesRequest(
     uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
     std::map<float, std::vector<uint16_t>> &urgetTiles) {
 
   // Objective: get all urgent tiles in lowest quality for the next two seconds
 
   // find the chunk ids correspond to the next two seconds.
-  int chunkId = (((frameIdToRender)-1) / 25);
-  std::vector<int> chunkIds = {chunkId, chunkId + 1};
+  int stChunkId = (((frameIdToRender)-1) / 25);
+  int enChunkId = stChunkId + 1;
   if ((frameIdToRender - 1) % 25 != 0) {
-    chunkIds.push_back(chunkId + 2);
+    enChunkId++;
   }
 
-  std::vector<std::string> tilesReq(chunkIds.size());
+  std::string finalRequest = "";
 
   int size = 0;
-  int idx;
-  for (auto &tileSet : urgetTiles) {
-    if (tileSet.first == 1) {
-      continue;
-    }
-    for (auto &tile : tileSet.second) {
-      for (idx = 0; idx < chunkIds.size(); idx++) {
-        if (!clientNetworkLayer->isReceived(chunkIds[idx] + 1, tile)) {
-          tilesReq[idx] +=
-              std::to_string(chunkIds[idx]) + "_" + std::to_string(tile) + ",";
-          size += tileChunkSizePerQuality_.find(1)
-                      ->second.find(tile)
-                      ->second[chunkIds[idx]];
+  for (auto idx = stChunkId; idx <= enChunkId; idx++) {
+    for (auto &tileSet : urgetTiles) {
+      if (tileSet.first == 1) {
+        continue;
+      }
+      for (auto &tile : tileSet.second) {
+        if (!clientNetworkLayer->isReceived(idx + 1, tile)) {
+          finalRequest +=
+              std::to_string(idx) + "_" + std::to_string(tile) + ",";
+          size +=
+              tileChunkSizePerQuality_.find(1)->second.find(tile)->second[idx];
         }
       }
     }
   }
 
-  std::string finalRequest = "";
-  for (auto &request : tilesReq) {
-    finalRequest += request;
-  }
   std::pair<std::string, int> reqSize = {finalRequest, size};
   return reqSize;
+}
+
+std::vector<std::pair<std::string, int>>
+AbrAlgorithm::getBackgroundLessUrgentTilesInfo(
+    uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
+    std::map<float, std::vector<uint16_t>> &urgetTiles) {
+
+  // Less urgent chunk corresponds to future-seconds 2-4.
+  // So, it starts at sec =  urgent_chunkId + 2
+  int stChunkId = (((frameIdToRender)-1) / 25) + 2;
+  int enChunkId = stChunkId + 2;
+  if ((frameIdToRender - 1) % 25 != 0) {
+    stChunkId++;
+  }
+  // tileId, tile size --> size will be used by tiles scheduler.
+  std::vector<std::pair<std::string, int>> tilesInfo = {
+      std::make_pair("totalSize", 0)};
+
+  int size = 0;
+  for (auto chunkIdx = stChunkId; chunkIdx <= enChunkId; chunkIdx++) {
+    for (auto &tileSet : urgetTiles) {
+      if (tileSet.first == 1) {
+        continue;
+      }
+      for (auto &tile : tileSet.second) {
+        if (!clientNetworkLayer->isReceived(chunkIdx + 1, tile)) {
+          auto tileSize = tileChunkSizePerQuality_.find(1)
+                              ->second.find(tile)
+                              ->second[chunkIdx];
+          std::string tileKey =
+              std::to_string(chunkIdx) + "_" + std::to_string(tile);
+          tilesInfo.push_back(std::make_pair(tileKey, tileSize));
+          tilesInfo[0].second += tileSize;
+        }
+      }
+    }
+  }
+
+  return tilesInfo;
 }
 
 void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
@@ -344,11 +377,28 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
     tilePredictor->getPredictedCorr(predictedCorr);
     auto frameIdToRender = videoPlayer->getFrameToRenderId();
 
+    float predictedBw =
+        (bandwidthPredictor->getMpcBandwidthPrediction()); // Bytes Per Second
+
     // generate a list of all required background tiles.
     std::map<float, std::vector<uint16_t>> urgentTiles;
     tilePredictor->getUrgetTilesList(urgentTiles, predictedCorr);
-    auto urgentTileRequestAndSize = abrAlgorithm->buildBackgroundTilesRequest(
+    auto urgentTileRequestAndSize =
+        abrAlgorithm->buildBackgroundUrgentTilesRequest(
+            frameIdToRender, clientNetworkLayer, urgentTiles);
+
+    auto lessUrgentBGTilesInfo = abrAlgorithm->getBackgroundLessUrgentTilesInfo(
         frameIdToRender, clientNetworkLayer, urgentTiles);
+    std::cout << lessUrgentBGTilesInfo[0].first << ":"
+              << lessUrgentBGTilesInfo[0].second << "\n";
+
+    float baseTime =
+        predictedBw == 0 ? 0 : (urgentTileRequestAndSize.second * 1e3) /
+                                   predictedBw; // in MS
+
+    /*if (predictedBw != 0) {
+      std::cout << (urgentTileRequestAndSize.second / predictedBw) << std::endl;
+    }*/
 
     // generate the utility matrix for predicted-to-render tiles in the next 25
     // frames (1sec).
@@ -359,23 +409,17 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
     auto orderedUtilityMatrix =
         abrAlgorithm->orderTilesByMaxUtility(utilityMatrix, frameIdToRender);
 
-    float predictedBw =
-        (bandwidthPredictor->getMpcBandwidthPrediction() * 1e6) /
-        8.0; // Bytes Per Second
-
     // pick tiles that would acheive the highest overall maximum utility.
     auto request = abrAlgorithm->getTilesWithMaxOverallUtility(
         utilityMatrix, orderedUtilityMatrix, frameIdToRender,
-        predictedBw == 0 ? 2.5 * 1e6 : predictedBw, tileChunkSizePerQuality,
+        predictedBw == 0 ? 2.5 * 1e6 : predictedBw, 0, tileChunkSizePerQuality,
         clientNetworkLayer);
 
-    /*std::cout << std::to_string(frameIdToRender) << "----"
-              << urgentTileRequestAndSize.second << std::endl;
-    std::cout << urgentTileRequestAndSize.first << std::endl;*/
-    std::string req = "Tiles\n" + urgentTileRequestAndSize.first;
-    /*for (auto const &tile : request) {
+    std::string req = "Tiles\n"; //+ urgentTileRequestAndSize.first;
+    for (auto const &tile : request) {
       req += tile + ",";
-    }*/
+    }
+
     req.pop_back();
     req += "\nQuality\n" + std::to_string(0);
     clientNetworkLayer->setRequest(req);
@@ -385,14 +429,16 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
   }
 }
 
-std::map<float, std::vector<std::string>> AbrAlgorithm::orderTilesByMaxUtility(
-    std::map<std::string, std::vector<float>> utilityMatrix,
+std::map<float, std::vector<std::pair<int, uint16_t>>>
+AbrAlgorithm::orderTilesByMaxUtility(
+    std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
     uint16_t frameIdToRender) {
-  float frameIdSt = utilityMatrix.find("frameIdAtCol0")->second[0];
+  // base frame id.
+  float frameIdSt = utilityMatrix.find({-1, -1})->second[0];
 
-  std::map<float, std::vector<std::string>> sortedUtilityMatrix;
+  std::map<float, std::vector<std::pair<int, uint16_t>>> sortedUtilityMatrix;
   for (auto const tileChunk : utilityMatrix) {
-    if (tileChunk.first == "frameIdAtCol0") {
+    if (tileChunk.first.first == -1) { // base frame id.
       continue;
     }
     // 50 = number of frames in the future (25) * number of classes (2)
@@ -403,16 +449,19 @@ std::map<float, std::vector<std::string>> AbrAlgorithm::orderTilesByMaxUtility(
       maxUtility -= tileChunk.second[frameIdToRender - frameIdSt];
     }
     if (sortedUtilityMatrix.find(maxUtility) == sortedUtilityMatrix.end()) {
-      std::vector<std::string> tileChunks;
+      std::vector<std::pair<int, uint16_t>> tileChunks;
       sortedUtilityMatrix.insert(std::make_pair(maxUtility, tileChunks));
     }
     sortedUtilityMatrix.find(maxUtility)->second.push_back(tileChunk.first);
   }
+
+  // debug log, print utility matrix before and after sorting.
   if (VLOG_IS_ON(1)) {
     LOG(INFO) << "=== Utility Matrix [" << frameIdSt << "]===";
 
     for (auto const tileChunk : utilityMatrix) {
-      std::string p = tileChunk.first + ":";
+      std::string p = std::to_string(tileChunk.first.first) + "_" +
+                      std::to_string(tileChunk.first.second) + ":";
       for (auto const utility : tileChunk.second) {
         p += std::to_string(utility) + ",";
       }
@@ -423,7 +472,8 @@ std::map<float, std::vector<std::string>> AbrAlgorithm::orderTilesByMaxUtility(
     for (auto const utilityChunks : sortedUtilityMatrix) {
       std::string p = std::to_string(50 - utilityChunks.first) + ":";
       for (auto const tile : utilityChunks.second) {
-        p += tile + ",";
+        p += std::to_string(tile.first) + "_" + std::to_string(tile.second) +
+             ",";
       }
       p.pop_back();
       LOG(INFO) << p;
@@ -433,9 +483,9 @@ std::map<float, std::vector<std::string>> AbrAlgorithm::orderTilesByMaxUtility(
 }
 
 std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
-    std::map<std::string, std::vector<float>> utilityMatrix,
-    std::map<float, std::vector<std::string>> sortedUtilityMatrix,
-    uint16_t frameIdToRender, float estimatedBw,
+    std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+    std::map<float, std::vector<std::pair<int, uint16_t>>> sortedTilesByUtility,
+    uint16_t frameIdToRender, float estimatedBw, float baseTime,
     std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>> tileChunkSizes,
     ClientNetworkLayer *clientNetworkLayer) {
   // std::cout << "BW: " << estimatedBw * 8 / 1e6 << std::endl;
@@ -443,20 +493,21 @@ std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
   /*
   case 1: simple 5 tiles, all same utility.
   utilityMatrix = {
-      {"0_102", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+      {{0,102}, {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
                  28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
-      {"0_103", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+      {{0,103}, {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
                  28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
-      {"0_42", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+      {{0,42}, {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
                 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
-      {"0_43", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+      {{0,43}, {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
                 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}},
-      {"0_44", {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
+      {{0,44}, {2,  4,  6,  8,  10, 12, 14, 16, 18, 20, 22, 24, 26,
                 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50}}};
 
-  sortedUtilityMatrix = {{0, {"0_102", "0_103", "0_42", "0_43", "0_44"}}};
+  sortedUtilityMatrix = {{0, {{0,102}, {0,103},{0,42}, {0,43}, {0,44}}}};
   */
 
+  // ToDo: create a test unit for this function.
   /*
   case 2: 5 tiles, 42 has higher utilization but later deadline in compare to
   43.
@@ -496,7 +547,7 @@ std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
   // all times in this function are in ms.
   struct tileNode {
     // tileChunk_tileId
-    std::string tile;
+    std::pair<int, uint16_t> tile;
     // expected time to recv tile.
     float EstArrivalTime;
     // expected time to transmit tile.
@@ -519,27 +570,25 @@ std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
   if (frameIdToRender != 1) {
     curTime += Util::getTimePassedSinceLastFrame();
   }
-
-  // Utility at column 0 corresponds to which frame.
-  int frameIdSt = utilityMatrix.find("frameIdAtCol0")->second[0];
+  curTime += baseTime;
+  // base frame id.
+  int frameIdSt = utilityMatrix.find({-1, -1})->second[0];
 
   // We start by choosing the lowest quality.
   // This would maximize the number of tiles we can get.
 
   // Tiles with highest priority first.
   // utilityTilesPair<utility, set of tiles with this utility>
-  for (auto const &utilityTilesPair : sortedUtilityMatrix) {
+  for (auto const &utilityTilesPair : sortedTilesByUtility) {
     for (auto const tile : utilityTilesPair.second) {
-      // chunk Id _ tile Id
-      std::size_t pos = tile.find("_");
-      uint16_t tileId = static_cast<uint16_t>(std::stoi(tile.substr(pos + 1)));
-      int chunkId = std::stoi(tile.substr(0, pos));
+      uint16_t tileId = tile.second;
+      int chunkId = tile.first;
       if (clientNetworkLayer->isReceived(chunkId + 1, tileId)) {
         continue;
       }
       // estimated time to download the tile chunk in lowest quality possible.
       float estDownloadTime =
-          1e3 * (tileChunkSizes.find(2)->second.find(tileId)->second[chunkId] /
+          1e3 * (tileChunkSizes.find(1)->second.find(tileId)->second[chunkId] /
                  estimatedBw); //
 
       // estimated arrival time of the tile.
@@ -558,7 +607,7 @@ std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
       overallUtility += actualUtility;
 
       // this the first tile to add (highest priority/utility)
-      if (tailTile->tile == "") {
+      if (tailTile->tile.first == 0 && tailTile->tile.second == 0) {
 
         // This should rarely happen.
         if (arrvFrameId > 25) {
@@ -686,7 +735,8 @@ std::vector<std::string> AbrAlgorithm::getTilesWithMaxOverallUtility(
 
   std::vector<std::string> tilesToRequest;
   while (headTile != nullptr) {
-    tilesToRequest.push_back(headTile->tile);
+    tilesToRequest.push_back(std::to_string(headTile->tile.first) + "_" +
+                             std::to_string(headTile->tile.second));
     headTile = headTile->nextTile;
   }
   return tilesToRequest;
