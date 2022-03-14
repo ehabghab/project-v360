@@ -23,6 +23,9 @@ class VideoPlayer {
 
     // chunk size in bytes
     uint32_t chunkSize;
+
+    // chunk quality 1==lowest
+    uint8_t qualityIdx;
   };
 
   // linked list to order the tiles in stitched frame.
@@ -48,7 +51,8 @@ class VideoPlayer {
   std::vector<std::pair<float, float>> groundTruthCoordinates_;
 
   // per presentation time "chunk", per tile-index, the decode tile-frames.
-  std::map<uint32_t, std::map<uint16_t, std::vector<uint8_t *>>>
+  std::map<uint32_t,
+           std::map<uint16_t, std::pair<std::vector<uint8_t *>, uint8_t>>>
       decodedTileChunks_;
 
   template <typename T>
@@ -78,7 +82,7 @@ public:
               std::string vpCorrPerFrameTracePath);
 
   void addChunk(uint8_t *chunkPointer, uint32_t chunkSize,
-                uint32_t tileChunkIdx, uint16_t tileIdx);
+                uint32_t tileChunkIdx, uint16_t tileIdx, uint8_t quality);
 
   uint32_t getFrameToRenderId();
 

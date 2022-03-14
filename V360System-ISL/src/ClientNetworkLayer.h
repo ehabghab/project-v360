@@ -32,9 +32,8 @@ class ClientNetworkLayer {
 
   int socket_;
 
-  std::unordered_set<std::pair<int, uint16_t>,
-                     boost::hash<std::pair<int, uint16_t>>>
-      receivedTileChunks_;
+  // chunkidx, tileidx --> quality.
+  std::map<std::pair<int, uint16_t>, uint8_t> receivedTileChunks_;
 
   int connectToServer(std::string serverIp);
 
@@ -52,7 +51,15 @@ public:
   void static receiver(ClientNetworkLayer *client, VideoPlayer *videoPlayer,
                        BandwidthPredictor *bandwidthPredictor);
 
-  bool isReceived(int chunkId, uint16_t tileId);
+  /**
+   * @brief This function returns the qualtiy of received tiles
+   *
+   * @param chunkId
+   * @param tileId
+   * @return int: returns the quauliy of tile(1 == lowest quality),
+   *                  otherwise -1.
+   */
+  int isReceived(int chunkId, uint16_t tileId);
 
   void setRequest(std::string requestList);
 

@@ -229,13 +229,13 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
       // tileInfo-->first(chunk id)/second(tile id)
 
       auto tileInfo = extractTileInfo(respHeader["Tile-Index"]);
-      // LOG(INFO) << "Tile
-      // received["<<tileInfo.first<<"-"<<tileInfo.second<<"]";
+
+      auto tileQuality = stoi(respHeader["Tile-Quality"]);
+
       client->receivedTileChunks_.insert(
-          std::make_pair(tileInfo.first, tileInfo.second));
-      // std::cout << std::to_string(tileInfo.first) << ":"
-      //          << std::to_string(tileInfo.second) << "received!\n";
-      videoPlayer->addChunk(chunk, chunkSize, tileInfo.first, tileInfo.second);
+          {{tileInfo.first, tileInfo.second}, tileQuality});
+      videoPlayer->addChunk(chunk, chunkSize, tileInfo.first, tileInfo.second,
+                            tileQuality);
       bandwidth =
           ((chunkSize * 8.0) / 1e6) / ((etime - stime) / 1000.0); // mbps
 
@@ -303,12 +303,12 @@ std::string ClientNetworkLayer::getRequest() {
   return request;
 }
 
-bool ClientNetworkLayer::isReceived(int chunkId, uint16_t tileId) {
-  if (receivedTileChunks_.find(std::make_pair(chunkId, tileId)) ==
+int ClientNetworkLayer::isReceived(int chunkId, uint16_t tileId) {
+  if (receivedTileChunks_.find({chunkId, tileId}) ==
       receivedTileChunks_.end()) {
-    return false;
+    return -1;
   }
-  return true;
+  return receivedTileChunks_.find({chunkId, tileId})->second;
 }
 
 ClientNetworkLayer::~ClientNetworkLayer() {

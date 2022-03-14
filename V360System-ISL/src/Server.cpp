@@ -156,8 +156,7 @@ void Server::reciever(Server *server, uint8_t socket) {
           LOG(INFO) << "Flare";
           tiles = server->parseFlareRequestIntoTiles(requestsVecTemp[idx]);
         }
-        auto quality = server->parseRequestIntoQuality(requestsVecTemp[idx]);
-        server->addTileList(tiles, quality);
+        server->addTileList(tiles);
       }
     }
     // TODO check http version
@@ -220,12 +219,11 @@ void Server::sender(Server *server, uint8_t socket) {
   uint8_t *buffer;
 
   // quality, tile chunks (chunkId, tileId) vector ordered by priority to send.
-  std::pair<uint8_t, std::vector<std::string>> tileLists;
+  std::vector<std::string> tileLists;
   // we use tile index to keep track which tile from the list to send next.
   uint32_t tileIdx;
   // Tile Info contains chunkId, setId, and tileId
   std::vector<std::string> tileInfo;
-  std::string q = "";
   // to avoid head of line blocking we keep monitor our sending buffer size,
   // only start send packet/chunk when there is no data pending in buffer.
   long pendingData;
@@ -233,79 +231,60 @@ void Server::sender(Server *server, uint8_t socket) {
     auto tileListsTemp = server->getTileList();
 
     // if new tile list received update current one.
-    if (tileListsTemp.second.size() != 0) {
+    if (tileListsTemp.size() != 0) {
       // LOG(INFO)<<"New list received";
       tileLists = tileListsTemp;
       tileIdx = 0;
     }
 
-    if (std::to_string(tileLists.first) != q) {
-      q = std::to_string(tileLists.first);
-    }
     // if tile list is empty then skip or all tiles have been sent.
-    if (tileLists.second.size() == 0 || tileIdx >= tileLists.second.size()) {
+    if (tileLists.size() == 0 || tileIdx >= tileLists.size()) {
       continue;
     }
 
     // find a non duplicate tile to send.
-    for (; tileIdx < tileLists.second.size(); tileIdx++) {
-      LOG(INFO) << tileIdx << ":" << tileLists.second.size() << " = "
-                << tileLists.second[tileIdx];
-      boost::algorithm::split_regex(tileInfo, tileLists.second[tileIdx],
+    int chunkId = -1;
+    for (; tileIdx < tileLists.size(); tileIdx++) {
+      LOG(INFO) << tileIdx << ":" << tileLists.size() << " = "
+                << tileLists[tileIdx];
+      boost::algorithm::split_regex(tileInfo, tileLists[tileIdx],
                                     boost::regex("_"));
       try {
-        auto chunkId = ((stoi(tileInfo[0]) - 1) / 25) + 1;
-        auto tileId = static_cast<uint16_t>(stoi(tileInfo[2]));
+        chunkId = stoi(tileInfo[0]) + 1;
+        // tileId = stoi(tileInfo[1]);
+        // quality = stoi(tileInfo[2]);
         // check if the tile has already been sent or not.
-        if (server->tilesSent_.find(std::make_pair(chunkId, tileId)) ==
+        if (server->tilesSent_.find(tileLists[tileIdx]) ==
             server->tilesSent_.end()) {
-          // LOG(INFO) << tileIdx << ":" << tileLists.second.size() << " = "
-          //<< tileLists.second[tileIdx];
           // mark as sent since we are going to send it.
-          server->tilesSent_.insert(std::make_pair(chunkId, tileId));
+          server->tilesSent_.insert(tileLists[tileIdx]);
           break;
         }
       } catch (std::invalid_argument &e) {
         LOG(ERROR) << "Error: failed to extract tileInfo:\n"
                    << tileInfo[0] << ":" << tileInfo[2] << "-->"
-                   << tileLists.second[tileIdx] << std::endl;
+                   << tileLists[tileIdx] << std::endl;
       }
     }
 
     // all tiles have been sent.
-    if (tileIdx >= tileLists.second.size()) {
+    if (tileIdx >= tileLists.size()) {
       continue;
     }
     // advance tile Index to next tile in the list.
     tileIdx++;
-    // build tile path based on quality per set.
-    // for path start with quality 1:low, 2: high.
-    std::string qualityPathIdx;
-    // quality tileLists.first;
-    // sets.
 
-    // 0:LL, 1:HL, 2:HH
-    if (tileLists.first == 0) { // LL
-      qualityPathIdx = "1";
-    } else if (tileLists.first == 1) { // HL
-      if (tileInfo[1] == "0") {        // Set 0: viewport set
-        qualityPathIdx = "2";
-      } else { // Set 1: viewport edge set
-        qualityPathIdx = "1";
-      }
-    } else { // HH
-      qualityPathIdx = "2";
-    }
-    std::string chunkId = std::to_string(((stoi(tileInfo[0]) - 1) / 25) + 1);
     // quality/tileId/chunkId
-    std::string tilePath = server->videoRootDir_ + "/" + qualityPathIdx + "/" +
-                           tileInfo[2] + "/" + chunkId + ".h264";
+    std::string tilePath = server->videoRootDir_ + "/" + tileInfo[2] + "/" +
+                           tileInfo[1] + "/" + std::to_string(chunkId) +
+                           ".h264";
     char *filePath = new char[tilePath.length() + 1];
     strcpy(filePath, tilePath.c_str());
     FILE *p_file = NULL;
     p_file = fopen(filePath, "r");
     if (!p_file) {
-      LOG(ERROR) << "Server::sender(): chunk file not found!" << std::endl;
+      LOG(ERROR) << "Server::sender(): chunk file not found (" << filePath
+                 << ")\n";
       // ToDo check error code.
       // send to user 404 or other error status.
       continue;
@@ -333,7 +312,7 @@ void Server::sender(Server *server, uint8_t socket) {
     // send header
     std::string header(server->getResponseHeader(
         "1.1", "200 OK", "Bytes", fileSize, "video/m4s",
-        chunkId + "_" + tileInfo[2], qualityPathIdx));
+        std::to_string(chunkId) + "_" + tileInfo[1], tileInfo[2]));
     VLOG(1) << "\n" << header << "-------";
 
     ioctl(socket, SIOCOUTQ, &pendingData);
@@ -421,9 +400,7 @@ Server::parseUtilityRequestIntoTiles(std::string request) {
     if (tile == "" || tile == "Quality") {
       continue;
     }
-    std::size_t pos = tile.find('_');
-    int frameId = (stoi(tile.substr(0, pos)) * 25) + 1;
-    tiles.push_back(std::to_string(frameId) + "_0_" + tile.substr(pos + 1));
+    tiles.push_back(tile);
     // std::cout<<tile<<"-->"<<std::to_string(chunkId)
     // +"_0_"+tile.substr(pos+1)<<std::endl;
   }
@@ -445,17 +422,17 @@ uint8_t Server::parseRequestIntoQuality(std::string request) {
   }
 }
 
-void Server::addTileList(std::vector<std::string> tiles, uint8_t quality) {
+void Server::addTileList(std::vector<std::string> tiles) {
   reqMutex_.lock();
-  request_ = std::make_pair(quality, tiles);
+  request_ = tiles;
   reqMutex_.unlock();
 }
 
-std::pair<uint8_t, std::vector<std::string>> Server::getTileList() {
-  std::pair<uint8_t, std::vector<std::string>> requestToReturn;
+std::vector<std::string> Server::getTileList() {
+  std::vector<std::string> requestToReturn;
   reqMutex_.lock();
   requestToReturn = request_;
-  request_.second = {};
+  request_ = {};
   reqMutex_.unlock();
   return requestToReturn;
 }

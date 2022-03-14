@@ -74,10 +74,10 @@ VideoPlayer::VideoPlayer(std::string tilesPerFrameTracePath,
 }
 
 void VideoPlayer::addChunk(uint8_t *chunkPointer, uint32_t chunkSize,
-                           uint32_t tileChunkIdx, uint16_t tileIdx) {
+                           uint32_t tileChunkIdx, uint16_t tileIdx,
+                           uint8_t qualityIdx) {
   // We take 4 bytes to exclude the "\r\n\r\n" out of chunk bytes.
-  Chunk chunk = {chunkPointer, chunkSize - 4};
-
+  Chunk chunk = {chunkPointer, chunkSize - 4, qualityIdx};
   // comment to turn off decoder.
   auto pair = chunks_.find(tileChunkIdx);
   if (pair != chunks_.end()) {
@@ -141,16 +141,43 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
                                       rawTileFrames);
           /*std::cout << "Total Decoding :" << Util::getTime() - decodeStart
                     << "\n";*/
-
+          /*std::cout << "Decoded:" << idx << "_"
+                    << std::to_string(tileInfo->first) << "_"
+                    << std::to_string(tileInfo->second.qualityIdx) <<
+             std::endl;*/
           // insert to decodedTileChunks_
+
+          auto tileQuality = tileInfo->second.qualityIdx;
+
           videoPlayer->decodedTileChunksMutex_.lock();
           if (videoPlayer->decodedTileChunks_.find(chunks->first) !=
               videoPlayer->decodedTileChunks_.end()) {
-            videoPlayer->decodedTileChunks_.find(chunks->first)
-                ->second.insert(std::make_pair(tileInfo->first, rawTileFrames));
+
+            auto &chunkTilesInfo =
+                videoPlayer->decodedTileChunks_.find(chunks->first)->second;
+            // tile already recieved in bg quality.
+            // so update it.
+            if (chunkTilesInfo.find(tileInfo->first) != chunkTilesInfo.end()) {
+              chunkTilesInfo.find(tileInfo->first)->second = {rawTileFrames,
+                                                              tileQuality};
+              /*std::cout << "Qupdate:" << std::to_string(chunks->first) << "_"
+                        << std::to_string(tileInfo->first) << "_"
+                        << std::to_string(tileQuality) << "\n";*/
+            } else {
+              // first time tile is received.
+              videoPlayer->decodedTileChunks_.find(chunks->first)
+                  ->second.insert(
+                      {tileInfo->first, {rawTileFrames, tileQuality}});
+            }
+            /*std::cout << std::to_string(videoPlayer->decodedTileChunks_
+                                            .find(chunks->first)
+                                            ->second.find(tileInfo->first)
+                                            ->second.second)
+                      << std::endl;*/
+
           } else {
-            std::map<uint16_t, std::vector<uint8_t *>> temp;
-            temp.insert(std::make_pair(tileInfo->first, rawTileFrames));
+            std::map<uint16_t, std::pair<std::vector<uint8_t *>, uint8_t>> temp;
+            temp.insert({tileInfo->first, {rawTileFrames, tileQuality}});
 
             videoPlayer->decodedTileChunks_.insert(
                 std::make_pair(chunks->first, temp));
@@ -187,8 +214,8 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
   FILE *playLog;
   std::string filename = "play_log_" + Util::getLogTimestamp() + ".txt";
   playLog = fopen(filename.c_str(), "wb");
-  fprintf(playLog, "%-20s %-20s %-20s %-20s\n", "frame id", "deadline",
-          "render time", "skipped tiles");
+  fprintf(playLog, "%-20s %-20s %-20s %-20s %10s\n", "frame id", "deadline",
+          "render time", "skipped tiles", "tiles_quality");
   // list of all tiles we had to skip for the current frame.
   std::string skippedTiles;
   // For the first frame in the video, we don't skip any tiles (allow join time)
@@ -202,6 +229,10 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
 
   // if the needed tile has not been received, the skip it.
   bool haveReceivedTile;
+
+  // this will log all tiles along with their quality (tileIdx_tileQuality),
+  // separated by a comma.
+  std::string tilesQuality;
 
   while (true) {
     long frameDeadline = Util::getTime();
@@ -217,6 +248,8 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
       LOG(INFO) << "No more frames to play!";
       break;
     }
+
+    tilesQuality = "";
 
     skippedTiles = "";
     // for each tile.
@@ -265,9 +298,12 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
 
         // if the tile-frame received, then add it to viewport.
         if (!skipTile && rawTilesChunks.find(tileIdx) != rawTilesChunks.end()) {
+          auto &framePtrQualityPair = rawTilesChunks.find(tileIdx)->second;
           auto &frame =
-              rawTilesChunks.find(tileIdx)
-                  ->second[(videoPlayer->frameId_ - 1) % videoPlayer->FPS_];
+              framePtrQualityPair
+                  .first[(videoPlayer->frameId_ - 1) % videoPlayer->FPS_];
+          tilesQuality += std::to_string(tileIdx) + "_" +
+                          std::to_string(framePtrQualityPair.second) + ",";
           viewport.insert(std::make_pair(tileIdx, frame));
         }
       }
@@ -285,10 +321,11 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
     // stichFrames.
     renderTime = Util::getTime();
     skippedTiles.pop_back();
-    fprintf(playLog, "%-20s %-20s %-20s %-20s\n",
+    fprintf(playLog, "%-20s %-20s %-20s %-20s %10s\n",
             std::to_string(videoPlayer->frameId_).c_str(),
             std::to_string(frameDeadline).c_str(),
-            std::to_string(renderTime).c_str(), skippedTiles.c_str());
+            std::to_string(renderTime).c_str(), skippedTiles.c_str(),
+            tilesQuality.c_str());
 
     fflush(playLog);
     videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_);
@@ -296,10 +333,10 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
     if (videoPlayer->frameId_ % videoPlayer->FPS_ == 0) {
       if (videoPlayer->decodedTileChunks_.find(playSecond) !=
           videoPlayer->decodedTileChunks_.end()) {
-        for (auto &pair :
+        for (auto &tileInfo :
              videoPlayer->decodedTileChunks_.find(playSecond)->second) {
-          for (auto &pointer : pair.second) {
-            free(pointer);
+          for (auto &tileRawFramePtr : tileInfo.second.first) {
+            free(tileRawFramePtr);
           }
         }
       }

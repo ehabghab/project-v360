@@ -60,7 +60,7 @@ private:
       std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
       uint16_t frameIdToRender);
 
-  std::vector<std::string> getTilesWithMaxOverallUtility(
+  std::vector<std::pair<int, uint16_t>> getTilesWithMaxOverallUtility(
       std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
       std::map<float, std::vector<std::pair<int, uint16_t>>>
           sortedTilesByUtility,

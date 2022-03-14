@@ -20,15 +20,13 @@
 class Server {
   std::string videoRootDir_;
 
-  std::pair<uint8_t, std::vector<std::string>> request_;
+  std::vector<std::string> request_;
 
   std::mutex reqMutex_;
 
   // this is a hashset for tiles already sent,
   // used to avoid sending duplicate tiles.
-  std::unordered_set<std::pair<int, uint16_t>,
-                     boost::hash<std::pair<int, uint16_t>>>
-      tilesSent_;
+  std::unordered_set<std::string, boost::hash<std::string>> tilesSent_;
 
   uint8_t initializeSocket();
 
@@ -54,9 +52,9 @@ class Server {
   // retrun the quality from request.
   uint8_t parseRequestIntoQuality(std::string request);
 
-  void addTileList(std::vector<std::string> tiles, uint8_t quality);
+  void addTileList(std::vector<std::string> tiles);
 
-  std::pair<uint8_t, std::vector<std::string>> getTileList();
+  std::vector<std::string> getTileList();
 
 public:
   Server();
