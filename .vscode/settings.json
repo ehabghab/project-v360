@@ -1,4 +1,6 @@
 {
+    "editor.formatOnSave": true,
+    "clang-format.executable": "/usr/bin/clang-format",
     "cmake.configureOnOpen": false,
     "files.associations": {
         "*.tcc": "cpp",
