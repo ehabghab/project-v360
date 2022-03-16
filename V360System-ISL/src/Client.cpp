@@ -17,6 +17,7 @@
 #include "Decoder.h"
 #include "VideoPlayer.h"
 DEFINE_bool(utilityAbr, true, "true : utility, false : flare");
+DEFINE_bool(skipModel, true, "true : skip model, false : rebuffer model");
 
 Client::Client(std::string tilesPerFrameTracePath,
                std::string vpCorrPerFrameTracePath,
@@ -42,7 +43,17 @@ Client::Client(std::string tilesPerFrameTracePath,
   std::thread recvThread(ClientNetworkLayer::receiver, clientNetworkLayer,
                          videoPlayer, bandwidthPredictor);
 
-  std::thread videoPlayerThread(VideoPlayer::start, videoPlayer, tilePredictor);
+  std::thread videoPlayerThread;
+  if (FLAGS_skipModel) {
+    videoPlayerThread = std::thread(VideoPlayer::startVideoWithSkip,
+                                    videoPlayer, tilePredictor);
+  } else if (!FLAGS_skipModel && !FLAGS_utilityAbr) {
+    videoPlayerThread = std::thread(VideoPlayer::startVideoWithRebuffer,
+                                    videoPlayer, tilePredictor);
+  } else {
+    LOG(ERROR) << "Utility ABR does not support rebuffering.";
+    return;
+  }
 
   std::thread videoPlayerDecoderThread(VideoPlayer::decode, videoPlayer,
                                        decoder);

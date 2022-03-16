@@ -74,7 +74,11 @@ class VideoPlayer {
   void freeSkipTileMapCurrentFrame();
 
 public:
-  static void start(VideoPlayer *videoPlayer, TilePredictor *tilePredictor);
+  static void startVideoWithRebuffer(VideoPlayer *videoPlayer,
+                                     TilePredictor *tilePredictor);
+
+  static void startVideoWithSkip(VideoPlayer *videoPlayer,
+                                 TilePredictor *tilePredictor);
 
   static void decode(VideoPlayer *videoPlayer, Decoder *decoder);
 

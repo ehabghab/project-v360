@@ -201,8 +201,8 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
   }
 }
 
-void VideoPlayer::start(VideoPlayer *videoPlayer,
-                        TilePredictor *tilePredictor) {
+void VideoPlayer::startVideoWithSkip(VideoPlayer *videoPlayer,
+                                     TilePredictor *tilePredictor) {
   long renderTime;
 
   long frameGap = (1000.0 / videoPlayer->FPS_);
@@ -329,7 +329,6 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
 
     fflush(playLog);
     videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_);
-    // free all tile-frames belonging to current frameId
     if (videoPlayer->frameId_ % videoPlayer->FPS_ == 0) {
       if (videoPlayer->decodedTileChunks_.find(playSecond) !=
           videoPlayer->decodedTileChunks_.end()) {
@@ -343,6 +342,124 @@ void VideoPlayer::start(VideoPlayer *videoPlayer,
     }
     Util::setFramePlayTime(renderTime);
     videoPlayer->freeSkipTileMapCurrentFrame();
+    videoPlayer->frameId_++;
+    viewport.clear();
+    if (videoPlayer->frameId_ == 1476) {
+      LOG(INFO) << "Video Ended!";
+      return;
+    }
+    Util::sleep(renderTime, frameGap);
+  }
+}
+
+void VideoPlayer::startVideoWithRebuffer(VideoPlayer *videoPlayer,
+                                         TilePredictor *tilePredictor) {
+  long renderTime;
+
+  long frameGap = (1000.0 / videoPlayer->FPS_);
+
+  uint32_t playSecond;
+  // tileIndex, raw-tile-frame.
+  std::map<uint16_t, uint8_t *> viewport;
+
+  FILE *playLog;
+  std::string filename = "play_log_" + Util::getLogTimestamp() + ".txt";
+  playLog = fopen(filename.c_str(), "wb");
+  fprintf(playLog, "%-20s %-20s %-20s %-20s\n", "frame id", "deadline",
+          "render time", "tiles_quality");
+
+  std::string tilesQuality;
+  while (true) {
+    long frameDeadline = Util::getTime();
+    tilesQuality = "";
+    // LOG(INFO) << "Playing Frame#" << videoPlayer->frameId_;
+    bool check1 = true;
+    bool check2 = true;
+    tilePredictor->addVpCoordinate(
+        videoPlayer->groundTruthCoordinates_[videoPlayer->frameId_ - 1]);
+
+    // all tiles to present in the current frame.
+    auto tiles = videoPlayer->groundTruth_.find(videoPlayer->frameId_);
+    if (tiles == videoPlayer->groundTruth_.end()) {
+      // no more frames;
+      LOG(INFO) << "No frames";
+      break;
+    }
+
+    // for each tile.
+    for (auto tileIdx : tiles->second) {
+      playSecond = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
+      while (check1) {
+        videoPlayer->decodedTileChunksMutex_.lock();
+        if (videoPlayer->decodedTileChunks_.find(playSecond) !=
+            videoPlayer->decodedTileChunks_.end()) {
+          check1 = false;
+        }
+        videoPlayer->decodedTileChunksMutex_.unlock();
+      }
+      check1 = true;
+      // decoded chunks with frames belong to current presentation time.
+      // this gets all the raw chunks for all tiles at chunk = play-second.
+
+      if (videoPlayer->decodedTileChunks_.find(playSecond) !=
+          videoPlayer->decodedTileChunks_.end()) {
+        auto &rawTilesChunks =
+            videoPlayer->decodedTileChunks_.find(playSecond)->second;
+
+        // get all frames of chunk.
+        while (check2) {
+          videoPlayer->decodedTileChunksMutex_.lock();
+          if (rawTilesChunks.find(tileIdx) != rawTilesChunks.end()) {
+            check2 = false;
+          }
+          videoPlayer->decodedTileChunksMutex_.unlock();
+        }
+        check2 = true;
+
+        if (rawTilesChunks.find(tileIdx) != rawTilesChunks.end()) {
+          auto &framePtrQualityPair = rawTilesChunks.find(tileIdx)->second;
+          auto &frame =
+              framePtrQualityPair
+                  .first[(videoPlayer->frameId_ - 1) % videoPlayer->FPS_];
+
+          viewport.insert(std::make_pair(tileIdx, frame));
+
+          tilesQuality += std::to_string(tileIdx) + "_" +
+                          std::to_string(framePtrQualityPair.second) + ",";
+
+        } else {
+          // tile is missing. or not decoded.
+          VLOG(2) << "MISS:" << rawTilesChunks.find(tileIdx)->first;
+        }
+      } else {
+        // schedule urgent request.
+        // all tiles are needed.
+      }
+    }
+    LOG(INFO) << "Stitching F#" << videoPlayer->frameId_ << "\n====";
+
+    // stichFrames.
+    tilesQuality.pop_back();
+    renderTime = Util::getTime();
+    fprintf(playLog, "%-20s %-20s %-20s %-20s\n",
+            std::to_string(videoPlayer->frameId_).c_str(),
+            std::to_string(frameDeadline).c_str(),
+            std::to_string(renderTime).c_str(), tilesQuality.c_str());
+
+    fflush(playLog);
+    videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_);
+    if (videoPlayer->frameId_ % videoPlayer->FPS_ == 0) {
+      if (videoPlayer->decodedTileChunks_.find(playSecond) !=
+          videoPlayer->decodedTileChunks_.end()) {
+        for (auto &tileInfo :
+             videoPlayer->decodedTileChunks_.find(playSecond)->second) {
+          for (auto &tileRawFramePtr : tileInfo.second.first) {
+            free(tileRawFramePtr);
+          }
+        }
+      }
+    }
+    Util::setFramePlayTime(renderTime);
     videoPlayer->frameId_++;
     viewport.clear();
     if (videoPlayer->frameId_ == 1476) {
