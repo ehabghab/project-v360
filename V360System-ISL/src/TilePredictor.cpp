@@ -458,7 +458,8 @@ TilePredictor::getPredictedTilesFlareLR() {
   // video join time as it only happens at the start of video sessions.
   while (frameId_ == 0)
     ;
-  std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
+  std::vector<std::pair<int, int>> vpResolutions = {
+      {100, 100}}; //, {120, 120}};
 
   std::vector<std::pair<float, float>> predictedCorr;
 

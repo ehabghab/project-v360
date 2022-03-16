@@ -30,8 +30,6 @@
 #include <boost/format.hpp>
 #include <gflags/gflags.h>
 
-DEFINE_bool(utilityAbr, true, "true : utility, false : flare");
-
 Server::Server() {
   videoRootDir_ = "/home/ehab/Desktop/Project-V360/split/YuvW12H12_new";
 
@@ -148,14 +146,7 @@ void Server::reciever(Server *server, uint8_t socket) {
          * Otherwise, add it. read more about boost::algorithm::split_regex:
          * https://www.boost.org/doc/libs/1_51_0/doc/html/boost/algorithm/split_regex.html
          * */
-        std::vector<std::string> tiles;
-        if (FLAGS_utilityAbr) {
-          LOG(INFO) << "Utility";
-          tiles = server->parseUtilityRequestIntoTiles(requestsVecTemp[idx]);
-        } else {
-          LOG(INFO) << "Flare";
-          tiles = server->parseFlareRequestIntoTiles(requestsVecTemp[idx]);
-        }
+        auto tiles = server->parseUtilityRequestIntoTiles(requestsVecTemp[idx]);
         server->addTileList(tiles);
       }
     }
@@ -356,34 +347,6 @@ Server::getResponseHeader(std::string httpVersion, std::string statusCode,
   header << boost::format("Content-Type: %s\r\n") % contentType;
   header << "\r\n";
   return header.str();
-}
-
-std::vector<std::string>
-Server::parseFlareRequestIntoTiles(std::string request) {
-  // LOG(INFO) << "Request_server:" << request;
-  std::vector<std::string> tempVec1;
-  std::vector<std::string> tempVec2;
-  boost::algorithm::split_regex(tempVec1, request, boost::regex("Tiles"));
-
-  boost::algorithm::split_regex(tempVec2, tempVec1[1], boost::regex("Quality"));
-
-  std::vector<std::string> tiles;
-  std::vector<std::string> tileSets;
-  boost::algorithm::split_regex(tileSets, tempVec2[0], boost::regex("\n"));
-  for (auto const &tileSet : tileSets) {
-    if (tileSet == "") {
-      continue;
-    }
-    // get chunk/set Id
-    boost::algorithm::split_regex(tempVec2, tileSet, boost::regex(":"));
-    std::string FrameSetId = tempVec2[0] + "_" + tempVec2[1] + "_";
-    boost::algorithm::split_regex(tempVec1, tempVec2[2], boost::regex(","));
-
-    for (auto const &tileId : tempVec1) {
-      tiles.push_back(FrameSetId + tileId);
-    }
-  }
-  return tiles;
 }
 
 std::vector<std::string>

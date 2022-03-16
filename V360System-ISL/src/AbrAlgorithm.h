@@ -88,6 +88,51 @@ private:
   std::vector<std::pair<std::string, int>> getBackgroundLessUrgentTilesInfo(
       uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
       std::map<float, std::vector<uint16_t>> &urgetTiles);
+
+  /**
+   * @brief This will finds the total size for all tiles in each class (i.e.
+   *        edgeport or viewport) for each quality possible.
+   *        (tile-class,quality) --> size
+   *
+   *
+   * @param frameIdSetQualitySizeSumToReturn: return the size of each class set
+   * per each quality possible.
+   * @param tilesRequestToReturn: tiles to request from each class.
+   * @param tilePredictor: This returns all tiles belong to each class.
+   * @param clientNetworkLayer: This excludes tiles that have already been
+   * received.
+   * @param tileChunkSizePerQuality: This has the size for each tile per
+   * quality.
+   * @param frameIdToRender: The frame that video player will play next.
+   * @param numOfQualities: the number of possible qualities.
+   */
+  void getTileSetSizePerQuality(
+      std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
+          &frameIdSetQualitySizeSumToReturn,
+      std::map<uint8_t, std::vector<std::pair<int, uint16_t>>>
+          &tilesRequestToReturn,
+      TilePredictor *tilePredictor, ClientNetworkLayer *clientNetworkLayer,
+      std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
+          &tileChunkSizePerQuality,
+      uint32_t frameIdToRender, uint8_t numOfQualities);
+
+/**
+ * @brief finds the highest quality assignment per tile class where deadline is met.
+ * 
+ * @param frameIdSetQualitySizeSum 
+ * @param qualitiesAssignments: possible qualities allowed per tile class.
+ * @param frameIdToRender: what frame video player will render next.
+ * @param numOfQualities: number of qualities per tile.
+ * @param predictedBw: predicted bandwidth (avg of past 5 seconds.)
+ * @param baseTime: download time to get all critical tiles.
+ * @return int: highest quality assignment that meets deadline 
+ */
+  int getQualityIdx(
+      std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
+          &frameIdSetQualitySizeSum,
+      std::map<int, std::vector<std::string>> qualitiesAssignments,
+      uint32_t frameIdToRender, uint8_t numOfQualities, float predictedBw,
+      float baseTime);
 };
 
 #endif /* ABRALGORITHM_H_ */
