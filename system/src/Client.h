@@ -15,7 +15,8 @@ class Client {
 public:
   Client(std::string tilesPerFrameTracePath,
          std::string vpCorrPerFrameTracePath,
-         std::string tileChunkSizesTracePath, std::string serverIp);
+         std::string tileChunkSizesTracePath,
+         std::string backgroundDisplacementTrace, std::string serverIp);
   virtual ~Client();
 };
 

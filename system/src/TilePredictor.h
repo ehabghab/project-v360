@@ -58,6 +58,11 @@ public:
 
   void getPredictedCorr(std::vector<std::pair<float, float>> &predictedCorr);
 
+  void
+  getBackgroundTiles(std::map<float, std::vector<uint16_t>> &bgTiles,
+                     std::pair<std::pair<float, float>, std::pair<float, float>>
+                         displacement /* <left,right> <down,up> */);
+
 private:
   struct SquareCoordinates {
     std::pair<float, float> upperLeft;
