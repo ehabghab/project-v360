@@ -11,42 +11,64 @@
 #include <iostream>
 
 BandwidthPredictor::BandwidthPredictor() {
-  numOfChunks_ = 0;
   tileSizesSum_ = 0;
   totalDownloadTimeInMS_ = 0;
-  tilesHistory_ = {};
 }
 
 void BandwidthPredictor::addTileInfo(uint32_t tileSize, int downloadTimeInMS) {
   tileInfoMutex_.lock();
   tileSizesSum_ += tileSize;
   totalDownloadTimeInMS_ += downloadTimeInMS;
-  numOfChunks_ += 0;
   tileInfoMutex_.unlock();
 }
 
 std::pair<uint32_t, int> BandwidthPredictor::getCurrentTilesInfo() {
   tileInfoMutex_.lock();
-  std::pair<uint32_t, int> avgParameters = {tileSizesSum_,
-                                            totalDownloadTimeInMS_};
-  tileSizesSum_ = 0;
-  totalDownloadTimeInMS_ = 0;
+  std::pair<uint32_t, int> avgParameters;
+  // The download time of the data needs to be > 250ms
+  // for high confidence bandwidth calculations.
+  if (totalDownloadTimeInMS_ < 250) {
+    avgParameters = {0, 0};
+  } else {
+    avgParameters = {tileSizesSum_, totalDownloadTimeInMS_};
+    tileSizesSum_ = 0;
+    totalDownloadTimeInMS_ = 0;
+  }
   tileInfoMutex_.unlock();
   return avgParameters;
 }
 
 float BandwidthPredictor::getMpcBandwidthPrediction() {
+  auto trafficInfo = getCurrentTilesInfo();
 
-  // ToDo return mpc avg.
-  tilesHistory_.push_back(getCurrentTilesInfo());
+  if (trafficInfo.second != 0) { // if download time is low, then skip bw calc.
+    bwGroundTruth_.push_back((trafficInfo.first * 1e3) /
+                             (trafficInfo.second * 1.0)); // byte/ms
+  }
+  if (bwPredicted_.size() > 0) {
+    float currError =
+        (bwPredicted_.back() - bwGroundTruth_.back()) / bwGroundTruth_.back();
+    bwError_.push_back(std::abs(currError));
+  }
+  int timeStartIdx =
+      bwGroundTruth_.size() < 50 ? 0 : bwGroundTruth_.size() - 50;
+  float bwSum = 0;
+  int bwCount = bwGroundTruth_.size() - timeStartIdx;
+  for (timeStartIdx; timeStartIdx < bwGroundTruth_.size(); timeStartIdx++) {
+    bwSum += (1 / bwGroundTruth_[timeStartIdx]);
+  }
+  float harmonicBw = 1 / (bwSum / bwCount);
 
-  int timeStartIdx = tilesHistory_.size() < 50 ? 0 : tilesHistory_.size() - 50;
-  long totalTimeMS = 0;
-  uint64_t totalNumOfChunks = 0;
-  for (timeStartIdx; timeStartIdx < tilesHistory_.size(); timeStartIdx++) {
-    totalNumOfChunks += tilesHistory_[timeStartIdx].first;
-    totalTimeMS += tilesHistory_[timeStartIdx].second;
+  float maxError = 0;
+  timeStartIdx = bwError_.size() < 10 ? 0 : bwError_.size() - 10;
+  for (timeStartIdx; timeStartIdx < bwError_.size(); timeStartIdx++) {
+    maxError = std::max(maxError, bwError_[timeStartIdx]);
+  }
+  auto futureBw = harmonicBw / (1 + maxError);
+  futureBw = std::isnan(futureBw) ? 0 : futureBw;
+  if (futureBw != 0) {
+    bwPredicted_.push_back(harmonicBw);
   }
   // Bytes / MS
-  return totalTimeMS == 0 ? 0 : totalNumOfChunks * 1e3 / totalTimeMS;
+  return futureBw == 0 ? 0 : futureBw;
 }

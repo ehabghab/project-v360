@@ -19,12 +19,14 @@ class BandwidthPredictor {
   // tiles within the same second will have their own sum/avg.
 
   // keep track of the bandwidth for the latest download tiles.
-  int numOfChunks_;
   uint32_t tileSizesSum_;
   int totalDownloadTimeInMS_;
-  std::vector<std::pair<uint32_t, int>> tilesHistory_;
   std::pair<uint32_t, int> getCurrentTilesInfo();
   std::mutex tileInfoMutex_;
+
+  std::vector<float> bwGroundTruth_;
+  std::vector<float> bwPredicted_;
+  std::vector<float> bwError_;
 
 public:
   BandwidthPredictor();
