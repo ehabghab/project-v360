@@ -43,7 +43,7 @@ float BandwidthPredictor::getMpcBandwidthPrediction() {
 
   if (trafficInfo.second != 0) { // if download time is low, then skip bw calc.
     bwGroundTruth_.push_back((trafficInfo.first * 1e3) /
-                             (trafficInfo.second * 1.0)); // byte/ms
+                             (trafficInfo.second * 1.0)); // byte/sec
   }
   if (bwPredicted_.size() > 0) {
     float currError =
