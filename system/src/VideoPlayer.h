@@ -12,6 +12,7 @@
 #include <map>
 #include <mutex>
 #include <unordered_set>
+#include <vector>
 
 #include "Decoder.h"
 #include "TilePredictor.h"
@@ -72,6 +73,13 @@ class VideoPlayer {
   bool skipThisTile(uint16_t tileId);
 
   void freeSkipTileMapCurrentFrame();
+
+  std::vector<uint16_t> getTiles(TilePredictor *tilePredictor,
+                                 std::pair<float, float> vpCorr);
+
+  std::pair<float, float> getVpCorrInRealTime();
+
+  std::ifstream userVpCorr;
 
 public:
   static void startVideoWithRebuffer(VideoPlayer *videoPlayer,

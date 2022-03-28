@@ -31,7 +31,7 @@
 #include <gflags/gflags.h>
 
 Server::Server() {
-  videoRootDir_ = "/home/ehab/Desktop/Project-V360/split/YuvW12H12";
+  videoRootDir_ = "/home/ehab/Desktop/Project-V360/split/YuvW12H12_new";
 
   /// Users/eghabash/Desktop/System-github/Project-V360/
 

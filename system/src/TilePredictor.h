@@ -58,6 +58,16 @@ public:
 
   void getPredictedCorr(std::vector<std::pair<float, float>> &predictedCorr);
 
+  void
+  getBackgroundTiles(std::map<float, std::vector<uint16_t>> &bgTiles,
+                     std::pair<std::pair<float, float>, std::pair<float, float>>
+                         displacement /* <left,right> <down,up> */);
+
+  void
+  sortTileSetByArea(std::map<float, std::vector<uint16_t>> &tileRanksByArea,
+                    std::pair<float, float> &viewportCenter,
+                    std::pair<int, int> &viewportResolution);
+
 private:
   struct SquareCoordinates {
     std::pair<float, float> upperLeft;
@@ -94,11 +104,6 @@ private:
   float getFractionOfTileInVP(std::vector<SquareCoordinates> &partialVPs,
                               std::pair<float, float> &tileCorrdinates,
                               std::pair<float, float> &tileDimensions);
-
-  void
-  sortTileSetByArea(std::map<float, std::vector<uint16_t>> &tileRanksByArea,
-                    std::pair<float, float> &viewportCenter,
-                    std::pair<int, int> &viewportResolution);
 
   std::pair<float, float> getVpCoordinate();
 };

@@ -450,6 +450,52 @@ void TilePredictor::getUrgetTilesListsTemp(
   }
 }
 
+void TilePredictor::getBackgroundTiles(
+    std::map<float, std::vector<uint16_t>> &bgTiles,
+    std::pair<std::pair<float, float>, std::pair<float, float>>
+        displacement /* <left,right> <down,up> */) {
+  while (frameId_ == 0)
+    ;
+
+  auto vpCorr = vpGroundTruth_[frameId_ - 1];
+  float leftCorr = vpCorr.first - (displacement.first.first + 50);
+  float rightCorr = vpCorr.first + (displacement.first.second + 50);
+  float downCorr = vpCorr.second - (displacement.second.first + 50);
+  float upCorr = vpCorr.second + (displacement.second.second + 50);
+
+  // calibrate corrdinates
+  leftCorr = leftCorr < 0 ? leftCorr + 360 : leftCorr;
+  rightCorr = rightCorr > 360 ? rightCorr - 360 : rightCorr;
+  downCorr = downCorr < 0 ? downCorr + 180 : downCorr;
+  upCorr = upCorr > 180 ? upCorr - 180 : upCorr;
+
+  // find the distance between the two exterme; divide by half to find the
+  // center.
+  float yawMidDis = leftCorr > rightCorr ? (((360 - leftCorr) + rightCorr) / 2)
+                                         : ((rightCorr - leftCorr) / 2);
+  float pitchMidDis = downCorr > upCorr ? (((180 - downCorr) + upCorr) / 2)
+                                        : ((upCorr - downCorr) / 2);
+
+  float yawCenter = leftCorr + yawMidDis;
+  float pitchCenter = downCorr + pitchMidDis;
+
+  yawCenter = yawCenter < 0 ? yawCenter + 360
+                            : (yawCenter > 360 ? yawCenter - 360 : yawCenter);
+  pitchCenter = pitchCenter < 0
+                    ? pitchCenter + 180
+                    : (pitchCenter > 180 ? pitchCenter - 180 : pitchCenter);
+  // 100x100 is the viewport size + displacment in each direction will be the
+  // background dimension required.
+  float yawDimension =
+      displacement.first.first + displacement.first.second + 100;
+  float pitchDimension =
+      displacement.second.first + displacement.second.second + 100;
+
+  std::pair<float, float> viewportCenter(yawCenter, pitchCenter);
+  std::pair<int, int> viewportDimention(yawDimension, pitchDimension);
+  sortTileSetByArea(bgTiles, viewportCenter, viewportDimention);
+}
+
 std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
 TilePredictor::getPredictedTilesFlareLR() {
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>

@@ -15,7 +15,8 @@
 
 class AbrAlgorithm {
 public:
-  AbrAlgorithm(std::string tileChunkSizesTracePath);
+  AbrAlgorithm(std::string tileChunkSizesTracePath,
+               std::string backgroundDisplacementTrace);
   static void flareAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
                        BandwidthPredictor *bandwidthPredictor,
                        ClientNetworkLayer *clientNetworkLayer,
@@ -33,6 +34,9 @@ private:
       tileChunkSizePerQuality_;
   uint8_t numberOfQualities_;
 
+  // yaw<left,right>,pitch<down,up>
+  std::vector<std::pair<std::pair<float, float>, std::pair<float, float>>>
+      backgroundDisplacement_;
   /**
    * this will all return all possible quality assignments per tile class using
    * DP. Input:
@@ -53,8 +57,6 @@ private:
   getPossibleQualityAssignment(int quality, int tileClass);
 
   uint8_t getNumberOfQualities();
-  std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>> &
-  getTileChunkSizePerQuality();
 
   std::map<float, std::vector<std::pair<int, uint16_t>>> orderTilesByMaxUtility(
       std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
@@ -65,8 +67,6 @@ private:
       std::map<float, std::vector<std::pair<int, uint16_t>>>
           sortedTilesByUtility,
       uint16_t frameIdToRender, float estimatedBw, float base1Time,
-      std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
-          tileChunkSizes,
       ClientNetworkLayer *clientNetworkLayer);
 
   /**
@@ -85,7 +85,7 @@ private:
       uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
       std::map<float, std::vector<uint16_t>> &urgetTiles);
 
-  std::vector<std::pair<std::string, int>> getBackgroundLessUrgentTilesInfo(
+  std::vector<std::pair<int, uint16_t>> getBackgroundLessUrgentTilesInfo(
       uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
       std::map<float, std::vector<uint16_t>> &urgetTiles);
 
@@ -112,27 +112,60 @@ private:
       std::map<uint8_t, std::vector<std::pair<int, uint16_t>>>
           &tilesRequestToReturn,
       TilePredictor *tilePredictor, ClientNetworkLayer *clientNetworkLayer,
-      std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
-          &tileChunkSizePerQuality,
       uint32_t frameIdToRender, uint8_t numOfQualities);
 
-/**
- * @brief finds the highest quality assignment per tile class where deadline is met.
- * 
- * @param frameIdSetQualitySizeSum 
- * @param qualitiesAssignments: possible qualities allowed per tile class.
- * @param frameIdToRender: what frame video player will render next.
- * @param numOfQualities: number of qualities per tile.
- * @param predictedBw: predicted bandwidth (avg of past 5 seconds.)
- * @param baseTime: download time to get all critical tiles.
- * @return int: highest quality assignment that meets deadline 
- */
+  /**
+   * @brief finds the highest quality assignment per tile class where deadline
+   * is met.
+   *
+   * @param frameIdSetQualitySizeSum
+   * @param qualitiesAssignments: possible qualities allowed per tile class.
+   * @param frameIdToRender: what frame video player will render next.
+   * @param numOfQualities: number of qualities per tile.
+   * @param predictedBw: predicted bandwidth (avg of past 5 seconds.)
+   * @param baseTime: download time to get all critical tiles.
+   * @return int: highest quality assignment that meets deadline
+   */
   int getQualityIdx(
       std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
           &frameIdSetQualitySizeSum,
       std::map<int, std::vector<std::string>> qualitiesAssignments,
       uint32_t frameIdToRender, uint8_t numOfQualities, float predictedBw,
       float baseTime);
-};
 
+  /**
+   * @brief Given tiles, and quality return their total size
+   */
+  long getTilesSizes(
+      std::map<float, std::vector<std::pair<int, uint16_t>>> &tilesMap,
+      uint8_t quality);
+
+  /**
+   * @brief Given tiles and chunkId, update tiles (remove recieved tiles) and
+   * return size of tiles.
+   */
+  void updateTilesAndgetTotalSize(
+      long &totalSize, std::vector<std::pair<int, uint16_t>> &updatedTiles,
+      std::map<float, std::vector<uint16_t>> &tilesMap, int chunkId,
+      ClientNetworkLayer *clientNetworkLayer);
+
+  void updateTilesAndgetTotalSize(
+      long &totalSize, std::vector<std::pair<int, uint16_t>> &tilesToUpdate,
+      ClientNetworkLayer *clientNetworkLayer);
+
+  /**
+   * @brief This will return list of interleaving fg/bg tiles to request
+   *
+   * @param backgroundTiles
+   * @param chunkIdxs
+   * @param bgBw
+   * @param fgTiles
+   * @param fgBw
+   * @return std::string
+   */
+  std::string
+  scheduler(std::vector<std::vector<std::pair<int, uint16_t>>> &backgroundTiles,
+            std::vector<int> chunkIdxs, float bgBw,
+            std::vector<std::pair<int, uint16_t>> &fgTiles, float fgBw);
+};
 #endif /* ABRALGORITHM_H_ */
