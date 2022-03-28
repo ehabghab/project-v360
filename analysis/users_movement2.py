@@ -67,63 +67,74 @@ def main():
         user_id = int(vp_file.split("vp_corr_per_frame_user_")
                       [1].replace(".txt", ""))
         frame = 0
+        first_yaw_in_chunk = -1
         max_left_yaw = 0
         max_right_yaw = 0
         prev_yaw = -1
-        first_yaw_in_chunk = -1
-        max_down_pitch = 0
-        max_up_pitch = 0
-        prev_pitch = -1
-        first_pitch_in_chunk = -1
-        for line in open(sys.argv[1]+"/"+vp_file, "r").readlines():
-            pitch = float("%.2f" % float(line.replace("(", "").split(",")[1]))
-            yaw = float("%.2f" % float(line.replace("(", "").split(",")[0]))
-            if first_pitch_in_chunk != -1:
-                if abs(prev_pitch - pitch) > 100:
-                    print(user_id)
-                    print(frame)
-                    if(first_pitch_in_chunk < pitch):  # down
-                        down_disp = (first_pitch_in_chunk + 180) - pitch
-                        if down_disp > max_down_pitch:
-                            max_down_pitch = down_disp
-                    else:  # up
-                        up_disp = (pitch + 180) - first_pitch_in_chunk
-                        if up_disp > max_up_pitch:
-                            max_up_pitch = up_disp
-                else:
-                    if (prev_pitch > pitch):  # down
-                        down_disp = first_pitch_in_chunk - pitch
-                        if down_disp > max_down_pitch:
-                            max_down_pitch = down_disp
-                    else:
-                        up_disp = pitch - first_pitch_in_chunk
-                        if up_disp > max_up_pitch:
-                            max_up_pitch = up_disp
-            else:
-                first_pitch_in_chunk = pitch
+        yaw_dis_sum = 0
 
+        first_pitch_in_chunk = -1
+        max_left_pitch = 0
+        max_right_pitch = 0
+        prev_pitch = -1
+        pitch_dis_sum = 0
+
+        for line in open(sys.argv[1]+"/"+vp_file, "r").readlines():
+            yaw = float("%.2f" % float(line.replace("(", "").split(",")[0]))
+            pitch = float("%.2f" % float(line.replace("(", "").split(",")[1]))
             if first_yaw_in_chunk != -1:
                 if abs(prev_yaw - yaw) > 300:  # overlap case
-                    if (first_yaw_in_chunk < yaw):  # left
-                        left_dis = (first_yaw_in_chunk+360) - yaw
-                        if left_dis > max_left_yaw:
-                            max_left_yaw = left_dis
+                    if (prev_yaw < yaw):  # left
+                        left_dis = (prev_yaw+360) - yaw
+                        yaw_dis_sum -= left_dis
+                        if yaw_dis_sum <= 0 and abs(yaw_dis_sum) > max_left_yaw:
+                            max_left_yaw = 360 if abs(yaw_dis_sum) > 360 else abs(yaw_dis_sum)
                     else:  # right
-                        right_dis = (yaw+360) - first_yaw_in_chunk
-                        if right_dis > max_right_yaw:
-                            max_right_yaw = right_dis
+                        right_dis = (yaw+360) - prev_yaw
+                        yaw_dis_sum += right_dis
+                        if yaw_dis_sum >= 0 and yaw_dis_sum > max_right_yaw:
+                            max_right_yaw = 360 if (yaw_dis_sum) > 360 else abs(yaw_dis_sum)
                 else:
                     if (prev_yaw > yaw):  # left
-                        left_dis = (first_yaw_in_chunk) - yaw
-                        if left_dis > max_left_yaw:
-                            max_left_yaw = left_dis
+                        left_dis = (prev_yaw) - yaw
+                        yaw_dis_sum -= left_dis
+                        if yaw_dis_sum <= 0 and abs(yaw_dis_sum) > max_left_yaw:
+                            max_left_yaw = 360 if abs(yaw_dis_sum) > 360 else abs(yaw_dis_sum)
                     else:  # right
-                        right_dis = (yaw) - first_yaw_in_chunk
-                        if right_dis > max_right_yaw:
-                            max_right_yaw = right_dis
+                        right_dis = (yaw) - prev_yaw
+                        yaw_dis_sum += right_dis
+                        if yaw_dis_sum >= 0 and yaw_dis_sum > max_right_yaw:
+                            max_right_yaw = 360 if (yaw_dis_sum) > 360 else abs(yaw_dis_sum)
             else:
                 first_yaw_in_chunk = yaw
             prev_yaw = yaw
+
+
+            if first_pitch_in_chunk != -1:
+                if abs(prev_pitch - pitch) > 100:  # overlap case
+                    if (prev_pitch < pitch):  # left
+                        left_dis = (prev_pitch+180) - pitch
+                        pitch_dis_sum -= left_dis
+                        if pitch_dis_sum <= 0 and abs(pitch_dis_sum) > max_left_pitch:
+                            max_left_pitch = 180 if abs(pitch_dis_sum) > 180 else abs(pitch_dis_sum)
+                    else:  # right
+                        right_dis = (pitch+180) - prev_pitch
+                        pitch_dis_sum += right_dis
+                        if pitch_dis_sum >= 0 and pitch_dis_sum > max_right_pitch:
+                            max_right_pitch = 180 if (pitch_dis_sum) > 180 else abs(pitch_dis_sum)
+                else:
+                    if (prev_pitch > pitch):  # left
+                        left_dis = (prev_pitch) - pitch
+                        pitch_dis_sum -= left_dis
+                        if pitch_dis_sum <= 0 and abs(pitch_dis_sum) > max_left_pitch:
+                            max_left_pitch = 180 if abs(pitch_dis_sum) > 180 else abs(pitch_dis_sum)
+                    else:  # right
+                        right_dis = (pitch) - prev_pitch
+                        pitch_dis_sum += right_dis
+                        if pitch_dis_sum >= 0 and pitch_dis_sum > max_right_yaw:
+                            max_right_pitch = 180 if (pitch_dis_sum) > 180 else abs(pitch_dis_sum)
+            else:
+                first_pitch_in_chunk = pitch
             prev_pitch = pitch
 
             chunk_curr = int(frame / 25)
@@ -142,22 +153,29 @@ def main():
                     float("%.2f" % (max_left_yaw)))
                 max_disp_yaw[chunk_curr]["right"].append(
                     float("%.2f" % (max_right_yaw)))
-                max_disp_pitch[chunk_curr]["up"].append(
-                    float("%.2f" % (max_up_pitch)))
                 max_disp_pitch[chunk_curr]["down"].append(
-                    float("%.2f" % (max_down_pitch)))
+                    float("%.2f" % (max_left_pitch)))
+                max_disp_pitch[chunk_curr]["up"].append(
+                    float("%.2f" % (max_right_pitch)))
                 max_left_yaw = 0
                 max_right_yaw = 0
+                yaw_dis_sum = 0
                 first_yaw_in_chunk = yaw
-                max_up_pitch = 0
-                max_down_pitch = 0
+
+                max_left_pitch = 0
+                max_right_pitch = 0
+                pitch_dis_sum = 0
                 first_pitch_in_chunk = pitch
 
-    with open("displacement_across_users_p95.txt", "w") as fi:
+    PERCENTILE = 100
+    with open("displacement_across_users_p"+str(PERCENTILE)+".txt", "w") as fi:
         chunk_id = 0
         for chunk_id in range(0, len(max_disp_yaw)):
-            fi.write(str(chunk_id)+":["+"%.2f" % (np.percentile(max_disp_yaw[chunk_id]["left"],
-                     95))+","+"%.2f" % (np.percentile(max_disp_yaw[chunk_id]["right"], 95))+"],["+"%.2f" % (np.percentile(max_disp_pitch[chunk_id]["down"], 95))+","+"%.2f" % (np.percentile(max_disp_pitch[chunk_id]["up"], 95))+"]\n")
+            fi.write("%.2f" % (np.percentile(max_disp_yaw[chunk_id]["left"],
+                PERCENTILE))+","+"%.2f" % (np.percentile(max_disp_yaw[chunk_id]["right"],
+                    PERCENTILE))+","+"%.2f" % (np.percentile(max_disp_pitch[chunk_id]["down"],
+                        PERCENTILE))+","+"%.2f" % (np.percentile(max_disp_pitch[chunk_id]["up"],
+                            PERCENTILE))+"\n")
 
     '''plt.figure(figsize=(6, 3))
     ax = plt.subplot(111)
