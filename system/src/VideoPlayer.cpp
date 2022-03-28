@@ -71,6 +71,7 @@ VideoPlayer::VideoPlayer(std::string tilesPerFrameTracePath,
 
   frameId_ = 1;
   FPS_ = 25;
+  userVpCorr.open("/home/ehab/Desktop/Project-V360/system/log_w.txt");
 }
 
 void VideoPlayer::addChunk(uint8_t *chunkPointer, uint32_t chunkSize,
@@ -236,7 +237,7 @@ void VideoPlayer::startVideoWithSkip(VideoPlayer *videoPlayer,
 
   while (true) {
     long frameDeadline = Util::getTime();
-
+    videoPlayer->getVpCorrInRealTime();
     // add current user's coordinate to ground truth.
     tilePredictor->addVpCoordinate(
         videoPlayer->groundTruthCoordinates_[videoPlayer->frameId_ - 1]);
@@ -685,4 +686,33 @@ void VideoPlayer::freeSkipTileMapCurrentFrame() {
     tilesInFrameToSkip.erase(frameId_);
   }
   skipTileMutex_.unlock();
+}
+
+std::pair<float, float> VideoPlayer::getVpCorrInRealTime() {
+
+  // limit the number of char per line.
+  std::string line = "";
+  while (line.size() != 20) {
+    getline(userVpCorr, line);
+  }
+  std::cout << Util::getTime() << "   : " << line << std::endl;
+  return {180, 90};
+}
+
+std::vector<uint16_t> VideoPlayer::getTiles(TilePredictor *tilePredictor,
+                                            std::pair<float, float> vpCorr) {
+  std::vector<uint16_t> tilesInViewport;
+  std::map<float, std::vector<uint16_t>> sortedTilesMap;
+  std::pair<int, int> viewportResolution = {100, 100};
+  tilePredictor->sortTileSetByArea(sortedTilesMap, vpCorr, viewportResolution);
+
+  for (auto &fracTileSet : sortedTilesMap) {
+    if (fracTileSet.first == 1) {
+      continue;
+    }
+    for (auto &tile : fracTileSet.second) {
+      tilesInViewport.push_back(tile);
+    }
+  }
+  return tilesInViewport;
 }
