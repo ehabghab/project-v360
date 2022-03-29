@@ -69,6 +69,6 @@ float BandwidthPredictor::getMpcBandwidthPrediction() {
   if (futureBw != 0) {
     bwPredicted_.push_back(harmonicBw);
   }
-  // Bytes / MS
+  // Bytes / Sec
   return futureBw == 0 ? 0 : futureBw;
 }

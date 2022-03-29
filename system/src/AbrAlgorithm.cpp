@@ -601,8 +601,9 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
       bandwidthBgMP = backgroundTilesSizes[2] /
                       (1 - (downloadTimeBgHPInMS / 1e3)); // Bytes per Second
       bandwidthFg = predictedBw == 0 ? 0 : (predictedBw - bandwidthBgMP);
-      std::cout << (predictedBw * 8 / 1e6) << ":" << (bandwidthBgMP * 8 / 1e6)
-                << "-" << (bandwidthFg * 8 / 1e6) << "\n";
+      // std::cout << (predictedBw * 8 / 1e6) << ":" << (bandwidthBgMP * 8 /
+      // 1e6)
+      //        << "-" << (bandwidthFg * 8 / 1e6) << "\n";
 
       foregroundTiles = abrAlgorithm->getTilesWithMaxOverallUtility(
           utilityMatrix, orderedUtilityMatrix, frameIdToRender,
@@ -614,8 +615,8 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
           abrAlgorithm->getTilesSizes(foregroundTilesMap, 2);
       float downloadTimeFgInMS =
           predictedBw == 0 ? 0 : (foregroundTilesSize * 1e3) / predictedBw;
-      std::cout << foregroundTilesSize << ":" << downloadTimeFgInMS << "\n"
-                << foregroundTiles.size() << "\n=====\n";
+      // std::cout << foregroundTilesSize << ":" << downloadTimeFgInMS << "\n"
+      //        << foregroundTiles.size() << "\n=====\n";
 
       if (downloadTimeBgHPInMS + downloadTimeBgMPInMS + downloadTimeFgInMS <
           1000) {
