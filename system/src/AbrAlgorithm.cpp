@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include <chrono>
+#include <limits>
 #include <thread>
 
 #include "Util.h"
@@ -462,7 +463,8 @@ std::string AbrAlgorithm::scheduler(
   for (int fgIdx = 0; fgIdx < fgTiles.size(); fgIdx++) {
     auto &fgTileInfo = fgTiles[fgIdx];
     float dtime =
-        tileChunkSizePerQuality_[2][fgTileInfo.second][fgTileInfo.first] /
+        (tileChunkSizePerQuality_[2][fgTileInfo.second][fgTileInfo.first] *
+         1e3) /
         totalBw;
     std::string fgTile = std::to_string(fgTileInfo.first) + "_" +
                          std::to_string(fgTileInfo.second) + "_2,";
@@ -479,16 +481,17 @@ std::string AbrAlgorithm::scheduler(
       for (; bgchunkIdx <= chunkIdxs[chunkIdxs.size() - 1]; bgchunkIdx++) {
         for (; bgTileIdx < backgroundTiles[bgchunkIdx].size(); bgTileIdx++) {
           auto &bgTileInfo = backgroundTiles[bgchunkIdx][bgTileIdx];
-          float dtime =
-              tileChunkSizePerQuality_[1][bgTileInfo.second][bgTileInfo.first] /
-              totalBw;
+          float dtime = (tileChunkSizePerQuality_[1][bgTileInfo.second]
+                                                 [bgTileInfo.first] *
+                         1e3) /
+                        totalBw;
           request += std::to_string(bgTileInfo.first) + "_" +
                      std::to_string(bgTileInfo.second) + "_1,";
           bgMsTarget -= dtime;
           if (bgMsTarget < 0) { // bg tile spills to fg slot
             request += fgTile;
             float bgExtraMs = std::abs(bgMsTarget) / bgMsShare;
-            fgExtraMs = (1 + bgExtraMs) * fgMsShare;
+            fgMsTarget = (1 + bgExtraMs) * fgMsShare;
             break;
           }
         }
@@ -496,6 +499,10 @@ std::string AbrAlgorithm::scheduler(
           break;
         }
         bgTileIdx = 0;
+      }
+      if (bgMsTarget > 0) { // all bg tiles are scheduled.
+        request += fgTile;
+        fgMsTarget = 100;
       }
     }
   }
@@ -535,11 +542,13 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
 
     float predictedBw =
         (bandwidthPredictor->getMpcBandwidthPrediction()); // Bytes Per Second
-
     // get the background tiles for the next 3 seconds.
     // for the current second, since we have the vp groundtruth for the first
     // frame; we only do it once.
     chunkId = (frameIdToRender - 1) / 25;
+    if (chunkId == 60) {
+      break;
+    }
     abrAlgorithm->backgroundDisplacement_[chunkId];
     for (auto idx = chunkId; idx < chunkId + backgroundHorizonInSec; idx++) {
       if (idx >= 60) {
@@ -547,7 +556,7 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
         continue;
       }
       std::map<float, std::vector<uint16_t>> tempBgTiles;
-      if (frameIdToRender % 25 == 0 || idx != chunkId) {
+      if (frameIdToRender % 25 == 1 || idx != chunkId) {
         tilePredictor->getBackgroundTiles(
             tempBgTiles, abrAlgorithm->backgroundDisplacement_[idx]);
         abrAlgorithm->updateTilesAndgetTotalSize(
@@ -577,8 +586,8 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
     std::vector<std::pair<int, uint16_t>> foregroundTiles;
     float bandwidthBgMP = predictedBw;
     float bandwidthFg = 0;
-    std::cout << "time remaining in ms :"
-              << 1000 - (downloadTimeBgHPInMS + downloadTimeBgMPInMS) << "\n";
+    // std::cout << "time remaining in ms :"
+    //          << 1000 - (downloadTimeBgHPInMS + downloadTimeBgMPInMS) << "\n";
 
     // improve quality of tiles (foreground tiles)
     if (downloadTimeBgHPInMS + downloadTimeBgMPInMS < 1000) {
