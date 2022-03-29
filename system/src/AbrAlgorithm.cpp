@@ -1028,3 +1028,168 @@ long AbrAlgorithm::getTilesSizes(
   }
   return totalSize;
 }
+
+/***********************PANO*****************************/
+
+// this uses alpha - beta pruning to
+// find the highest overall psnr
+// and lowest size (size that matches bitrate).
+
+// prune if lower PSNR or if similar PSNR and smaller size.
+// if no possible assignment it is lowest quality for all.
+
+void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
+                           TilePredictor *tilePredictor,
+                           BandwidthPredictor *bandwidthPredictor,
+                           ClientNetworkLayer *clientNetworkLayer,
+                           VideoPlayer *videoPlayer) {
+  // every 100ms, update tile list.
+  long stime = Util::getTime();
+  float videoTime = 0;
+  std::map<uint8_t, std::vector<std::pair<int, uint16_t>>> tilesRequest;
+  abrAlgorithm->buildQualityAssigment({}, 3);
+
+  while (true) {
+    // std::cout << req << std::endl;
+    // clientNetworkLayer->setRequest(req);
+    auto frameToRenderId = videoPlayer->getFrameToRenderId();
+    auto chunksBitrates = abrAlgorithm->mpc(
+        bandwidthPredictor, clientNetworkLayer, frameToRenderId);
+
+    tilesRequest.clear();
+    Util::sleep(stime, ABR_FREQ);
+    videoTime += (Util::getTime() - stime);
+    stime += 100;
+  }
+}
+
+std::vector<uint64_t> AbrAlgorithm::mpc(BandwidthPredictor *bandwidthPredictor,
+                                        ClientNetworkLayer *clientNetworkLayer,
+                                        uint32_t frameId) {
+
+  // determine buffer occupancy
+  auto bufferStat = getBufferStatus(clientNetworkLayer, frameId);
+  int chunkId = ((frameId - 1) / 25);
+  int stChunkId = chunkId;
+  // (first frame in next chunk - current frame) * <frame duration in sec>
+  uint32_t timeLeftInCurrChunk = (((chunkId + 1) * 25) - (frameId - 1)) * 0.04;
+  int buff = bufferStat[0] == 144 ? timeLeftInCurrChunk : -timeLeftInCurrChunk;
+
+  for (auto const numRecvTiles : bufferStat) {
+    if (numRecvTiles == 144) {
+      stChunkId++;
+    }
+  }
+
+  float predictedBw = bandwidthPredictor->getMpcBandwidthPrediction();
+  float highestPSNR =
+      qualityChunkPSNR_.find(qualityChunkPSNR_.size() - 1)->second[chunkId];
+
+  int currRebuffer;
+  int bufferCal;
+  int bitrateSum;
+  float smoothnessDiff;
+  float prevPSNR;
+  std::vector<uint8_t> bestAssignment;
+  float reward;
+  float maxReward = std::numeric_limits<float>::min();
+  for (auto const &qulityAssignment : qualityAssignments_) {
+    currRebuffer = 0;
+    bufferCal = buff;
+    bitrateSum = 0;
+    smoothnessDiff = 0;
+    prevPSNR = getAvgPSNR(clientNetworkLayer, chunkId);
+    for (uint8_t qIdx = 0; qulityAssignment.size(); qIdx++) {
+      auto qualityForchunkId = chunkId + qIdx;
+      // if chunk is received, then skip finding quality for it.
+      if (qualityForchunkId < stChunkId) {
+        // add 1 second to buffer if not the first chunk
+        // if it is the first, then we already timeLeftInCurrChunk
+        // to buffer
+        if (qualityForchunkId != chunkId) {
+          bufferCal += 1;
+        }
+        continue;
+      }
+
+      int chunkSize = qualityChunkSize_.find(qulityAssignment[qIdx])
+                          ->second[qualityForchunkId];
+      float downloadTime = chunkSize / predictedBw; // seconds.
+      if (downloadTime > bufferCal) {
+        currRebuffer += (downloadTime - bufferCal);
+        bufferCal = 0;
+      } else {
+        bufferCal -= downloadTime;
+      }
+      bufferCal += 1; // length of chunk
+      auto const chunkPSNR = qualityChunkPSNR_.find(qulityAssignment[qIdx])
+                                 ->second[qualityForchunkId];
+      smoothnessDiff += std::abs(prevPSNR - chunkPSNR);
+      bitrateSum += chunkPSNR;
+      prevPSNR = chunkPSNR;
+    }
+    reward = bitrateSum - smoothnessDiff - (currRebuffer * highestPSNR);
+    if (reward > maxReward) {
+      maxReward = reward;
+      bestAssignment = qulityAssignment;
+    }
+  }
+
+  // bitrate per chunk.
+  // 0 means chunk recieved.
+  std::vector<uint64_t> chunksBitrate;
+  for (uint8_t qIdx = 0; bestAssignment.size(); qIdx++) {
+    auto qualityForchunkId = chunkId + qIdx;
+    if (qualityForchunkId < stChunkId) {
+      chunksBitrate.push_back(0);
+      continue;
+    }
+    chunksBitrate.push_back(qualityChunkSize_.find(bestAssignment[qIdx])
+                                ->second[qualityForchunkId]);
+  }
+  return chunksBitrate;
+}
+
+float AbrAlgorithm::getAvgPSNR(ClientNetworkLayer *clientNetworkLayer,
+                               int chunkId) {
+  int tilesPSNR = 0;
+  int tilesCount = 0;
+  for (uint16_t tileId = 0; tileId <= 144; tileId++) {
+    auto tileQuality = clientNetworkLayer->isReceived(chunkId, tileId);
+    if (tileQuality > 0) {
+      tilesPSNR += tilesPSNR;
+      tilesCount++;
+    }
+  }
+  return (tilesPSNR * 1.0) / tilesCount;
+}
+
+std::vector<uint16_t>
+AbrAlgorithm::getBufferStatus(ClientNetworkLayer *clientNetworkLayer,
+                              uint32_t frameId) {
+  std::vector<uint16_t> numOfTilesRecvPerChunk;
+  int stChunkId = ((frameId - 1) / 25) + 1; // server adds one.
+  for (auto chunkId = stChunkId; chunkId < stChunkId + 3; chunkId++) {
+    uint16_t numberOfTilesRecieved = 0;
+    for (u_int16_t tileId = 1; tileId <= 144; tileId++) {
+      if (clientNetworkLayer->isReceived(chunkId, tileId) >= 1) {
+        numberOfTilesRecieved++;
+      }
+    }
+    numOfTilesRecvPerChunk.push_back(numberOfTilesRecieved);
+  }
+  return numOfTilesRecvPerChunk;
+}
+
+void AbrAlgorithm::buildQualityAssigment(std::vector<uint8_t> assignment,
+                                         int numOfChunkInHorizon) {
+  if (numOfChunkInHorizon == 0) {
+    qualityAssignments_.push_back(assignment);
+    return;
+  }
+  for (uint8_t quality = 1; quality <= numberOfQualities_; quality++) {
+    assignment.push_back(quality);
+    buildQualityAssigment(assignment, numOfChunkInHorizon - 1);
+    assignment.pop_back();
+  }
+}

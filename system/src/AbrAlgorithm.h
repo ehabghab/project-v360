@@ -28,6 +28,11 @@ public:
                          ClientNetworkLayer *clientNetworkLayer,
                          VideoPlayer *videoPlayer);
 
+  static void panoAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
+                      BandwidthPredictor *bandwidthPredictor,
+                      ClientNetworkLayer *clientNetworkLayer,
+                      VideoPlayer *videoPlayer);
+
 private:
   // quality --> tiles --> tile chunk sizes.
   std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
@@ -37,6 +42,16 @@ private:
   // yaw<left,right>,pitch<down,up>
   std::vector<std::pair<std::pair<float, float>, std::pair<float, float>>>
       backgroundDisplacement_;
+
+  // quality --> chunkIdx --> total size
+  std::map<uint8_t, std::vector<uint64_t>> qualityChunkSize_;
+
+  // quality --> chunkIdx --> avg PNSR for all tiles.
+  std::map<uint8_t, std::vector<float>> qualityChunkPSNR_;
+
+  // possible quality chunk assignments
+  std::vector<std::vector<uint8_t>> qualityAssignments_;
+
   /**
    * this will all return all possible quality assignments per tile class using
    * DP. Input:
@@ -167,5 +182,34 @@ private:
   scheduler(std::vector<std::vector<std::pair<int, uint16_t>>> &backgroundTiles,
             std::vector<int> chunkIdxs, float bgBw,
             std::vector<std::pair<int, uint16_t>> &fgTiles, float fgBw);
+
+  /**
+   * @brief Return the number of tiles received per chunk
+   *        for the next three chunks (i.e. 3-seconds)
+   *
+   * @param clientNetworkLayer
+   * @param frameId
+   * @return std::vector<uint16_t>
+   */
+  std::vector<uint16_t> getBufferStatus(ClientNetworkLayer *clientNetworkLayer,
+                                        uint32_t frameId);
+
+  /**
+   * @brief This returns the bitrate to assign for the next 3 chunks,
+   *        if chunk is received, it returns 0 as its bitrate.
+   *
+   * @param bandwidthPredictor
+   * @param clientNetworkLayer
+   * @param frameId
+   * @return std::vector<uint64_t>
+   */
+  std::vector<uint64_t> mpc(BandwidthPredictor *bandwidthPredictor,
+                            ClientNetworkLayer *clientNetworkLayer,
+                            uint32_t frameId);
+
+  void buildQualityAssigment(std::vector<uint8_t> assignment,
+                             int numOfChunkInHorizon);
+
+  float getAvgPSNR(ClientNetworkLayer *clientNetworkLayer, int chunkId);
 };
 #endif /* ABRALGORITHM_H_ */
