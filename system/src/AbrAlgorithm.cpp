@@ -830,7 +830,8 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
                                          ->second[chunkId] /
                                      estimatedBw); //
 
-      // estimated arrival time of the tile.
+      // estimated arrival time of the tile = its download time + time of being
+      // last in list.
       float estArrivalTime = estDownloadTime + curTime;
       // map the estimated arrival time of the tile to frame to cal. actual
       // utility.
@@ -838,7 +839,8 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
 
       float actualUtility = 0;
       // if we expect to receive the tile within 1 sec from now, then we can
-      // estimate its utility.
+      // estimate its utility. We don't skip if arrvFrameId >= 25 as we can
+      // place it early.
       if (arrvFrameId < 25) {
         actualUtility =
             utilityMatrix[tile][24] - utilityMatrix[tile][arrvFrameId];
@@ -862,7 +864,8 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
       } else {
         // this pointer is used to trace over the request doubly-linkedlist
         tileNode *trace = tailTile;
-        // this points at the best location the tile can be received at/after.
+        // this points at the best location at which the new tile can be
+        // placed before. newtile_location = potentialPosition -> prev_tile
         tileNode *potentialPosition = nullptr;
         //  this keeps track of the new utility while as we are trying to find
         //  the best location for the tile.
@@ -928,6 +931,7 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
 
         tileNode *currTileNode = new tileNode();
         currTileNode->tile = tile;
+        // it's best place could be the end of list.
         if (potentialPosition == nullptr) {
           currTileNode->EstArrivalTime =
               tailTile->EstArrivalTime + estDownloadTime;
@@ -946,30 +950,78 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
           }
         }
         currTileNode->EstDownloadTime = estDownloadTime;
-        if (currTileNode->prevTile != nullptr) {
+        if (currTileNode->prevTile != nullptr) { // it is not the head.
           currTileNode->prevTile->nextTile = currTileNode;
         }
         trace = currTileNode;
         tailTile = currTileNode;
         // remove all tiles node with estimated arrival frame Id >=25;
-        // todo: remove tiles with utility = 0
-        while (trace->nextTile != nullptr) {
-          trace->nextTile->EstArrivalTime =
-              trace->EstArrivalTime + trace->nextTile->EstDownloadTime;
-          auto estArrvNxtTileFrameId =
-              int(trace->nextTile->EstArrivalTime / 40) - frameIdSt;
-          if (estArrvNxtTileFrameId >= 25) {
-            tailTile = trace;
-            trace->nextTile->prevTile = nullptr;
-            trace->nextTile = nullptr;
+        // if tile in middle dropped then we have to update overall utility.
+        bool tileDropped = false;
+        while (trace != nullptr) {
+          if (trace->prevTile != nullptr) {
+            trace->EstArrivalTime =
+                trace->prevTile->EstArrivalTime + trace->EstDownloadTime;
+          }
+
+          auto estArrvTileFrameId = int(trace->EstArrivalTime / 40) - frameIdSt;
+
+          if (estArrvTileFrameId >= 25) {
+            if (trace == headTile) {
+              headTile = nullptr;
+              break;
+            }
+            tailTile = trace->prevTile;
+            trace->prevTile->nextTile = nullptr;
+            trace->prevTile = nullptr;
+            trace = nullptr;
             break;
           }
-          trace = trace->nextTile;
+          auto const &utilityNxtTile = utilityMatrix[trace->tile];
+          float utilityDiff =
+              utilityNxtTile[24] - utilityNxtTile[estArrvTileFrameId];
+          bool dontAdvance = false;
+          if (utilityDiff == 0) {
+            tileDropped = true;
+            if (trace->prevTile != nullptr) {
+              trace->prevTile->nextTile = trace->nextTile;
+              if (trace->nextTile != nullptr) {
+                trace->nextTile->prevTile = trace->prevTile;
+              }
+              tileNode *temp = trace;
+              trace = trace->prevTile;
+              temp->nextTile = nullptr;
+              temp->prevTile = nullptr;
+            } else {
+              dontAdvance = true;
+              trace = trace->nextTile;
+              trace->prevTile->nextTile = nullptr;
+            }
+          }
+          if (dontAdvance) {
+            continue;
+          }
           tailTile = trace;
+          trace = trace->nextTile;
+        }
+
+        if (tileDropped) { // recalcuate utility as it might improve.
+          trace = headTile;
+          float newUtility = 0;
+          while (trace != nullptr) {
+            auto &tileUtilityVector = utilityMatrix[trace->tile];
+            newUtility +=
+                tileUtilityVector[24] -
+                tileUtilityVector[int(trace->EstArrivalTime / 40) - frameIdSt];
+            trace = trace->nextTile;
+          }
+          if (newUtility >= overallUtility) {
+            overallUtility = newUtility;
+          }
         }
       }
+
       curTime = tailTile->EstArrivalTime;
-      // std::cout << curTime << std::endl;
     }
   }
 
