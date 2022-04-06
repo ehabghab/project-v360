@@ -609,6 +609,10 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
           utilityMatrix, orderedUtilityMatrix, frameIdToRender,
           bandwidthFg > 0 ? bandwidthFg : 2.5 * 1e6, downloadTimeBgHPInMS,
           clientNetworkLayer);
+      abrAlgorithm->qualityABR(foregroundTiles, orderedUtilityMatrix,
+                               utilityMatrix, frameIdToRender,
+                               bandwidthFg > 0 ? bandwidthFg : 2.5 * 1e6,
+                               downloadTimeBgHPInMS, clientNetworkLayer);
       std::map<float, std::vector<std::pair<int, uint16_t>>>
           foregroundTilesMap = {{0, foregroundTiles}};
       auto foregroundTilesSize =
@@ -1015,16 +1019,14 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
                 tileUtilityVector[int(trace->EstArrivalTime / 40) - frameIdSt];
             trace = trace->nextTile;
           }
-          if (newUtility >= overallUtility) {
-            overallUtility = newUtility;
-          }
+          overallUtility = newUtility;
         }
       }
 
       curTime = tailTile->EstArrivalTime;
     }
   }
-
+  std::cout << overallUtility << "\n";
   std::vector<std::pair<int, uint16_t>> tilesToRequest;
   while (headTile != nullptr) {
     tilesToRequest.push_back(headTile->tile);
@@ -1035,6 +1037,426 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
     return {};
   }
   return tilesToRequest;
+}
+
+std::vector<std::pair<int, uint16_t>>
+AbrAlgorithm::sortTilesByUtilityAndQuality(
+    uint8_t quality,
+    std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+    tileNode *headRequest) {
+  // quality * utility, <chunkid,tileid>
+  // this is sorted such that tiles
+  std::map<float, std::pair<int, uint16_t>, std::greater<float>>
+      tilesUtilitySum;
+  if (quality == 2) {
+    for (auto &tileUtilityPair : utilityMatrix) {
+      auto &tile = tileUtilityPair.first;
+      float tileValueDiff =
+          utilityMatrix[tile][24] *
+          (tileChunkPSNRPerQuality_[quality][tile.second][tile.first] -
+           tileChunkPSNRPerQuality_[1][tile.second][tile.first]);
+      tilesUtilitySum.insert({tileValueDiff, tile});
+    }
+  } else {
+    tileNode *trace = headRequest;
+    while (trace != nullptr) {
+      auto &tile = trace->tile;
+      float tileValueDiff =
+          utilityMatrix[tile][24] *
+          (tileChunkPSNRPerQuality_[quality][tile.second][tile.first] -
+           tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first]);
+      tilesUtilitySum.insert({tileValueDiff, tile});
+      trace = trace->nextTile;
+    }
+  }
+  std::vector<std::pair<int, uint16_t>> tilesSortedByUtilitySum;
+  for (auto qualityTileChunkPair : tilesUtilitySum) {
+    if (qualityTileChunkPair.first == 0) {
+      continue;
+    }
+    tilesSortedByUtilitySum.push_back(qualityTileChunkPair.second);
+  }
+  return tilesSortedByUtilitySum;
+}
+
+void AbrAlgorithm::qualityABR(
+    std::vector<std::pair<int, uint16_t>> topTiles,
+    std::map<float, std::vector<std::pair<int, uint16_t>>> sortedTilesByUtility,
+    std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+    uint16_t frameIdToRender, float estimatedBw, float baseTime,
+    ClientNetworkLayer *clientNetworkLayer) {
+
+  std::map<std::pair<int, uint16_t>, tileNode *> tilesNodeMap;
+  // tile with highest priority.
+  tileNode *headTile = nullptr;
+  // tile with lowest priority.
+  tileNode *tailTile = nullptr;
+  // total utility of all tiles to be downloaded.
+  // Our goal is to maximize this.
+  float overallValue = 0;
+
+  // This is the current time (base time).
+  // todo: this should be updated to newest frameIdToRender
+  float curTime = ((frameIdToRender - 1) * 40.0);
+
+  if (frameIdToRender != 1) {
+    curTime += Util::getTimePassedSinceLastFrame();
+  }
+  curTime += baseTime;
+  // base frame id.
+  int frameIdSt = utilityMatrix.find({-1, -1})->second[0];
+
+  tileNode *trace;
+
+  for (int qualityIdx = 2; qualityIdx <= numberOfQualities_; qualityIdx++) {
+    auto sortedTiles =
+        sortTilesByUtilityAndQuality(qualityIdx, utilityMatrix, headTile);
+    for (auto &tile : sortedTiles) {
+
+      // create tile node and add to the linked list.
+      if (tilesNodeMap.find(tile) == tilesNodeMap.end()) {
+        float estDownloadTime =
+            tileChunkSizePerQuality_[1][tile.second][tile.first] / estimatedBw;
+        tileNode *tileN =
+            new tileNode{tile, 0, estDownloadTime, 1, nullptr, nullptr};
+        tilesNodeMap.insert({tile, tileN});
+      }
+      auto tileN = tilesNodeMap[tile];
+      auto &tileUtilityVec = utilityMatrix[tile];
+      auto tileOldPsnr =
+          tileChunkPSNRPerQuality_[tileN->quality][tile.second][tile.first];
+      auto tileNewPsnr =
+          tileChunkPSNRPerQuality_[qualityIdx][tile.second][tile.first];
+
+      // calc the old value of the tile.
+      float tileOldValue = 0;
+      if (tileN->EstArrivalTime != 0) { // this node already in the linkedlist
+        tileOldValue =
+            (tileUtilityVec[24] -
+             tileUtilityVec[int(tileN->EstArrivalTime / 40) - frameIdSt]) *
+            tileOldPsnr;
+      } else {                     // new tile node, if so place at the end.
+        if (tailTile == nullptr) { // first node in the request.
+          tailTile = tileN;
+          headTile = tileN;
+          tileN->EstArrivalTime = tileN->EstDownloadTime;
+        } else { // if not then place at the end.
+          tailTile->nextTile = tileN;
+          tileN->prevTile = tailTile;
+          tailTile = tileN;
+          tileN->EstArrivalTime =
+              tileN->prevTile->EstArrivalTime + tileN->EstDownloadTime;
+        }
+      }
+
+      float overallValueUpdated = overallValue - tileOldValue;
+      float downloadTimeUpdated =
+          1e3 * (tileChunkSizePerQuality_[qualityIdx][tile.second][tile.first] /
+                 estimatedBw);
+
+      // Search for the best location of the tile after trying to upgrade its
+      // quality, and start by placing it at the end of linked list first.
+
+      // find the new arrival time after updating the tile quality.
+      float estArrTimeUpdated = 0;
+      if (tileN != tailTile) {
+        estArrTimeUpdated =
+            ((tailTile->EstArrivalTime - tileN->EstDownloadTime) +
+             downloadTimeUpdated);
+      } else {
+        estArrTimeUpdated = (tileN->EstArrivalTime - tileN->EstDownloadTime) +
+                            downloadTimeUpdated;
+      }
+
+      int arrFrmId = int(estArrTimeUpdated / 40) - frameIdSt;
+      float tileValueUpdated = 0;
+
+      if (arrFrmId < 25) {
+        tileValueUpdated =
+            (utilityMatrix[tile][24] - utilityMatrix[tile][arrFrmId]) *
+            tileNewPsnr;
+      }
+      // if adding the tile to tail improves the overall value of the request,
+      // then set placeAtTail to true
+      bool placeAtTail = false;
+      if (tileValueUpdated + overallValueUpdated > overallValue) {
+        overallValueUpdated += tileValueUpdated;
+        placeAtTail = true;
+      }
+      // Since tile might be already in the linkedlist of tileNodes, so instead
+      // of remvoing the tile and update the utility and download time for all
+      // successor nodes. We set this bool to true once we reach the tile, and
+      // stop updating DT and utility of its predecessor.
+      bool tileFound = false;
+      tileNode *potentionalPos = nullptr;
+      tileNode *trace = tailTile;
+      // try and find the best position for this tile,
+      // if none exist, then keep it where it is.
+      while (trace != nullptr) {
+        // start tile_quality_update_loop
+
+        if (trace->tile == tileN->tile) {
+          trace = trace->prevTile;
+          tileFound = true;
+          continue;
+        }
+
+        // UTILITY LOSS
+        // tile to switch position with.
+        int toSwitchTileArrvFrameId =
+            int(trace->EstArrivalTime / 40) - frameIdSt;
+        float toSwitchTileArrvTimeUpdated =
+            (trace->EstArrivalTime) + downloadTimeUpdated;
+        if (!tileFound) {
+          toSwitchTileArrvTimeUpdated -= tileN->EstDownloadTime;
+        }
+        int toSwitchTileArrvFrameIdUpdated =
+            int(toSwitchTileArrvTimeUpdated / 40) - frameIdSt;
+
+        auto toSwitchTilePsnr =
+            tileChunkPSNRPerQuality_[trace->quality][trace->tile.second]
+                                    [trace->tile.first];
+
+        float utilityLoss = toSwitchTilePsnr;
+        // it the estimated new arrival frame Id is beyond 1 sec;
+        // then upper bound is the max frmae id possible == 24.
+        if (toSwitchTileArrvFrameIdUpdated >= 25) {
+          utilityLoss *= (utilityMatrix[trace->tile][24] -
+                          utilityMatrix[trace->tile][toSwitchTileArrvFrameId]);
+        } else {
+          utilityLoss *=
+              (utilityMatrix[trace->tile][toSwitchTileArrvFrameIdUpdated] -
+               utilityMatrix[trace->tile][toSwitchTileArrvFrameId]);
+        }
+        // HERE
+        // UTILITY GAIN
+        int tileArrvFrameIdOld = int(tileN->EstArrivalTime / 40) - frameIdSt;
+        int tileArrvFrameIdUpdated =
+            int((toSwitchTileArrvTimeUpdated - trace->EstDownloadTime) / 40) -
+            frameIdSt;
+
+        // the new arrv time can be > old arrv time
+        float utilityGain = tileNewPsnr;
+        if (tileArrvFrameIdOld >= 25 && tileArrvFrameIdUpdated < 25) {
+          utilityGain *= utilityMatrix[tileN->tile][24] -
+                         utilityMatrix[tileN->tile][tileArrvFrameIdUpdated];
+        } else if (tileArrvFrameIdOld < 25 && tileArrvFrameIdUpdated < 25) {
+          // this might be negative now.
+          utilityGain *= utilityMatrix[tileN->tile][tileArrvFrameIdOld] -
+                         utilityMatrix[tileN->tile][tileArrvFrameIdUpdated];
+        } else if (tileArrvFrameIdUpdated >= 25 && tileArrvFrameIdOld < 25) {
+          // this definitely negative as new arrv time is > old arrv time.
+          utilityGain *= (utilityMatrix[tileN->tile][tileArrvFrameIdOld] -
+                          utilityMatrix[tileN->tile][24]);
+        }
+
+        overallValueUpdated += utilityGain - utilityLoss;
+        if (overallValueUpdated >= overallValue) {
+          potentionalPos = trace;
+          overallValue = overallValueUpdated;
+        }
+        trace = trace->prevTile;
+      } // end tile_quality_update_loop
+
+      ////// TILE PLACEMENT \\\\
+      // Place tile in its potention new place if exists.
+      if (!placeAtTail && potentionalPos == nullptr) {
+        continue;
+      }
+      // determine whether tile will be moving early in request or not.
+      // if early, the update the estimated arrival times for all tiles after
+      // potentionalPos. If late,  then the update should start from the tileN
+      float tileStartOld =
+          tileN->prevTile != nullptr ? tileN->prevTile->EstArrivalTime : 0;
+
+      float tileStartUpdated =
+          placeAtTail ? tailTile->EstArrivalTime
+                      : (potentionalPos->prevTile != nullptr
+                             ? potentionalPos->prevTile->EstArrivalTime
+                             : 0);
+      float diffInDT = downloadTimeUpdated - tileN->EstDownloadTime;
+
+      bool left = false;
+      if (tileStartOld <= tileStartUpdated) {
+        trace = tileN;
+      } else {
+        trace = potentionalPos;
+        left = true;
+      }
+
+      bool found = false;
+      // update arrival times for tiles.
+      while (trace != nullptr) {
+        // start  while: update EstArrivalTime
+
+        // if left, should check whether if I reached the tilePtr
+        // otherwise the potentional pos.
+        if (left && trace == tileN) {
+          found = true;
+          trace = trace->nextTile;
+        } else if (!left && trace == potentionalPos) {
+          found = true;
+        }
+
+        if (!found) {
+          if (left) {
+            trace->EstArrivalTime += downloadTimeUpdated;
+          } else if (!left) {
+            trace->EstArrivalTime -= tileN->EstDownloadTime;
+          }
+        } else {
+          trace->EstArrivalTime += diffInDT;
+        }
+      } // end while: update EstArrivalTime
+
+      // change tile position and update its download time, estArrtivalTime, and
+      // quality.
+      tileN->EstDownloadTime = downloadTimeUpdated;
+      tileN->quality = qualityIdx;
+
+      if (placeAtTail) {
+        if (tailTile != tileN) {
+          if (tileN->prevTile == nullptr) {
+            headTile = tileN->nextTile;
+            headTile->prevTile = nullptr;
+          }
+          tileN->nextTile = nullptr;
+          tileN->prevTile = tailTile;
+          tailTile->nextTile = tileN;
+          tailTile = tileN;
+        }
+        tileN->EstArrivalTime = downloadTimeUpdated;
+        if (tileN->prevTile != nullptr) {
+          tileN->EstArrivalTime += tileN->prevTile->EstArrivalTime;
+        }
+      } else { // move the tileN to potentional Postition -> prev.
+        // then move to headTile
+        if (potentionalPos->prevTile == nullptr) {
+          if (tileN->nextTile == nullptr) {
+            // move tail to head.
+            tileN->prevTile->nextTile = nullptr;
+            tailTile = tileN->prevTile;
+          } else {
+            // move node (not tail) to head
+            tileN->prevTile->nextTile = tileN->nextTile;
+            tileN->nextTile->prevTile = tileN->prevTile;
+          }
+          tileN->nextTile = potentionalPos;
+          potentionalPos->prevTile = tileN;
+          tileN->prevTile = nullptr;
+          headTile = tileN;
+          tileN->EstArrivalTime = downloadTimeUpdated;
+        } else {
+          // move anywhere but not the head nor tail.
+          if (tileN->nextTile == nullptr) { // move tail
+            tileN->prevTile->nextTile = nullptr;
+            tailTile = tileN->prevTile;
+          } else if (tileN->prevTile == nullptr) { // move the head.
+            tileN->nextTile->prevTile = nullptr;
+            headTile = tileN->nextTile;
+          } else {
+            tileN->prevTile->nextTile = tileN->nextTile;
+            tileN->nextTile->prevTile = tileN->prevTile;
+          }
+          tileN->nextTile = potentionalPos;
+          tileN->prevTile = potentionalPos->prevTile;
+          potentionalPos->prevTile = tileN;
+          tileN->prevTile->nextTile = tileN;
+          tileN->EstArrivalTime =
+              tileN->prevTile->EstArrivalTime + downloadTimeUpdated;
+        }
+      }
+      // check tiles with 0 utility, if quality > 2, drop quality if still fit,
+      // then keep
+      trace = headTile;
+      float timeDiff;
+      while (trace != nullptr) {
+        auto estArrFrameId = int(trace->EstArrivalTime / 40) - frameIdSt;
+        auto tileUtilityVec = utilityMatrix[trace->tile];
+        float tileUtility = 0;
+        if (estArrFrameId < 25) {
+          tileUtility = tileUtilityVec[24] - tileUtilityVec[estArrFrameId];
+        }
+        if (tileUtility != 0) {
+          trace = trace->nextTile;
+          continue;
+        }
+        bool removeTile = true;
+        if (tileUtility == 0) {
+          while (trace->quality > 2) {
+            trace->quality -= 1;
+            auto EstDownloadTimeUpdated =
+                1e3 *
+                (tileChunkSizePerQuality_[trace->quality][trace->tile.second]
+                                         [trace->tile.first] /
+                 estimatedBw);
+            auto estArrTime = EstDownloadTimeUpdated;
+            if (trace->prevTile != nullptr) {
+              estArrTime += trace->prevTile->EstArrivalTime;
+            }
+            estArrFrameId = int(estArrTime / 40) - frameIdSt;
+            tileUtility = 0;
+            if (estArrFrameId < 25) {
+              tileUtility = tileUtilityVec[24] - tileUtilityVec[estArrFrameId];
+            }
+            if (tileUtility != 0) {
+              trace->EstDownloadTime = EstDownloadTimeUpdated;
+              trace->EstArrivalTime = estArrTime;
+              removeTile = false;
+              break;
+            }
+          }
+        }
+        // update the estimated time for next tiles.
+        tileNode *temp;
+        if (removeTile) {
+          if (trace->prevTile = nullptr) { // remove head;
+            headTile = trace->nextTile;
+            headTile->prevTile = nullptr;
+            headTile->EstArrivalTime = headTile->EstDownloadTime;
+            temp = headTile->nextTile;
+          } else {
+            trace->prevTile->nextTile = trace->nextTile;
+            if (trace->nextTile != nullptr) {
+              trace->nextTile->prevTile = trace->prevTile;
+            }
+            temp = trace->nextTile;
+          }
+          auto tileRemovedNode = trace;
+          trace = trace->nextTile;
+          tileRemovedNode->prevTile = nullptr;
+          tileRemovedNode->nextTile = nullptr;
+        } else { // if tile is not to remove.
+          temp = trace->nextTile;
+          trace = trace->nextTile;
+        }
+
+        while (temp != nullptr) {
+
+          temp->EstArrivalTime = temp->EstDownloadTime;
+          if (temp->prevTile != nullptr) {
+            temp->EstArrivalTime += temp->prevTile->EstArrivalTime;
+          }
+          temp = temp->nextTile;
+        }
+      } // end while
+
+      // check the updated utility.
+      trace = headTile;
+      overallValue = 0;
+      while (trace != nullptr) {
+        auto tile = trace->tile;
+        auto tileUtilityVec = utilityMatrix[tile];
+        auto tilePsnr =
+            tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first];
+        auto tileUtility =
+            tileUtilityVec[24] -
+            tileUtilityVec[int(trace->EstArrivalTime / 40) - frameIdSt];
+        overallValue += tileUtility * tilePsnr;
+        trace = trace->nextTile;
+      }
+    }
+  }
 }
 
 uint8_t AbrAlgorithm::getNumberOfQualities() { return numberOfQualities_; }

@@ -34,9 +34,25 @@ public:
                       VideoPlayer *videoPlayer);
 
 private:
+  struct tileNode {
+    // tileChunk_tileId
+    std::pair<int, uint16_t> tile;
+    // expected time to recv tile.
+    float EstArrivalTime;
+    // expected time to transmit tile.
+    float EstDownloadTime;
+    uint8_t quality;
+    tileNode *nextTile;
+    tileNode *prevTile;
+  };
+
   // quality --> tiles --> tile chunk sizes.
   std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
       tileChunkSizePerQuality_;
+
+  std::map<uint8_t, std::map<uint16_t, std::vector<float>>>
+      tileChunkPSNRPerQuality_;
+
   uint8_t numberOfQualities_;
 
   // yaw<left,right>,pitch<down,up>
@@ -82,6 +98,14 @@ private:
       std::map<float, std::vector<std::pair<int, uint16_t>>>
           sortedTilesByUtility,
       uint16_t frameIdToRender, float estimatedBw, float base1Time,
+      ClientNetworkLayer *clientNetworkLayer);
+
+  void qualityABR(
+      std::vector<std::pair<int, uint16_t>> topTiles,
+      std::map<float, std::vector<std::pair<int, uint16_t>>>
+          sortedTilesByUtility,
+      std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+      uint16_t frameIdToRender, float estimatedBw, float baseTime,
       ClientNetworkLayer *clientNetworkLayer);
 
   /**
@@ -211,5 +235,10 @@ private:
                              int numOfChunkInHorizon);
 
   float getAvgPSNR(ClientNetworkLayer *clientNetworkLayer, int chunkId);
+
+  std::vector<std::pair<int, uint16_t>> sortTilesByUtilityAndQuality(
+      uint8_t quality,
+      std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+      tileNode *headRequest);
 };
 #endif /* ABRALGORITHM_H_ */
