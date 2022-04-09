@@ -110,9 +110,25 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
   uint32_t startChunk;
   std::vector<std::string> chunksDecoded;
   bool first = true;
+  std::unordered_set<int> freedChunk;
   while (true) {
     bool decode_frame = false;
     startChunk = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
+
+    // free raw frames from previous chunks.
+    for (auto freeIdx = startChunk - 2; freeIdx < startChunk; freeIdx++) {
+      auto &decodedChunk = videoPlayer->decodedTileChunks_[freeIdx];
+      for (auto &tile : decodedChunk) {
+        if (tile.second.first.size() == 0) {
+          continue;
+        }
+        for (auto &ptr : tile.second.first) {
+          free(ptr);
+        }
+        tile.second.first.clear();
+      }
+    }
+
     for (uint32_t idx = startChunk; idx < startChunk + 2; idx++) {
       // chunks have presentation time first, and map<tile index, encoded tile
       // frames> second.
@@ -159,8 +175,16 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
             // tile already recieved in bg quality.
             // so update it.
             if (chunkTilesInfo.find(tileInfo->first) != chunkTilesInfo.end()) {
+
+              auto rawFramesToFree = chunkTilesInfo[tileInfo->first].first;
+
               chunkTilesInfo.find(tileInfo->first)->second = {rawTileFrames,
                                                               tileQuality};
+              // free raw bg tiles
+              for (auto &ptr : rawFramesToFree) {
+                free(ptr);
+              }
+
               /*std::cout << "Qupdate:" << std::to_string(chunks->first) << "_"
                         << std::to_string(tileInfo->first) << "_"
                         << std::to_string(tileQuality) << "\n";*/
@@ -198,6 +222,17 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
       if (decode_frame) {
         break;
       }
+
+      // delete tiles that will not be uses.
+      /*for (auto &chunk : videoPlayer->chunks_) {
+        if (chunk.first < startChunk) {
+          for (auto &tile : chunk.second) {
+            if (tile.second.chunk != nullptr) {
+              free(tile.second.chunk);
+            }
+          }
+        }
+      }*/
     }
   }
 }
@@ -237,7 +272,7 @@ void VideoPlayer::startVideoWithSkip(VideoPlayer *videoPlayer,
 
   while (true) {
     long frameDeadline = Util::getTime();
-    videoPlayer->getVpCorrInRealTime();
+    // videoPlayer->getVpCorrInRealTime();
     // add current user's coordinate to ground truth.
     tilePredictor->addVpCoordinate(
         videoPlayer->groundTruthCoordinates_[videoPlayer->frameId_ - 1]);
@@ -330,17 +365,17 @@ void VideoPlayer::startVideoWithSkip(VideoPlayer *videoPlayer,
 
     fflush(playLog);
     videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_);
-    if (videoPlayer->frameId_ % videoPlayer->FPS_ == 0) {
-      if (videoPlayer->decodedTileChunks_.find(playSecond) !=
-          videoPlayer->decodedTileChunks_.end()) {
-        for (auto &tileInfo :
-             videoPlayer->decodedTileChunks_.find(playSecond)->second) {
-          for (auto &tileRawFramePtr : tileInfo.second.first) {
-            free(tileRawFramePtr);
-          }
-        }
-      }
-    }
+    // if (videoPlayer->frameId_ % videoPlayer->FPS_ == 0) {
+    //   if (videoPlayer->decodedTileChunks_.find(playSecond) !=
+    //       videoPlayer->decodedTileChunks_.end()) {
+    //     for (auto &tileInfo :
+    //          videoPlayer->decodedTileChunks_.find(playSecond)->second) {
+    //       for (auto &tileRawFramePtr : tileInfo.second.first) {
+    //         free(tileRawFramePtr);
+    //       }
+    //     }
+    //   }
+    // }
     Util::setFramePlayTime(renderTime);
     videoPlayer->freeSkipTileMapCurrentFrame();
     videoPlayer->frameId_++;
