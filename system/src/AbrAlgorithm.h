@@ -15,8 +15,9 @@
 
 class AbrAlgorithm {
 public:
-  AbrAlgorithm(std::string tileChunkSizesTracePath,
-               std::string backgroundDisplacementTrace);
+  AbrAlgorithm(std::string tileChunkSizesPath,
+               std::string tileChunksQaulityPath,
+               std::string backgroundDisplacementPath);
   static void flareAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
                        BandwidthPredictor *bandwidthPredictor,
                        ClientNetworkLayer *clientNetworkLayer,
@@ -46,6 +47,8 @@ private:
     tileNode *prevTile;
   };
 
+  const std::map<uint8_t, uint8_t> QUALITYMAP_ = {{50, 1}, {37, 2}, {32, 3},
+                                                  {27, 4}, {22, 5}, {17, 6}};
   // quality --> tiles --> tile chunk sizes.
   std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
       tileChunkSizePerQuality_;
@@ -100,23 +103,45 @@ private:
       uint16_t frameIdToRender, float estimatedBw, float base1Time,
       ClientNetworkLayer *clientNetworkLayer);
 
-  void qualityABR(
-      std::vector<std::pair<int, uint16_t>> topTiles,
-      std::map<float, std::vector<std::pair<int, uint16_t>>>
-          sortedTilesByUtility,
+  std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>> qualityABR(
       std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
       uint16_t frameIdToRender, float estimatedBw, float baseTime,
       ClientNetworkLayer *clientNetworkLayer);
 
+  tileNode *returnBestPosition(
+      std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+      tileNode *&tailTile, tileNode *&tileN, int frameIdSt,
+      float downloadTimeUpdated, float tileNewPsnr, float overallValueUpdated,
+      float &overallValue);
+
+  void updateArrivalTimeOfSuccessorNodes(tileNode *&tailTile, tileNode *&tileN,
+                                         tileNode *&potentionalPos,
+                                         float downloadTimeUpdated,
+                                         bool placeAtTail);
+
+  void moveAndUpdateTile(tileNode *&headTile, tileNode *&tailTile,
+                         tileNode *&tileN, tileNode *&potentionalPos,
+                         float downloadTimeUpdated, float currTime,
+                         uint8_t qualityIdx, bool placeAtTail);
+
+  void checkTilesUtility(
+      std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+      tileNode *&headTile, tileNode *&tailTile, int frameIdSt,
+      float estimatedBw, float currTime);
+
   /**
-   * @brief This function will take all urgent tiles that user may view in the
+   * @brief This function will take all urgent tiles that user may view in
+   * the
    *        future (next two seconds). Then, it will check if the client
    *        received the tile already or not. If not, then add to request.
    *
-   * @param frameIdToRender: this the frame the client player will play next.
-   * @param clientNetworkLayer: this checks whether tile has been received in
+   * @param frameIdToRender: this the frame the client player will play
+   * next.
+   * @param clientNetworkLayer: this checks whether tile has been received
+   * in
    *        the buffer or not.
-   * @param urgetTiles: list of critical tiles to the user for the next 2-sec
+   * @param urgetTiles: list of critical tiles to the user for the next
+   * 2-sec
    * @return std::pair<std::string, int>, it returns all tiles in one string
    *         along with their total size
    */
@@ -176,8 +201,7 @@ private:
    * @brief Given tiles, and quality return their total size
    */
   long getTilesSizes(
-      std::map<float, std::vector<std::pair<int, uint16_t>>> &tilesMap,
-      uint8_t quality);
+      std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>> &fgTiles);
 
   /**
    * @brief Given tiles and chunkId, update tiles (remove recieved tiles) and
@@ -205,7 +229,8 @@ private:
   std::string
   scheduler(std::vector<std::vector<std::pair<int, uint16_t>>> &backgroundTiles,
             std::vector<int> chunkIdxs, float bgBw,
-            std::vector<std::pair<int, uint16_t>> &fgTiles, float fgBw);
+            std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>> &fgTiles,
+            float fgBw);
 
   /**
    * @brief Return the number of tiles received per chunk

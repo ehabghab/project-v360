@@ -19,37 +19,66 @@
 
 #define ABR_FREQ 100
 
-AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesTracePath,
-                           std::string backgroundDisplacementTrace) {
-  std::ifstream infile(tileChunkSizesTracePath);
+AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
+                           std::string tileChunksQaulityPath,
+                           std::string backgroundDisplacementPath) {
+  std::ifstream infile1(tileChunkSizesPath);
   std::string line;
   uint8_t quality = -1;
-  while (std::getline(infile, line)) {
+  while (std::getline(infile1, line)) {
+    line.pop_back();
     auto pos = line.find(":");
-    std::vector<int> qualityTileId;
+    std::vector<int> TileIdQualityPair;
     std::vector<uint64_t> tileChunkSizes;
     try {
-      folly::split("_", line.substr(0, pos), qualityTileId);
-      folly::split(",", line.substr(pos + 1), tileChunkSizes);
-      if (tileChunkSizePerQuality_.find(qualityTileId[0]) ==
+      folly::split("-", line.substr(0, pos), TileIdQualityPair);
+      folly::split(",", line.substr(pos + 2), tileChunkSizes);
+      uint8_t qualityIdx = QUALITYMAP_.find(TileIdQualityPair[1])->second;
+      if (tileChunkSizePerQuality_.find(qualityIdx) ==
           tileChunkSizePerQuality_.end()) {
         std::map<uint16_t, std::vector<uint64_t>> tileChunksSizesMap;
-        tileChunksSizesMap.insert(
-            std::make_pair(qualityTileId[1], tileChunkSizes));
-        tileChunkSizePerQuality_.insert(
-            std::make_pair(qualityTileId[0], tileChunksSizesMap));
+        tileChunksSizesMap.insert({TileIdQualityPair[0], tileChunkSizes});
+        tileChunkSizePerQuality_.insert({qualityIdx, tileChunksSizesMap});
       } else {
-        tileChunkSizePerQuality_.find(qualityTileId[0])
-            ->second.insert(std::make_pair(qualityTileId[1], tileChunkSizes));
+        tileChunkSizePerQuality_[qualityIdx].insert(
+            {TileIdQualityPair[0], tileChunkSizes});
       }
     } catch (std::invalid_argument &e) {
       LOG(ERROR) << "AbrAlgorithm::AbrAlgorithm(): cannot read line :" << line;
     }
   }
-  numberOfQualities_ = tileChunkSizePerQuality_.size();
 
-  std::ifstream infile2(backgroundDisplacementTrace);
+  std::ifstream infile2(tileChunksQaulityPath);
   while (std::getline(infile2, line)) {
+    line.pop_back();
+    auto pos = line.find(":");
+    std::vector<int> TileIdQualityPair;
+    std::vector<float> tileChunkQuality;
+    try {
+      folly::split("-", line.substr(0, pos), TileIdQualityPair);
+      folly::split(",", line.substr(pos + 2), tileChunkQuality);
+      uint8_t qualityIdx = QUALITYMAP_.find(TileIdQualityPair[1])->second;
+      if (TileIdQualityPair[1] == 42) {
+        continue;
+      }
+      if (tileChunkPSNRPerQuality_.find(qualityIdx) ==
+          tileChunkPSNRPerQuality_.end()) {
+        std::map<uint16_t, std::vector<float>> tileChunksQualityMap;
+        tileChunksQualityMap.insert({TileIdQualityPair[0], tileChunkQuality});
+        tileChunkPSNRPerQuality_.insert({qualityIdx, tileChunksQualityMap});
+      } else {
+        tileChunkPSNRPerQuality_[qualityIdx].insert(
+            {TileIdQualityPair[0], tileChunkQuality});
+      }
+    } catch (std::invalid_argument &e) {
+      LOG(ERROR) << "AbrAlgorithm::AbrAlgorithm(): cannot read line :" << line;
+    }
+  }
+
+  numberOfQualities_ = tileChunkPSNRPerQuality_.size();
+
+  std::ifstream infile3(backgroundDisplacementPath);
+  while (std::getline(infile3, line)) {
     std::vector<float> displacements;
     folly::split(",", line, displacements);
     backgroundDisplacement_.push_back({{displacements[0], displacements[1]},
@@ -451,7 +480,8 @@ void AbrAlgorithm::updateTilesAndgetTotalSize(
 std::string AbrAlgorithm::scheduler(
     std::vector<std::vector<std::pair<int, uint16_t>>> &backgroundTiles,
     std::vector<int> chunkIdxs, float bgBw,
-    std::vector<std::pair<int, uint16_t>> &fgTiles, float fgBw) {
+    std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>> &fgTiles,
+    float fgBw) {
   std::string request;
   float totalBw = bgBw + fgBw;
   float fgMsShare = (fgBw / totalBw) * 100.0;
@@ -461,13 +491,17 @@ std::string AbrAlgorithm::scheduler(
   float fgMsTarget = fgMsShare;
   float bgMsTarget;
   for (int fgIdx = 0; fgIdx < fgTiles.size(); fgIdx++) {
-    auto &fgTileInfo = fgTiles[fgIdx];
-    float dtime =
-        (tileChunkSizePerQuality_[2][fgTileInfo.second][fgTileInfo.first] *
-         1e3) /
-        totalBw;
+    // <tileId, chunkId>
+    auto &fgTileInfo = fgTiles[fgIdx].first;
+    auto tileQuality = fgTiles[fgIdx].second;
+    float dtime = (tileChunkSizePerQuality_[tileQuality][fgTileInfo.second]
+                                           [fgTileInfo.first] *
+                   1e3) /
+                  totalBw;
+
     std::string fgTile = std::to_string(fgTileInfo.first) + "_" +
-                         std::to_string(fgTileInfo.second) + "_2,";
+                         std::to_string(fgTileInfo.second) + "_" +
+                         std::to_string(tileQuality) + ",";
     if (fgMsTarget - dtime >= 0) { // fg tile fits in the FG slot
       request += fgTile;
       fgMsTarget -= dtime;
@@ -583,7 +617,7 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
     float downloadTimeBgMPInMS =
         predictedBw == 0 ? 0 : (backgroundTilesSizes[2] * 1e3) / predictedBw;
 
-    std::vector<std::pair<int, uint16_t>> foregroundTiles;
+    std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>> foregroundTiles;
     float bandwidthBgMP = predictedBw;
     float bandwidthFg = 0;
     // std::cout << "time remaining in ms :"
@@ -605,18 +639,15 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
       // 1e6)
       //        << "-" << (bandwidthFg * 8 / 1e6) << "\n";
 
-      foregroundTiles = abrAlgorithm->getTilesWithMaxOverallUtility(
+      /*foregroundTiles = abrAlgorithm->getTilesWithMaxOverallUtility(
           utilityMatrix, orderedUtilityMatrix, frameIdToRender,
           bandwidthFg > 0 ? bandwidthFg : 2.5 * 1e6, downloadTimeBgHPInMS,
-          clientNetworkLayer);
-      abrAlgorithm->qualityABR(foregroundTiles, orderedUtilityMatrix,
-                               utilityMatrix, frameIdToRender,
-                               bandwidthFg > 0 ? bandwidthFg : 2.5 * 1e6,
-                               downloadTimeBgHPInMS, clientNetworkLayer);
-      std::map<float, std::vector<std::pair<int, uint16_t>>>
-          foregroundTilesMap = {{0, foregroundTiles}};
-      auto foregroundTilesSize =
-          abrAlgorithm->getTilesSizes(foregroundTilesMap, 2);
+          clientNetworkLayer);*/
+      foregroundTiles =
+          abrAlgorithm->qualityABR(utilityMatrix, frameIdToRender,
+                                   bandwidthFg > 0 ? bandwidthFg : 2.5 * 1e6,
+                                   downloadTimeBgHPInMS, clientNetworkLayer);
+      auto foregroundTilesSize = abrAlgorithm->getTilesSizes(foregroundTiles);
       float downloadTimeFgInMS =
           predictedBw == 0 ? 0 : (foregroundTilesSize * 1e3) / predictedBw;
       // std::cout << foregroundTilesSize << ":" << downloadTimeFgInMS << "\n"
@@ -1079,9 +1110,8 @@ AbrAlgorithm::sortTilesByUtilityAndQuality(
   return tilesSortedByUtilitySum;
 }
 
-void AbrAlgorithm::qualityABR(
-    std::vector<std::pair<int, uint16_t>> topTiles,
-    std::map<float, std::vector<std::pair<int, uint16_t>>> sortedTilesByUtility,
+std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>>
+AbrAlgorithm::qualityABR(
     std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
     uint16_t frameIdToRender, float estimatedBw, float baseTime,
     ClientNetworkLayer *clientNetworkLayer) {
@@ -1105,18 +1135,17 @@ void AbrAlgorithm::qualityABR(
   curTime += baseTime;
   // base frame id.
   int frameIdSt = utilityMatrix.find({-1, -1})->second[0];
-
+  utilityMatrix.erase({-1, -1});
   tileNode *trace;
-
   for (int qualityIdx = 2; qualityIdx <= numberOfQualities_; qualityIdx++) {
     auto sortedTiles =
         sortTilesByUtilityAndQuality(qualityIdx, utilityMatrix, headTile);
     for (auto &tile : sortedTiles) {
-
       // create tile node and add to the linked list.
       if (tilesNodeMap.find(tile) == tilesNodeMap.end()) {
         float estDownloadTime =
-            tileChunkSizePerQuality_[1][tile.second][tile.first] / estimatedBw;
+            1e3 * (tileChunkSizePerQuality_[1][tile.second][tile.first] /
+                   estimatedBw);
         tileNode *tileN =
             new tileNode{tile, 0, estDownloadTime, 1, nullptr, nullptr};
         tilesNodeMap.insert({tile, tileN});
@@ -1139,7 +1168,7 @@ void AbrAlgorithm::qualityABR(
         if (tailTile == nullptr) { // first node in the request.
           tailTile = tileN;
           headTile = tileN;
-          tileN->EstArrivalTime = tileN->EstDownloadTime;
+          tileN->EstArrivalTime = tileN->EstDownloadTime + curTime;
         } else { // if not then place at the end.
           tailTile->nextTile = tileN;
           tileN->prevTile = tailTile;
@@ -1154,10 +1183,8 @@ void AbrAlgorithm::qualityABR(
           1e3 * (tileChunkSizePerQuality_[qualityIdx][tile.second][tile.first] /
                  estimatedBw);
 
-      // Search for the best location of the tile after trying to upgrade its
-      // quality, and start by placing it at the end of linked list first.
-
       // find the new arrival time after updating the tile quality.
+      // start by placing the tile at the tail, calc the new arrival time.
       float estArrTimeUpdated = 0;
       if (tileN != tailTile) {
         estArrTimeUpdated =
@@ -1181,270 +1208,45 @@ void AbrAlgorithm::qualityABR(
       bool placeAtTail = false;
       if (tileValueUpdated + overallValueUpdated > overallValue) {
         overallValueUpdated += tileValueUpdated;
+        overallValue = overallValueUpdated;
         placeAtTail = true;
       }
-      // Since tile might be already in the linkedlist of tileNodes, so instead
-      // of remvoing the tile and update the utility and download time for all
-      // successor nodes. We set this bool to true once we reach the tile, and
-      // stop updating DT and utility of its predecessor.
-      bool tileFound = false;
-      tileNode *potentionalPos = nullptr;
-      tileNode *trace = tailTile;
-      // try and find the best position for this tile,
-      // if none exist, then keep it where it is.
-      while (trace != nullptr) {
-        // start tile_quality_update_loop
-
-        if (trace->tile == tileN->tile) {
-          trace = trace->prevTile;
-          tileFound = true;
-          continue;
-        }
-
-        // UTILITY LOSS
-        // tile to switch position with.
-        int toSwitchTileArrvFrameId =
-            int(trace->EstArrivalTime / 40) - frameIdSt;
-        float toSwitchTileArrvTimeUpdated =
-            (trace->EstArrivalTime) + downloadTimeUpdated;
-        if (!tileFound) {
-          toSwitchTileArrvTimeUpdated -= tileN->EstDownloadTime;
-        }
-        int toSwitchTileArrvFrameIdUpdated =
-            int(toSwitchTileArrvTimeUpdated / 40) - frameIdSt;
-
-        auto toSwitchTilePsnr =
-            tileChunkPSNRPerQuality_[trace->quality][trace->tile.second]
-                                    [trace->tile.first];
-
-        float utilityLoss = toSwitchTilePsnr;
-        // it the estimated new arrival frame Id is beyond 1 sec;
-        // then upper bound is the max frmae id possible == 24.
-        if (toSwitchTileArrvFrameIdUpdated >= 25) {
-          utilityLoss *= (utilityMatrix[trace->tile][24] -
-                          utilityMatrix[trace->tile][toSwitchTileArrvFrameId]);
-        } else {
-          utilityLoss *=
-              (utilityMatrix[trace->tile][toSwitchTileArrvFrameIdUpdated] -
-               utilityMatrix[trace->tile][toSwitchTileArrvFrameId]);
-        }
-        // HERE
-        // UTILITY GAIN
-        int tileArrvFrameIdOld = int(tileN->EstArrivalTime / 40) - frameIdSt;
-        int tileArrvFrameIdUpdated =
-            int((toSwitchTileArrvTimeUpdated - trace->EstDownloadTime) / 40) -
-            frameIdSt;
-
-        // the new arrv time can be > old arrv time
-        float utilityGain = tileNewPsnr;
-        if (tileArrvFrameIdOld >= 25 && tileArrvFrameIdUpdated < 25) {
-          utilityGain *= utilityMatrix[tileN->tile][24] -
-                         utilityMatrix[tileN->tile][tileArrvFrameIdUpdated];
-        } else if (tileArrvFrameIdOld < 25 && tileArrvFrameIdUpdated < 25) {
-          // this might be negative now.
-          utilityGain *= utilityMatrix[tileN->tile][tileArrvFrameIdOld] -
-                         utilityMatrix[tileN->tile][tileArrvFrameIdUpdated];
-        } else if (tileArrvFrameIdUpdated >= 25 && tileArrvFrameIdOld < 25) {
-          // this definitely negative as new arrv time is > old arrv time.
-          utilityGain *= (utilityMatrix[tileN->tile][tileArrvFrameIdOld] -
-                          utilityMatrix[tileN->tile][24]);
-        }
-
-        overallValueUpdated += utilityGain - utilityLoss;
-        if (overallValueUpdated >= overallValue) {
-          potentionalPos = trace;
-          overallValue = overallValueUpdated;
-        }
-        trace = trace->prevTile;
-      } // end tile_quality_update_loop
+      tileNode *potentionalPos = returnBestPosition(
+          utilityMatrix, tailTile, tileN, frameIdSt, downloadTimeUpdated,
+          tileNewPsnr, overallValueUpdated, overallValue);
 
       ////// TILE PLACEMENT \\\\
       // Place tile in its potention new place if exists.
       if (!placeAtTail && potentionalPos == nullptr) {
         continue;
-      }
-      // determine whether tile will be moving early in request or not.
-      // if early, the update the estimated arrival times for all tiles after
-      // potentionalPos. If late,  then the update should start from the tileN
-      float tileStartOld =
-          tileN->prevTile != nullptr ? tileN->prevTile->EstArrivalTime : 0;
-
-      float tileStartUpdated =
-          placeAtTail ? tailTile->EstArrivalTime
-                      : (potentionalPos->prevTile != nullptr
-                             ? potentionalPos->prevTile->EstArrivalTime
-                             : 0);
-      float diffInDT = downloadTimeUpdated - tileN->EstDownloadTime;
-
-      bool left = false;
-      if (tileStartOld <= tileStartUpdated) {
-        trace = tileN;
-      } else {
-        trace = potentionalPos;
-        left = true;
+      } else if (potentionalPos != nullptr) {
+        placeAtTail = false;
       }
 
-      bool found = false;
-      // update arrival times for tiles.
-      while (trace != nullptr) {
-        // start  while: update EstArrivalTime
-
-        // if left, should check whether if I reached the tilePtr
-        // otherwise the potentional pos.
-        if (left && trace == tileN) {
-          found = true;
-          trace = trace->nextTile;
-        } else if (!left && trace == potentionalPos) {
-          found = true;
-        }
-
-        if (!found) {
-          if (left) {
-            trace->EstArrivalTime += downloadTimeUpdated;
-          } else if (!left) {
-            trace->EstArrivalTime -= tileN->EstDownloadTime;
-          }
-        } else {
-          trace->EstArrivalTime += diffInDT;
-        }
-      } // end while: update EstArrivalTime
-
-      // change tile position and update its download time, estArrtivalTime, and
-      // quality.
-      tileN->EstDownloadTime = downloadTimeUpdated;
-      tileN->quality = qualityIdx;
-
-      if (placeAtTail) {
-        if (tailTile != tileN) {
-          if (tileN->prevTile == nullptr) {
-            headTile = tileN->nextTile;
-            headTile->prevTile = nullptr;
-          }
-          tileN->nextTile = nullptr;
-          tileN->prevTile = tailTile;
-          tailTile->nextTile = tileN;
-          tailTile = tileN;
-        }
-        tileN->EstArrivalTime = downloadTimeUpdated;
-        if (tileN->prevTile != nullptr) {
-          tileN->EstArrivalTime += tileN->prevTile->EstArrivalTime;
-        }
-      } else { // move the tileN to potentional Postition -> prev.
-        // then move to headTile
-        if (potentionalPos->prevTile == nullptr) {
-          if (tileN->nextTile == nullptr) {
-            // move tail to head.
-            tileN->prevTile->nextTile = nullptr;
-            tailTile = tileN->prevTile;
-          } else {
-            // move node (not tail) to head
-            tileN->prevTile->nextTile = tileN->nextTile;
-            tileN->nextTile->prevTile = tileN->prevTile;
-          }
-          tileN->nextTile = potentionalPos;
-          potentionalPos->prevTile = tileN;
-          tileN->prevTile = nullptr;
-          headTile = tileN;
-          tileN->EstArrivalTime = downloadTimeUpdated;
-        } else {
-          // move anywhere but not the head nor tail.
-          if (tileN->nextTile == nullptr) { // move tail
-            tileN->prevTile->nextTile = nullptr;
-            tailTile = tileN->prevTile;
-          } else if (tileN->prevTile == nullptr) { // move the head.
-            tileN->nextTile->prevTile = nullptr;
-            headTile = tileN->nextTile;
-          } else {
-            tileN->prevTile->nextTile = tileN->nextTile;
-            tileN->nextTile->prevTile = tileN->prevTile;
-          }
-          tileN->nextTile = potentionalPos;
-          tileN->prevTile = potentionalPos->prevTile;
-          potentionalPos->prevTile = tileN;
-          tileN->prevTile->nextTile = tileN;
-          tileN->EstArrivalTime =
-              tileN->prevTile->EstArrivalTime + downloadTimeUpdated;
-        }
+      if (placeAtTail && tailTile == tileN) {
+        tailTile->EstArrivalTime =
+            (tailTile->EstArrivalTime - tailTile->EstDownloadTime) +
+            downloadTimeUpdated;
+        tailTile->EstDownloadTime = downloadTimeUpdated;
+        tailTile->quality = qualityIdx;
+        continue;
       }
-      // check tiles with 0 utility, if quality > 2, drop quality if still fit,
-      // then keep
-      trace = headTile;
-      float timeDiff;
-      while (trace != nullptr) {
-        auto estArrFrameId = int(trace->EstArrivalTime / 40) - frameIdSt;
-        auto tileUtilityVec = utilityMatrix[trace->tile];
-        float tileUtility = 0;
-        if (estArrFrameId < 25) {
-          tileUtility = tileUtilityVec[24] - tileUtilityVec[estArrFrameId];
-        }
-        if (tileUtility != 0) {
-          trace = trace->nextTile;
-          continue;
-        }
-        bool removeTile = true;
-        if (tileUtility == 0) {
-          while (trace->quality > 2) {
-            trace->quality -= 1;
-            auto EstDownloadTimeUpdated =
-                1e3 *
-                (tileChunkSizePerQuality_[trace->quality][trace->tile.second]
-                                         [trace->tile.first] /
-                 estimatedBw);
-            auto estArrTime = EstDownloadTimeUpdated;
-            if (trace->prevTile != nullptr) {
-              estArrTime += trace->prevTile->EstArrivalTime;
-            }
-            estArrFrameId = int(estArrTime / 40) - frameIdSt;
-            tileUtility = 0;
-            if (estArrFrameId < 25) {
-              tileUtility = tileUtilityVec[24] - tileUtilityVec[estArrFrameId];
-            }
-            if (tileUtility != 0) {
-              trace->EstDownloadTime = EstDownloadTimeUpdated;
-              trace->EstArrivalTime = estArrTime;
-              removeTile = false;
-              break;
-            }
-          }
-        }
-        // update the estimated time for next tiles.
-        tileNode *temp;
-        if (removeTile) {
-          if (trace->prevTile = nullptr) { // remove head;
-            headTile = trace->nextTile;
-            headTile->prevTile = nullptr;
-            headTile->EstArrivalTime = headTile->EstDownloadTime;
-            temp = headTile->nextTile;
-          } else {
-            trace->prevTile->nextTile = trace->nextTile;
-            if (trace->nextTile != nullptr) {
-              trace->nextTile->prevTile = trace->prevTile;
-            }
-            temp = trace->nextTile;
-          }
-          auto tileRemovedNode = trace;
-          trace = trace->nextTile;
-          tileRemovedNode->prevTile = nullptr;
-          tileRemovedNode->nextTile = nullptr;
-        } else { // if tile is not to remove.
-          temp = trace->nextTile;
-          trace = trace->nextTile;
-        }
 
-        while (temp != nullptr) {
+      updateArrivalTimeOfSuccessorNodes(tailTile, tileN, potentionalPos,
+                                        downloadTimeUpdated, placeAtTail);
 
-          temp->EstArrivalTime = temp->EstDownloadTime;
-          if (temp->prevTile != nullptr) {
-            temp->EstArrivalTime += temp->prevTile->EstArrivalTime;
-          }
-          temp = temp->nextTile;
-        }
-      } // end while
+      moveAndUpdateTile(headTile, tailTile, tileN, potentionalPos,
+                        downloadTimeUpdated, curTime, qualityIdx, placeAtTail);
+
+      checkTilesUtility(utilityMatrix, headTile, tailTile, frameIdSt,
+                        estimatedBw, curTime);
 
       // check the updated utility.
+      tilesNodeMap.clear();
       trace = headTile;
       overallValue = 0;
       while (trace != nullptr) {
+        tilesNodeMap.insert({trace->tile, trace});
         auto tile = trace->tile;
         auto tileUtilityVec = utilityMatrix[tile];
         auto tilePsnr =
@@ -1457,6 +1259,324 @@ void AbrAlgorithm::qualityABR(
       }
     }
   }
+  std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>> tilesToReturn;
+  while (headTile != nullptr) {
+    tilesToReturn.push_back({headTile->tile, headTile->quality});
+    auto temp = headTile;
+    headTile = headTile->nextTile;
+    if (temp != nullptr) {
+      delete temp;
+    }
+  }
+  return tilesToReturn;
+  // return request.
+}
+
+AbrAlgorithm::tileNode *AbrAlgorithm::returnBestPosition(
+    std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+    tileNode *&tailTile, tileNode *&tileN, int frameIdSt,
+    float downloadTimeUpdated, float tileNewPsnr, float overallValueUpdated,
+    float &overallValue) {
+  // Since tile might be already in the linkedlist of tileNodes, so instead
+  // of remvoing the tile and update the utility and download time for all
+  // successor nodes. We set this bool to true once we reach the tile, and
+  // stop updating DT and utility of its predecessor.
+  bool tileFound = false;
+  tileNode *potentionalPos = nullptr;
+  tileNode *trace = tailTile;
+  // try and find the best position for this tile,
+  // if none exist, then keep it where it is.
+  while (trace != nullptr) {
+    // start tile_quality_update_loop
+
+    if (trace->tile == tileN->tile) {
+      trace = trace->prevTile;
+      tileFound = true;
+      continue;
+    }
+
+    // UTILITY LOSS
+    // tile to switch position with.
+    int toSwitchTileArrvFrameId = int(trace->EstArrivalTime / 40) - frameIdSt;
+    float toSwitchTileArrvTimeUpdated =
+        (trace->EstArrivalTime) + downloadTimeUpdated;
+    if (!tileFound) {
+      toSwitchTileArrvTimeUpdated -= tileN->EstDownloadTime;
+    }
+    int toSwitchTileArrvFrameIdUpdated =
+        int(toSwitchTileArrvTimeUpdated / 40) - frameIdSt;
+    auto toSwitchTilePsnr =
+        tileChunkPSNRPerQuality_[trace->quality][trace->tile.second]
+                                [trace->tile.first];
+
+    float utilityLoss = toSwitchTilePsnr;
+    // it the estimated new arrival frame Id is beyond 1 sec;
+    // then upper bound is the max frmae id possible == 24.
+    if (toSwitchTileArrvFrameIdUpdated >= 25) {
+      utilityLoss *= (utilityMatrix[trace->tile][24] -
+                      utilityMatrix[trace->tile][toSwitchTileArrvFrameId]);
+    } else {
+      utilityLoss *=
+          (utilityMatrix[trace->tile][toSwitchTileArrvFrameIdUpdated] -
+           utilityMatrix[trace->tile][toSwitchTileArrvFrameId]);
+    }
+    // HERE
+    // UTILITY GAIN
+    int tileArrvFrameIdOld = int(tileN->EstArrivalTime / 40) - frameIdSt;
+    int tileArrvFrameIdUpdated =
+        int((toSwitchTileArrvTimeUpdated - trace->EstDownloadTime) / 40) -
+        frameIdSt;
+
+    // the new arrv time can be > old arrv time
+    float utilityGain = tileNewPsnr;
+    // this happens becuase we place the tile at the end when we start looking
+    // for new position
+    if (tileArrvFrameIdOld >= 25 && tileArrvFrameIdUpdated < 25) {
+      utilityGain *= utilityMatrix[tileN->tile][24] -
+                     utilityMatrix[tileN->tile][tileArrvFrameIdUpdated];
+    } else if (tileArrvFrameIdOld < 25 && tileArrvFrameIdUpdated < 25) {
+      // this might be negative now.
+      utilityGain *= utilityMatrix[tileN->tile][tileArrvFrameIdOld] -
+                     utilityMatrix[tileN->tile][tileArrvFrameIdUpdated];
+    } else if (tileArrvFrameIdUpdated >= 25 && tileArrvFrameIdOld < 25) {
+      // this definitely negative as new arrv time is > old arrv time.
+      utilityGain *= (utilityMatrix[tileN->tile][tileArrvFrameIdOld] -
+                      utilityMatrix[tileN->tile][24]);
+    }
+    if (utilityGain > 1e7 || utilityGain < -1e7 || utilityLoss > 1e7 ||
+        utilityLoss < -1e7) {
+      std::cout << tileN->tile.first << ":" << tileN->tile.second << "\n";
+      std::cout << frameIdSt << ":" << tileN->EstArrivalTime << "\n";
+      std::cout << utilityGain << "= " << tileArrvFrameIdOld << " vs "
+                << tileArrvFrameIdUpdated << "\n";
+      std::cout << utilityLoss << "= " << toSwitchTileArrvFrameId << " vs "
+                << toSwitchTileArrvFrameIdUpdated << "\n";
+      std::cout << "------\n";
+    }
+    overallValueUpdated += utilityGain - utilityLoss;
+    if (overallValueUpdated >= overallValue) {
+      potentionalPos = trace;
+      overallValue = overallValueUpdated;
+    }
+    trace = trace->prevTile;
+  } // end tile_quality_update_loop
+  return potentionalPos;
+}
+
+void AbrAlgorithm::updateArrivalTimeOfSuccessorNodes(tileNode *&tailTile,
+                                                     tileNode *&tileN,
+                                                     tileNode *&potentionalPos,
+                                                     float downloadTimeUpdated,
+                                                     bool placeAtTail) {
+  tileNode *trace;
+  float tileStartOld =
+      tileN->prevTile != nullptr ? tileN->prevTile->EstArrivalTime : 0;
+
+  float tileStartUpdated = placeAtTail
+                               ? tailTile->EstArrivalTime
+                               : (potentionalPos->prevTile != nullptr
+                                      ? potentionalPos->prevTile->EstArrivalTime
+                                      : 0);
+  float diffInDT = downloadTimeUpdated - tileN->EstDownloadTime;
+
+  // determine whether tile will be moving early in request or not.
+  // if early, the update the estimated arrival times for all tiles after
+  // potentionalPos. If late,  then the update should start from the tileN
+
+  bool left = false;
+  if (tileStartOld <= tileStartUpdated) {
+    trace = tileN;
+  } else {
+    trace = potentionalPos;
+    left = true;
+  }
+
+  bool found = false;
+  // update arrival times for successor tiles.
+  while (trace != nullptr) {
+    // start  while: update EstArrivalTime
+
+    // if left, should check whether if I reached the tileN
+    // otherwise the potentional pos.
+    if (left && trace == tileN) {
+      found = true;
+      trace = trace->nextTile;
+      continue;
+    } else if (!left && trace == potentionalPos) {
+      found = true;
+    }
+
+    if (!found) {
+      if (left) {
+        trace->EstArrivalTime += downloadTimeUpdated;
+      } else if (!left) {
+        trace->EstArrivalTime -= tileN->EstDownloadTime;
+      }
+    } else {
+      trace->EstArrivalTime += diffInDT;
+    }
+    trace = trace->nextTile;
+  } // end while: update EstArrivalTime
+}
+
+void AbrAlgorithm::moveAndUpdateTile(tileNode *&headTile, tileNode *&tailTile,
+                                     tileNode *&tileN,
+                                     tileNode *&potentionalPos,
+                                     float downloadTimeUpdated, float currTime,
+                                     uint8_t qualityIdx, bool placeAtTail) {
+  // change tile position and update its download time, estArrtivalTime, and
+  // quality.
+  tileN->quality = qualityIdx;
+
+  if (placeAtTail) {
+    if (tailTile != tileN) {
+      if (tileN->prevTile == nullptr) {
+        headTile = tileN->nextTile;
+      } else {
+        tileN->prevTile->nextTile = tileN->nextTile;
+      }
+      tileN->nextTile->prevTile = tileN->prevTile;
+      tileN->nextTile = nullptr;
+      tileN->prevTile = tailTile;
+      tailTile->nextTile = tileN;
+      tailTile = tileN;
+    }
+    tileN->EstArrivalTime = downloadTimeUpdated;
+    if (tileN->prevTile != nullptr) {
+      tileN->EstArrivalTime += tileN->prevTile->EstArrivalTime;
+    } else {
+      tileN->EstArrivalTime += currTime;
+    }
+  } else if (potentionalPos->prevTile == tileN) { // keep in the same position
+    tileN->EstArrivalTime =
+        (tileN->EstArrivalTime - tileN->EstDownloadTime) + downloadTimeUpdated;
+  } else { // move the tileN to potentional Postition -> prev.
+
+    if (potentionalPos->prevTile == nullptr) { // move to head.
+      if (tileN->nextTile == nullptr) {
+        // move tail to head.
+        tileN->prevTile->nextTile = nullptr;
+        tailTile = tileN->prevTile;
+      } else {
+        // move node (not tail) to head
+        tileN->prevTile->nextTile = tileN->nextTile;
+        tileN->nextTile->prevTile = tileN->prevTile;
+      }
+      tileN->nextTile = potentionalPos;
+      potentionalPos->prevTile = tileN;
+      tileN->prevTile = nullptr;
+      headTile = tileN;
+      tileN->EstArrivalTime = currTime + downloadTimeUpdated;
+
+    } else {
+      // move anywhere but not the head nor tail.
+      if (tileN->nextTile == nullptr) { // move tail
+        tileN->prevTile->nextTile = nullptr;
+        tailTile = tileN->prevTile;
+      } else if (tileN->prevTile == nullptr) { // move the head.
+        tileN->nextTile->prevTile = nullptr;
+        headTile = tileN->nextTile;
+      } else {
+        tileN->prevTile->nextTile = tileN->nextTile;
+        tileN->nextTile->prevTile = tileN->prevTile;
+      }
+      tileN->nextTile = potentionalPos;
+      tileN->prevTile = potentionalPos->prevTile;
+      potentionalPos->prevTile = tileN;
+      tileN->prevTile->nextTile = tileN; // cannot this if I am the head.
+      tileN->EstArrivalTime =
+          tileN->prevTile->EstArrivalTime + downloadTimeUpdated;
+    }
+  }
+  tileN->EstDownloadTime = downloadTimeUpdated;
+}
+
+void AbrAlgorithm::checkTilesUtility(
+    std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+    tileNode *&headTile, tileNode *&tailTile, int frameIdSt, float estimatedBw,
+    float currTime) {
+  // check tiles with 0 utility, if quality > 2, drop quality if still fit,
+  // then keep
+  tileNode *trace = headTile;
+  float timeDiff;
+  while (trace != nullptr) {
+    auto estArrFrameId = int(trace->EstArrivalTime / 40) - frameIdSt;
+    auto tileUtilityVec = utilityMatrix[trace->tile];
+    float tileUtility = 0;
+    if (estArrFrameId < 25) {
+      tileUtility = tileUtilityVec[24] - tileUtilityVec[estArrFrameId];
+    }
+    if (tileUtility != 0) {
+      trace = trace->nextTile;
+      continue;
+    }
+    bool removeTile = true;
+    if (tileUtility == 0) {
+      while (trace->quality > 2) {
+        trace->quality -= 1;
+        auto EstDownloadTimeUpdated =
+            1e3 * (tileChunkSizePerQuality_[trace->quality][trace->tile.second]
+                                           [trace->tile.first] /
+                   estimatedBw);
+        auto estArrTime = EstDownloadTimeUpdated;
+        if (trace->prevTile != nullptr) {
+          estArrTime += trace->prevTile->EstArrivalTime;
+        } else {
+          estArrTime += currTime;
+        }
+        estArrFrameId = int(estArrTime / 40) - frameIdSt;
+        tileUtility = 0;
+        if (estArrFrameId < 25) {
+          tileUtility = tileUtilityVec[24] - tileUtilityVec[estArrFrameId];
+        }
+        if (tileUtility != 0) {
+          trace->EstDownloadTime = EstDownloadTimeUpdated;
+          trace->EstArrivalTime = estArrTime;
+          removeTile = false;
+          break;
+        }
+      }
+    }
+
+    // remove tile.
+    tileNode *temp = nullptr;
+    if (removeTile) {
+      if (trace->prevTile == nullptr) { // remove head;
+        headTile = trace->nextTile;
+        if (headTile != nullptr) { // this is the only node in linkedlist
+          headTile->prevTile = nullptr;
+          headTile->EstArrivalTime = headTile->EstDownloadTime + currTime;
+          temp = headTile->nextTile;
+        }
+      } else {
+        trace->prevTile->nextTile = trace->nextTile;
+        if (trace->nextTile != nullptr) {
+          trace->nextTile->prevTile = trace->prevTile;
+        } else {
+          tailTile = tailTile->prevTile;
+        }
+        temp = trace->nextTile;
+      }
+      auto tileRemovedNode = trace;
+      trace = trace->nextTile;
+      tileRemovedNode->prevTile = nullptr;
+      tileRemovedNode->nextTile = nullptr;
+      delete tileRemovedNode;
+    } else { // if tile is not to remove.
+      temp = trace->nextTile;
+      trace = trace->nextTile;
+    }
+
+    // update the estimated time for successor tiles.
+    while (temp != nullptr) {
+
+      temp->EstArrivalTime = temp->EstDownloadTime;
+      if (temp->prevTile != nullptr) {
+        temp->EstArrivalTime += temp->prevTile->EstArrivalTime;
+      }
+      temp = temp->nextTile;
+    }
+  } // end while
 }
 
 uint8_t AbrAlgorithm::getNumberOfQualities() { return numberOfQualities_; }
@@ -1487,19 +1607,12 @@ AbrAlgorithm::getPossibleQualityAssignment(int quality, int tileClass) {
 }
 
 long AbrAlgorithm::getTilesSizes(
-    std::map<float, std::vector<std::pair<int, uint16_t>>> &tilesMap,
-    uint8_t quality) {
+    std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>> &fgTiles) {
   long totalSize = 0;
-  for (auto &tiles : tilesMap) {
-    if (tiles.first == 1) { // tiles is not in vp
-      continue;
-    }
-    for (auto &tilePair : tiles.second) {
-      // quality --> tile --> chunk
-      totalSize += tileChunkSizePerQuality_.find(quality)
-                       ->second.find(tilePair.second)
-                       ->second[tilePair.first];
-    }
+  for (auto &tile : fgTiles) {
+    totalSize += tileChunkSizePerQuality_.find(tile.second)
+                     ->second.find(tile.first.second)
+                     ->second[tile.first.first];
   }
   return totalSize;
 }

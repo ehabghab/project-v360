@@ -24,6 +24,9 @@ class Server {
 
   std::mutex reqMutex_;
 
+  const std::map<uint8_t, uint8_t> QUALITYMAP_ = {{1, 50}, {2, 37}, {3, 32},
+                                                  {4, 27}, {5, 22}, {6, 17}};
+
   // this is a hashset for tiles already sent,
   // used to avoid sending duplicate tiles.
   std::unordered_set<std::string, boost::hash<std::string>> tilesSent_;

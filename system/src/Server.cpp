@@ -31,7 +31,7 @@
 #include <gflags/gflags.h>
 
 Server::Server() {
-  videoRootDir_ = "/home/ehab/Desktop/Project-V360/split/YuvW12H12_new";
+  videoRootDir_ = "/home/ehab/Desktop/v1_data";
 
   /// Users/eghabash/Desktop/System-github/Project-V360/
 
@@ -213,7 +213,7 @@ void Server::sender(Server *server, uint8_t socket) {
   std::vector<std::string> tileLists;
   // we use tile index to keep track which tile from the list to send next.
   uint32_t tileIdx;
-  // Tile Info contains chunkId, setId, and tileId
+  // Tile Info contains chunkId, tileId, and quality
   std::vector<std::string> tileInfo;
   // to avoid head of line blocking we keep monitor our sending buffer size,
   // only start send packet/chunk when there is no data pending in buffer.
@@ -265,8 +265,10 @@ void Server::sender(Server *server, uint8_t socket) {
     // advance tile Index to next tile in the list.
     tileIdx++;
 
+    std::string qualityIdx = std::to_string(
+        server->QUALITYMAP_.find(std::stoi(tileInfo[2]))->second);
     // quality/tileId/chunkId
-    std::string tilePath = server->videoRootDir_ + "/" + tileInfo[2] + "/" +
+    std::string tilePath = server->videoRootDir_ + "/QP" + qualityIdx + "/" +
                            tileInfo[1] + "/" + std::to_string(chunkId) +
                            ".h264";
     char *filePath = new char[tilePath.length() + 1];
