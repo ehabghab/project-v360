@@ -70,26 +70,36 @@ def run_server_and_get_ip(tracefile):
 
 def main():
 
-	user_trace_dir = "../split/"
-	tile_size ="quality_tile_sizes.txt"
-	user_tile_per_frame_traces = ["tiles_per_frame_user_3.txt"]#["tiles_per_frame_synthetic_user_1.txt","tiles_per_frame_user_3.txt","tiles_per_frame_user_13.txt"]#,"tiles_per_frame_user_29.txt"]
-	#user_vp_corr_per_frame_traces = ["vp_corr_per_frame_user_3.txt"S,"vp_corr_per_frame_user_13.txt","vp_corr_per_frame_user_29.txt"]
+	user_trace_dir = "/home/ehab/Desktop/Project-V360/analysis/traces_system/"
+	video_dir = "/home/ehab/Desktop/v1_data/"
+	tile_size ="sizes.txt"
+	quality_name = "psnr_avgs.txt"
+	user_tile_per_frame_traces = ["tiles_per_frame_user_10.txt","tiles_per_frame_user_11.txt","tiles_per_frame_user_13.txt","tiles_per_frame_user_32.txt","tiles_per_frame_user_53.txt","tiles_per_frame_user_56.txt","tiles_per_frame_user_20.txt","tiles_per_frame_user_3.txt","tiles_per_frame_user_62.txt","tiles_per_frame_user_44.txt"]
 	bw_trace_dir = "/home/ehab/Desktop/Project-V360/automate/"        
-	bw_traces = ["trace_mahimahi_3.1mbps.txt","trace_mahimahi_3.7mbps.txt","trace_mahimahi_4.8mbps.txt","trace_mahimahi_6.2mbps.txt","trace_mahimahi_10mbps.txt"]
+	bw_traces = ["trace_mahimahi_6.2mbps.txt"]
+	displacement = "/home/ehab/Desktop/Project-V360/analysis/displacement_across_users_p100.txt"
 	delays = [0]	
 	out_file = open("exp_log.txt","w")
 	for bw_trace in bw_traces:
 		for user_tile_trace in user_tile_per_frame_traces:
 			user_id = user_tile_trace.split("_")[4].split(".")[0]
 			vp_corr_trace = "vp_corr_per_frame_user_"+user_id+".txt"
-			if "tiles_per_frame_synthetic_user_1" in user_tile_trace:
-				vp_corr_trace = "vp_corr_per_frame_synthetic_user_1.txt"
+			bw_val = bw_trace.split("_")[2].split(".")[0]
 			kill_procs()
 			for delay in delays:
+				out_dir = "user"+str(user_id)+"_"+str(delay)+"ms_"+bw_val+"mbps"
+				os.system("mkdir "+out_dir)
 				out_file.write(bw_trace+"\n"+str(delay)+"\n"+user_tile_trace+"\n=========\n")
 				server_ip = run_server_and_get_ip(bw_trace_dir+bw_trace)
 				time.sleep(2)
-				client_cmd = "mm-delay "+str(delay)+" ./bin/client "+user_trace_dir+user_tile_trace+" "+user_trace_dir+vp_corr_trace+" "+user_trace_dir+tile_size+" "+server_ip
+				user_frame_tiles_path = user_trace_dir+user_tile_trace
+				user_frame_vp_path = user_trace_dir+vp_corr_trace
+				size_path = video_dir+tile_size
+				psnr_path = video_dir+quality_name
+				args = " -utilityAbr=1 -predLR=1 -skipModel=1 "
+
+				client_cmd = "mm-delay "+str(delay)+" ./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+size_path+" "+psnr_path+" "+displacement+" "+server_ip+" "+args
+				print(client_cmd)
 				pid = subprocess.Popen(client_cmd,shell=True)
 				try:	
 					signal.alarm(15*60)
@@ -98,6 +108,12 @@ def main():
 					print(out)
 				except :
 					print("TIME out")
+				os.system("mv client* "+out_dir)
+				os.system("mv play* "+out_dir)
+				os.system("mv pred* "+out_dir)
+				os.system("mv recv* "+out_dir)
+				os.system("mv server* "+out_dir)
+				os.system("rm -r yuv* ")
 				kill_procs()
 				time.sleep(5)
 
