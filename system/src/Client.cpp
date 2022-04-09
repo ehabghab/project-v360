@@ -21,8 +21,9 @@ DEFINE_bool(skipModel, true, "true : skip model, false : rebuffer model");
 
 Client::Client(std::string tilesPerFrameTracePath,
                std::string vpCorrPerFrameTracePath,
-               std::string tileChunkSizesTracePath,
-               std::string backgroundDisplacementTrace, std::string serverIp) {
+               std::string tileChunkSizesPath,
+               std::string tileChunksQaulityPath,
+               std::string backgroundDisplacementPath, std::string serverIp) {
   // Initiate all instances to create threads.
   // 1- Network layer (sender and receiver).
   // 2- Video player along with the decoder.
@@ -31,8 +32,8 @@ Client::Client(std::string tilesPerFrameTracePath,
   VideoPlayer *videoPlayer =
       new VideoPlayer(tilesPerFrameTracePath, vpCorrPerFrameTracePath);
   Decoder *decoder = new Decoder();
-  AbrAlgorithm *abr =
-      new AbrAlgorithm(tileChunkSizesTracePath, backgroundDisplacementTrace);
+  AbrAlgorithm *abr = new AbrAlgorithm(
+      tileChunkSizesPath, tileChunksQaulityPath, backgroundDisplacementPath);
   TilePredictor *tilePredictor = new TilePredictor(vpCorrPerFrameTracePath);
   BandwidthPredictor *bandwidthPredictor = new BandwidthPredictor();
 
@@ -85,17 +86,20 @@ Client::Client(std::string tilesPerFrameTracePath,
 Client::~Client() {}
 
 int main(int argc, char **argv) {
-  if (argc < 5) {
-    LOG(ERROR) << "Usage: ./client <tiles_per_frame_trace> "
-                  "<vp_corrdinates_per_frame> <tile_chunk_sizes> "
-                  "<background_displacement> <server_ip>";
+  if (argc < 6) {
+    LOG(ERROR)
+        << "Usage: ./client <tiles_per_frame_trace> "
+           "<vp_corrdinates_per_frame> <tile_chunk_sizes> <tile_chunk_quality>"
+           "<background_displacement> <server_ip>";
     return -1;
   }
+
   google::SetLogDestination(google::INFO, "client_log.txt");
   google::InitGoogleLogging(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-  Client *client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5]);
+  Client *client =
+      new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
   // to suppress warning
   assert(client != nullptr);
   return 0;
