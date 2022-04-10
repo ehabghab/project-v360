@@ -1108,7 +1108,6 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
       curTime = tailTile->EstArrivalTime;
     }
   }
-  std::cout << overallUtility << "\n";
   std::vector<std::pair<int, uint16_t>> tilesToRequest;
   while (headTile != nullptr) {
     tilesToRequest.push_back(headTile->tile);
@@ -1130,7 +1129,7 @@ AbrAlgorithm::sortTilesByUtilityAndQuality(
   // this is sorted such that tiles
   std::map<float, std::pair<int, uint16_t>, std::greater<float>>
       tilesUtilitySum;
-  if (quality == 2) {
+  if (headRequest == nullptr) {
     for (auto &tileUtilityPair : utilityMatrix) {
       auto &tile = tileUtilityPair.first;
       float tileValueDiff =
@@ -1144,9 +1143,9 @@ AbrAlgorithm::sortTilesByUtilityAndQuality(
     while (trace != nullptr) {
       auto &tile = trace->tile;
       float tileValueDiff =
-          utilityMatrix[tile][24] *
-          (tileChunkPSNRPerQuality_[quality][tile.second][tile.first] -
-           tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first]);
+          utilityMatrix[tile][24] * (quality - trace->quality);
+      //(tileChunkPSNRPerQuality_[quality][tile.second][tile.first] -
+      // tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first]);
       tilesUtilitySum.insert({tileValueDiff, tile});
       trace = trace->nextTile;
     }
@@ -1192,6 +1191,18 @@ AbrAlgorithm::qualityABR(
     auto sortedTiles =
         sortTilesByUtilityAndQuality(qualityIdx, utilityMatrix, headTile);
     for (auto &tile : sortedTiles) {
+      if (clientNetworkLayer->isReceived(tile.first + 1, tile.second) > 1) {
+        if (tilesNodeMap.find(tile) != tilesNodeMap.end()) {
+          removeNodeAndUpdateUtility(utilityMatrix, headTile, tailTile,
+                                     frameIdSt, curTime, tilesNodeMap[tile],
+                                     overallValue);
+          tilesNodeMap.erase(tile);
+        }
+        continue;
+      }
+      if (tile.first == 0) {
+        continue;
+      }
       // create tile node and add to the linked list.
       if (tilesNodeMap.find(tile) == tilesNodeMap.end()) {
         float estDownloadTime =
@@ -1203,10 +1214,11 @@ AbrAlgorithm::qualityABR(
       }
       auto tileN = tilesNodeMap[tile];
       auto &tileUtilityVec = utilityMatrix[tile];
-      auto tileOldPsnr =
-          tileChunkPSNRPerQuality_[tileN->quality][tile.second][tile.first];
-      auto tileNewPsnr =
-          tileChunkPSNRPerQuality_[qualityIdx][tile.second][tile.first];
+      auto tileOldPsnr = tileN->quality;
+      // tileChunkPSNRPerQuality_[tileN->quality][tile.second][tile.first]; //
+      // change it in the removeNodeAndUpdateUtility as well.
+      auto tileNewPsnr = qualityIdx;
+      // tileChunkPSNRPerQuality_[qualityIdx][tile.second][tile.first];
 
       // calc the old value of the tile.
       float tileOldValue = 0;
@@ -1227,6 +1239,10 @@ AbrAlgorithm::qualityABR(
           tileN->EstArrivalTime =
               tileN->prevTile->EstArrivalTime + tileN->EstDownloadTime;
         }
+        tileOldValue =
+            (tileUtilityVec[24] -
+             tileUtilityVec[int(tileN->EstArrivalTime / 40) - frameIdSt]) *
+            tileOldPsnr;
       }
 
       float overallValueUpdated = overallValue - tileOldValue;
@@ -1289,8 +1305,8 @@ AbrAlgorithm::qualityABR(
       moveAndUpdateTile(headTile, tailTile, tileN, potentionalPos,
                         downloadTimeUpdated, curTime, qualityIdx, placeAtTail);
 
-      checkTilesUtility(utilityMatrix, headTile, tailTile, frameIdSt,
-                        estimatedBw, curTime);
+      checkTilesUtility(utilityMatrix, tilesNodeMap, headTile, tailTile,
+                        frameIdSt, estimatedBw, curTime);
 
       // check the updated utility.
       tilesNodeMap.clear();
@@ -1300,8 +1316,8 @@ AbrAlgorithm::qualityABR(
         tilesNodeMap.insert({trace->tile, trace});
         auto tile = trace->tile;
         auto tileUtilityVec = utilityMatrix[tile];
-        auto tilePsnr =
-            tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first];
+        auto tilePsnr = trace->quality;
+        // tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first];
         auto tileUtility =
             tileUtilityVec[24] -
             tileUtilityVec[int(trace->EstArrivalTime / 40) - frameIdSt];
@@ -1313,14 +1329,66 @@ AbrAlgorithm::qualityABR(
   std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>> tilesToReturn;
   while (headTile != nullptr) {
     tilesToReturn.push_back({headTile->tile, headTile->quality});
-    auto temp = headTile;
     headTile = headTile->nextTile;
-    if (temp != nullptr) {
-      delete temp;
-    }
   }
+  // std::string line = "";
+  // for (auto &tilepair : tilesToReturn) {
+  //   line += std::to_string(tilepair.first.second) + "_" +
+  //           std::to_string(tilepair.first.first) + "_" +
+  //           std::to_string(tilepair.second) + ",";
+  // }
+  // std::cout << "tiles:" << line << "\n";
   return tilesToReturn;
   // return request.
+}
+
+void AbrAlgorithm::removeNodeAndUpdateUtility(
+    std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+    tileNode *&headTile, tileNode *&tailTile, int frameIdSt, float currTime,
+    tileNode *&tileN, float &overallValue) {
+
+  // remove node from linkedlist.
+  if (tileN->prevTile == nullptr) { // remove head.
+    headTile = headTile->nextTile;
+    if (headTile != nullptr) {
+      headTile->prevTile->nextTile = nullptr;
+      headTile->prevTile = nullptr;
+    } else { // this happens if tail and head are the only node (which to be
+             // removed)
+      tailTile = nullptr;
+    }
+  } else if (tileN->nextTile == nullptr) { // remove tail
+    tailTile = tailTile->prevTile;
+    if (tailTile != nullptr) {
+      tailTile->nextTile->prevTile = nullptr;
+      tailTile->nextTile = nullptr;
+    } else { // this happens if tail and head are the only node (which to be
+             // removed)
+      headTile = nullptr;
+    }
+  } else {
+    tileN->prevTile->nextTile = tileN->nextTile;
+    tileN->nextTile->prevTile = tileN->prevTile;
+    tileN->nextTile = nullptr;
+    tileN->prevTile = nullptr;
+  }
+  // node is removed now.
+
+  tileNode *trace = headTile;
+  overallValue = 0;
+  while (trace != nullptr) {
+    if (trace->prevTile == nullptr) {
+      trace->EstArrivalTime = currTime + trace->EstDownloadTime;
+    } else {
+      trace->EstArrivalTime =
+          trace->prevTile->EstArrivalTime + trace->EstDownloadTime;
+    }
+    auto estArrvFrameId = int(trace->EstArrivalTime / 40) - frameIdSt;
+    overallValue += (utilityMatrix[trace->tile][24] -
+                     utilityMatrix[trace->tile][estArrvFrameId]) *
+                    trace->quality;
+    trace = trace->nextTile;
+  }
 }
 
 AbrAlgorithm::tileNode *AbrAlgorithm::returnBestPosition(
@@ -1356,9 +1424,9 @@ AbrAlgorithm::tileNode *AbrAlgorithm::returnBestPosition(
     }
     int toSwitchTileArrvFrameIdUpdated =
         int(toSwitchTileArrvTimeUpdated / 40) - frameIdSt;
-    auto toSwitchTilePsnr =
-        tileChunkPSNRPerQuality_[trace->quality][trace->tile.second]
-                                [trace->tile.first];
+    auto toSwitchTilePsnr = trace->quality;
+    // tileChunkPSNRPerQuality_[trace->quality][trace->tile.second]
+    //                      [trace->tile.first];
 
     float utilityLoss = toSwitchTilePsnr;
     // it the estimated new arrival frame Id is beyond 1 sec;
@@ -1544,6 +1612,7 @@ void AbrAlgorithm::moveAndUpdateTile(tileNode *&headTile, tileNode *&tailTile,
 
 void AbrAlgorithm::checkTilesUtility(
     std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+    std::map<std::pair<int, uint16_t>, tileNode *> &tilesNodeMap,
     tileNode *&headTile, tileNode *&tailTile, int frameIdSt, float estimatedBw,
     float currTime) {
   // check tiles with 0 utility, if quality > 2, drop quality if still fit,
@@ -1590,44 +1659,52 @@ void AbrAlgorithm::checkTilesUtility(
     }
 
     // remove tile.
-    tileNode *temp = nullptr;
+    tileNode *temp = trace;
     if (removeTile) {
       if (trace->prevTile == nullptr) { // remove head;
         headTile = trace->nextTile;
         if (headTile != nullptr) { // this is the only node in linkedlist
+          headTile->prevTile->nextTile = nullptr;
           headTile->prevTile = nullptr;
           headTile->EstArrivalTime = headTile->EstDownloadTime + currTime;
-          temp = headTile->nextTile;
+          temp = headTile;
+        } else {
+          temp = nullptr;
+          tailTile = nullptr;
         }
+      } else if (trace->nextTile == nullptr) {
+        tailTile = tailTile->prevTile;
+        if (tailTile != nullptr) {
+          tailTile->nextTile->prevTile = nullptr;
+          tailTile->nextTile = nullptr;
+        } else {
+          headTile = nullptr;
+        }
+        temp = nullptr;
       } else {
         trace->prevTile->nextTile = trace->nextTile;
-        if (trace->nextTile != nullptr) {
-          trace->nextTile->prevTile = trace->prevTile;
-        } else {
-          tailTile = tailTile->prevTile;
-        }
+        trace->nextTile->prevTile = trace->prevTile;
         temp = trace->nextTile;
       }
-      auto tileRemovedNode = trace;
-      trace = trace->nextTile;
-      tileRemovedNode->prevTile = nullptr;
-      tileRemovedNode->nextTile = nullptr;
-      delete tileRemovedNode;
-    } else { // if tile is not to remove.
-      temp = trace->nextTile;
-      trace = trace->nextTile;
-    }
+      tilesNodeMap.erase(trace->tile);
 
-    // update the estimated time for successor tiles.
-    while (temp != nullptr) {
-
-      temp->EstArrivalTime = temp->EstDownloadTime;
-      if (temp->prevTile != nullptr) {
-        temp->EstArrivalTime += temp->prevTile->EstArrivalTime;
+      // update the estimated time for successor tiles.
+      tileNode *updateNode = temp;
+      while (updateNode != nullptr) {
+        updateNode->EstArrivalTime = updateNode->EstDownloadTime;
+        if (updateNode->prevTile != nullptr) {
+          updateNode->EstArrivalTime += updateNode->prevTile->EstArrivalTime;
+        } else {
+          updateNode->EstArrivalTime += currTime;
+        }
+        updateNode = updateNode->nextTile;
       }
-      temp = temp->nextTile;
+      trace = temp;
+    } // end while
+    else {
+      trace = trace->nextTile;
     }
-  } // end while
+  }
 }
 
 uint8_t AbrAlgorithm::getNumberOfQualities() { return numberOfQualities_; }

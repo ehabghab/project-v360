@@ -108,6 +108,11 @@ private:
       uint16_t frameIdToRender, float estimatedBw, float baseTime,
       ClientNetworkLayer *clientNetworkLayer);
 
+  void removeNodeAndUpdateUtility(
+      std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+      tileNode *&headTile, tileNode *&tailTile, int frameIdSt, float currTime,
+      tileNode *&tileN, float &overallValue);
+
   tileNode *returnBestPosition(
       std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
       tileNode *&tailTile, tileNode *&tileN, int frameIdSt,
@@ -126,6 +131,7 @@ private:
 
   void checkTilesUtility(
       std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
+      std::map<std::pair<int, uint16_t>, tileNode *> &tilesNodeMap,
       tileNode *&headTile, tileNode *&tailTile, int frameIdSt,
       float estimatedBw, float currTime);
 
