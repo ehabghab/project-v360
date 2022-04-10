@@ -16,7 +16,9 @@
                 "/home/ehab/Desktop/v1_data/psnr_avgs.txt",
                 "/home/ehab/Desktop/Project-V360/analysis/displacement_across_users_p95.txt",
                 "100.64.0.2",
-                "-utilityAbr=1"
+                "-utilityAbr=0",
+                "-skipModel=0",
+                "predLR=0",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
