@@ -232,8 +232,19 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
 
       auto tileQuality = stoi(respHeader["Tile-Quality"]);
 
-      client->receivedTileChunks_.insert(
-          {{tileInfo.first, tileInfo.second}, tileQuality});
+      if (client->receivedTileChunks_.find({tileInfo.first, tileInfo.second}) ==
+          client->receivedTileChunks_.end()) {
+        client->receivedTileChunks_.insert(
+            {{tileInfo.first, tileInfo.second}, tileQuality});
+      } else {
+        client->receivedTileChunks_[{tileInfo.first, tileInfo.second}] =
+            tileQuality;
+      }
+
+      // std::cout << "recvd:" << std::to_string(tileInfo.second) << "_"
+      //         << std::to_string(tileInfo.first) << "_"
+      //         << std::to_string(tileQuality) << "\n";
+
       videoPlayer->addChunk(chunk, chunkSize, tileInfo.first, tileInfo.second,
                             tileQuality);
       bandwidth =
