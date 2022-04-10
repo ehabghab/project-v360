@@ -117,6 +117,10 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoder) {
 
     // free raw frames from previous chunks.
     for (auto freeIdx = startChunk - 2; freeIdx < startChunk; freeIdx++) {
+      if (videoPlayer->decodedTileChunks_.find(freeIdx) ==
+          videoPlayer->decodedTileChunks_.end()) {
+        continue;
+      }
       auto &decodedChunk = videoPlayer->decodedTileChunks_[freeIdx];
       for (auto &tile : decodedChunk) {
         if (tile.second.first.size() == 0) {
@@ -484,17 +488,6 @@ void VideoPlayer::startVideoWithRebuffer(VideoPlayer *videoPlayer,
 
     fflush(playLog);
     videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_);
-    if (videoPlayer->frameId_ % videoPlayer->FPS_ == 0) {
-      if (videoPlayer->decodedTileChunks_.find(playSecond) !=
-          videoPlayer->decodedTileChunks_.end()) {
-        for (auto &tileInfo :
-             videoPlayer->decodedTileChunks_.find(playSecond)->second) {
-          for (auto &tileRawFramePtr : tileInfo.second.first) {
-            free(tileRawFramePtr);
-          }
-        }
-      }
-    }
     Util::setFramePlayTime(renderTime);
     videoPlayer->frameId_++;
     viewport.clear();

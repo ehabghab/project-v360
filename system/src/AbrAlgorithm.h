@@ -176,7 +176,7 @@ private:
       std::map<uint8_t, std::vector<std::pair<int, uint16_t>>>
           &tilesRequestToReturn,
       TilePredictor *tilePredictor, ClientNetworkLayer *clientNetworkLayer,
-      uint32_t frameIdToRender, uint8_t numOfQualities);
+      uint32_t frameIdToRender, uint8_t numOfQualities, uint8_t &numOfClasses);
 
   /**
    * @brief finds the highest quality assignment per tile class where deadline
@@ -190,12 +190,12 @@ private:
    * @param baseTime: download time to get all critical tiles.
    * @return int: highest quality assignment that meets deadline
    */
-  int getQualityIdx(
-      std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
-          &frameIdSetQualitySizeSum,
-      std::map<int, std::vector<std::string>> qualitiesAssignments,
-      uint32_t frameIdToRender, uint8_t numOfQualities, float predictedBw,
-      float baseTime);
+  std::map<int, int>
+  getQualityIdx(std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
+                    &frameIdSetQualitySizeSum,
+                std::vector<std::string> qualitiesAssignments,
+                uint32_t frameIdToRender, uint8_t numOfQualities,
+                float predictedBw, float baseTime);
 
   /**
    * @brief Given tiles, and quality return their total size

@@ -27,7 +27,7 @@ std::pair<uint32_t, int> BandwidthPredictor::getCurrentTilesInfo() {
   std::pair<uint32_t, int> avgParameters;
   // The download time of the data needs to be > 250ms
   // for high confidence bandwidth calculations.
-  if (totalDownloadTimeInMS_ < 250) {
+  if (totalDownloadTimeInMS_ < 20) {
     avgParameters = {0, 0};
   } else {
     avgParameters = {tileSizesSum_, totalDownloadTimeInMS_};

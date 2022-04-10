@@ -92,7 +92,7 @@ void AbrAlgorithm::getTileSetSizePerQuality(
     std::map<uint8_t, std::vector<std::pair<int, uint16_t>>>
         &tilesRequestToReturn,
     TilePredictor *tilePredictor, ClientNetworkLayer *clientNetworkLayer,
-    uint32_t frameIdToRender, uint8_t numOfQualities) {
+    uint32_t frameIdToRender, uint8_t numOfQualities, uint8_t &numOfClasses) {
   std::set<std::string> tilesInPrevSets;
 
   // get all tiles need per frame in each class.
@@ -102,7 +102,6 @@ void AbrAlgorithm::getTileSetSizePerQuality(
   if (tileClassesOfFutureFrames.size() == 0) {
     return;
   }
-  uint8_t numOfClasses = 0;
 
   for (auto const &tileClassesSingleFrame :
        tileClassesOfFutureFrames) { // A- per frame
@@ -200,12 +199,11 @@ void AbrAlgorithm::getTileSetSizePerQuality(
   }
 }
 
-int AbrAlgorithm::getQualityIdx(
+std::map<int, int> AbrAlgorithm::getQualityIdx(
     std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
         &frameIdSetQualitySizeSum,
-    std::map<int, std::vector<std::string>> qualitiesAssignments,
-    uint32_t frameIdToRender, uint8_t numOfQualities, float predictedBw,
-    float baseTime) {
+    std::vector<std::string> qualitiesAssignments, uint32_t frameIdToRender,
+    uint8_t numOfQualities, float predictedBw, float baseTime) {
   // find the quality that we can get all tiles within each frame before
   // frame deadline (avoid rebuffering at all costs).
 
@@ -223,7 +221,6 @@ int AbrAlgorithm::getQualityIdx(
   //    2       2
   //    2       1
   //    1       1
-
   // current video time is the time of the last played frame + time
   // passed since last frame was rendered.
   int qIdx = numOfQualities;
@@ -232,49 +229,89 @@ int AbrAlgorithm::getQualityIdx(
       (((frameIdToRender - 1) * 40.0) + Util::getTimePassedSinceLastFrame()) /
       1e3; // current video time.
 
+  std::vector<int> sortedFrameIds;
+  for (auto const &tileClassesSingleFrame : frameIdSetQualitySizeSum) {
+    sortedFrameIds.push_back(tileClassesSingleFrame.first);
+  }
+
   currentVideoTime += baseTime;
-
-  for (int quality = numOfQualities; quality > 0; quality--) {
-    // for all possible solutions
-    for (auto const &solution : qualitiesAssignments.find(quality)->second) {
-      // try the solution: calculate the timing for all sets in all frames
-      float timeCascade = currentVideoTime;
-      qualityFound = true;
-      // go through all classes in all frames one by one based on render
-      // deadline.
-      for (auto const &tileClassesSingleFrame : frameIdSetQualitySizeSum) {
-        if (tileClassesSingleFrame.first < frameIdToRender) {
-          continue;
-        }
-        // size sum of set of tiles in all classes for this frame
-        uint64_t totalFrameTileSizes = 0;
-        for (auto const &tileClass : tileClassesSingleFrame.second) {
-          int qualityIdx = int(solution[tileClass.first * 2]) - 49;
-          totalFrameTileSizes += tileClass.second[qualityIdx];
-        }
-        // can we get all frame tiles before render deadline?
-        auto downloadTime = totalFrameTileSizes / predictedBw;
-        auto frameTilesDeadline =
-            ((tileClassesSingleFrame.first - 1.0) * 40.0) / 1e3;
-
-        if (downloadTime + timeCascade < frameTilesDeadline) {
-          timeCascade += downloadTime;
-        } else {
-          qualityFound = false;
-          qIdx--;
-          break;
-        }
+  std::map<int, int> chunkQualityAssignment;
+  float timeCascade = currentVideoTime;
+  int qualityIdx = 0;
+  int frameIdx = 0;
+  int currChunk = -1;
+  for (qualityIdx; qualityIdx < qualitiesAssignments.size(); qualityIdx++) {
+    bool qualityFound = false;
+    int chunkId = -1;
+    int frameId = -1;
+    auto solution = qualitiesAssignments[qualityIdx];
+    float downloadTime = 0;
+    // try get all frames within the chunk with this quality(solution)
+    for (frameId = frameIdx; frameId < sortedFrameIds.size(); frameId++) {
+      chunkId = int((sortedFrameIds[frameId] - 1) / 25);
+      if (currChunk == -1) {
+        currChunk = chunkId;
       }
-      if (qualityFound) {
+      if (currChunk != chunkId) {
+        qualityFound = true;
+        break;
+      }
+      uint64_t totalFrameTileSizes = 0;
+      for (auto const &tileClass :
+           frameIdSetQualitySizeSum[sortedFrameIds[frameId]]) {
+        int qualityIdx = int(solution[tileClass.first * 2]) - 49;
+        totalFrameTileSizes += tileClass.second[qualityIdx];
+      }
+      auto dt = totalFrameTileSizes / predictedBw;
+      auto frameTilesDeadline = ((sortedFrameIds[frameId] - 1.0) * 40.0) / 1e3;
+      if (dt + timeCascade < frameTilesDeadline) {
+        downloadTime += dt;
+      } else {
         break;
       }
     }
     if (qualityFound) {
+      chunkQualityAssignment.insert({currChunk, qualityIdx});
+      qualityIdx = 0;
+      frameIdx = frameId;
+      currChunk = chunkId;
+      timeCascade += downloadTime;
+    } else if (!qualityFound &&
+               (frameId == sortedFrameIds.size() &&
+                (qualityIdx + 1) !=
+                    qualitiesAssignments
+                        .size())) { // found the quality of the last chunk.
+      chunkQualityAssignment.insert({currChunk, qualityIdx});
       break;
     }
+
+    else if (!qualityFound &&
+             (qualityIdx + 1) ==
+                 qualitiesAssignments.size()) { // no assignment is working.
+      // get tiles for the current chunk with lowest quality.
+      for (frameIdx; frameIdx < sortedFrameIds.size(); frameIdx++) {
+        chunkId = int((sortedFrameIds[frameIdx] - 1) / 25);
+        if (currChunk != chunkId) {
+          break;
+        }
+        uint64_t totalFrameTileSizes = 0;
+        for (auto const &tileClass :
+             frameIdSetQualitySizeSum[sortedFrameIds[frameIdx]]) {
+          int qualityIdx = int(solution[tileClass.first * 2]) - 49;
+          totalFrameTileSizes += tileClass.second[qualityIdx];
+        }
+        auto dt = totalFrameTileSizes / predictedBw;
+        timeCascade += dt;
+      }
+      chunkQualityAssignment.insert({currChunk, qualityIdx});
+      qualityIdx = 0;
+      if (frameIdx == sortedFrameIds.size()) {
+        break;
+      }
+      currChunk = int((sortedFrameIds[frameIdx] - 1) / 25);
+    }
   }
-  qIdx = qIdx == -1 ? 0 : qIdx;
-  return qIdx;
+  return chunkQualityAssignment;
 }
 
 // ToDo fix how flare send tiles, it now needs to be chunkidx_tileidx_quality
@@ -289,10 +326,9 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
   float videoTime = 0;
 
   uint8_t numOfQualities = abrAlgorithm->getNumberOfQualities();
-  uint8_t numOfClasses;
+  uint8_t numOfClasses = 0;
   // This set will contain all tiles in prev sets (to contain duplicates)
   // tilechunk_tileIdx
-  std::vector<std::pair<float, float>> predictedCorr;
 
   std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
       frameIdSetQualitySizeSum;
@@ -305,54 +341,69 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
     // all frameId must be >= frameIdToRender, to ensure we don't request data
     // for old frames.
     auto frameIdToRender = videoPlayer->getFrameToRenderId();
-    tilePredictor->getPredictedCorr(predictedCorr);
+    // this will return the size per class per frame.
+    // along with number of class = max(class rank),
+    numOfClasses = 0;
     abrAlgorithm->getTileSetSizePerQuality(
         frameIdSetQualitySizeSum, tilesRequest, tilePredictor,
-        clientNetworkLayer, frameIdToRender, numOfQualities);
-
+        clientNetworkLayer, frameIdToRender, numOfQualities, numOfClasses);
+    numOfClasses++;
     float predictedBw =
         (bandwidthPredictor->getMpcBandwidthPrediction()); // Bytes Per Second
 
+    /*for (auto &frameSet : frameIdSetQualitySizeSum) {
+      for (auto &classs : frameSet.second) {
+        std::string line = std::to_string(frameSet.first) + "-" +
+                           std::to_string(classs.first) + ":";
+        for (auto v : classs.second) {
+          line += std::to_string(v) + ",";
+        }
+        line.pop_back();
+        std::cout << line << std::endl;
+      }
+    }
+    std::cout << predictedBw << std::endl;
+    std::cout << frameIdToRender << std::endl;
+    std::cout << "======\n";*/
     // generate a list of all required background tiles.
-    std::map<float, std::vector<uint16_t>> urgentTiles;
-    tilePredictor->getUrgetTilesList(urgentTiles, predictedCorr);
-    auto urgentTileRequestAndSize =
-        abrAlgorithm->buildBackgroundUrgentTilesRequest(
-            frameIdToRender, clientNetworkLayer, urgentTiles);
+    // std::map<float, std::vector<uint16_t>> urgentTiles;
+    // tilePredictor->getUrgetTilesList(urgentTiles, predictedCorr);
+    // auto urgentTileRequestAndSize =
+    //    abrAlgorithm->buildBackgroundUrgentTilesRequest(
+    //       frameIdToRender, clientNetworkLayer, urgentTiles);
 
-    auto lessUrgentBGTilesInfo = abrAlgorithm->getBackgroundLessUrgentTilesInfo(
-        frameIdToRender, clientNetworkLayer, urgentTiles);
+    // auto lessUrgentBGTilesInfo =
+    // abrAlgorithm->getBackgroundLessUrgentTilesInfo(
+    //   frameIdToRender, clientNetworkLayer, urgentTiles);
 
-    float baseTime =
-        predictedBw == 0 ? 0 : (urgentTileRequestAndSize.second * 1e3) /
-                                   predictedBw; // in MS
+    float baseTime = 0;
+    //   predictedBw == 0 ? 0 : (urgentTileRequestAndSize.second * 1e3) /
+    //                              predictedBw; // in MS
 
     auto qualityAssignments = abrAlgorithm->getPossibleQualityAssignment(
-        numOfQualities, numOfClasses + 1);
-    auto qIdx = abrAlgorithm->getQualityIdx(
-        frameIdSetQualitySizeSum, qualityAssignments, frameIdToRender,
+        numOfQualities, numOfClasses);
+    std::vector<std::string> qualityAssignmentsVec;
+    for (int quality = numOfQualities; quality > 0; quality--) {
+      // for all possible solutions
+      for (auto const &solution : qualityAssignments.find(quality)->second) {
+        qualityAssignmentsVec.push_back(solution);
+      }
+    }
+    auto qualityMap = abrAlgorithm->getQualityIdx(
+        frameIdSetQualitySizeSum, qualityAssignmentsVec, frameIdToRender,
         numOfQualities, predictedBw, baseTime);
 
-    std::string req = "Tiles\n" + urgentTileRequestAndSize.first;
+    std::string req = "Tiles\n"; //+ urgentTileRequestAndSize.first;
     // class rank --> tiles <chunkId, tileId>
     for (auto &classTilesPair : tilesRequest) {
       auto &classRank = classTilesPair.first;
       auto &tilesInClass = classTilesPair.second;
       for (auto &tilePair : tilesInClass) {
+        auto &solution = qualityAssignmentsVec[qualityMap[tilePair.first]];
+        int quality = int(solution[classRank * 2]) - 48;
         req += std::to_string(tilePair.first) + "_" +
-               std::to_string(tilePair.second) + "_2,";
-        continue;
-        if (qIdx == 0) {
-          req += "_1,";
-        } else if (qIdx == 1) {
-          if (classRank == 0) {
-            req += "_2,";
-          } else {
-            req += "_1,";
-          }
-        } else {
-          req += "_2,";
-        }
+               std::to_string(tilePair.second) + "_" + std::to_string(quality) +
+               ",";
       }
     }
     req.pop_back();
