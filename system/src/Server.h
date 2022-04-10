@@ -29,7 +29,7 @@ class Server {
 
   // this is a hashset for tiles already sent,
   // used to avoid sending duplicate tiles.
-  std::unordered_set<std::string, boost::hash<std::string>> tilesSent_;
+  std::map<std::pair<int, uint16_t>, uint8_t> tilesSent_;
 
   uint8_t initializeSocket();
 
@@ -58,6 +58,8 @@ class Server {
   void addTileList(std::vector<std::string> tiles);
 
   std::vector<std::string> getTileList();
+
+  bool isTileSent(std::pair<int, uint16_t> tile, uint8_t quality);
 
 public:
   Server();

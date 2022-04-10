@@ -29,6 +29,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <gflags/gflags.h>
+DEFINE_bool(utilityAbr, true, "true : utility, false : flare");
 
 Server::Server() {
   videoRootDir_ = "/home/ehab/Desktop/v1_data";
@@ -236,20 +237,19 @@ void Server::sender(Server *server, uint8_t socket) {
     // find a non duplicate tile to send.
     int chunkId = -1;
     for (; tileIdx < tileLists.size(); tileIdx++) {
-      LOG(INFO) << tileIdx << ":" << tileLists.size() << " = "
-                << tileLists[tileIdx];
       boost::algorithm::split_regex(tileInfo, tileLists[tileIdx],
                                     boost::regex("_"));
       try {
         chunkId = stoi(tileInfo[0]) + 1;
-        // tileId = stoi(tileInfo[1]);
-        // quality = stoi(tileInfo[2]);
+        uint16_t tileId = stoi(tileInfo[1]);
+        uint8_t quality = stoi(tileInfo[2]);
         // check if the tile has already been sent or not.
-        if (server->tilesSent_.find(tileLists[tileIdx]) ==
-            server->tilesSent_.end()) {
+        if (!server->isTileSent({chunkId, tileId}, quality)) {
           // mark as sent since we are going to send it.
-          server->tilesSent_.insert(tileLists[tileIdx]);
           break;
+        } else {
+          LOG(INFO) << "tile already sent:" << chunkId - 1 << "_" << tileId
+                    << "_" << tileInfo[2];
         }
       } catch (std::invalid_argument &e) {
         LOG(ERROR) << "Error: failed to extract tileInfo:\n"
@@ -271,6 +271,8 @@ void Server::sender(Server *server, uint8_t socket) {
     std::string tilePath = server->videoRootDir_ + "/QP" + qualityIdx + "/" +
                            tileInfo[1] + "/" + std::to_string(chunkId) +
                            ".h264";
+    LOG(INFO) << "tile Sent:" << std::to_string(chunkId - 1) << "_"
+              << tileInfo[1] << "_" << tileInfo[2] << "\n";
     char *filePath = new char[tilePath.length() + 1];
     strcpy(filePath, tilePath.c_str());
     FILE *p_file = NULL;
@@ -391,6 +393,22 @@ void Server::addTileList(std::vector<std::string> tiles) {
   reqMutex_.lock();
   request_ = tiles;
   reqMutex_.unlock();
+}
+
+bool Server::isTileSent(std::pair<int, uint16_t> tile, uint8_t quality) {
+  if (tilesSent_.find(tile) == tilesSent_.end()) {
+    tilesSent_.insert({tile, quality});
+    return false;
+  }
+  if (FLAGS_utilityAbr == 0 || quality == 1) {
+    return true;
+  }
+  uint8_t qRec = tilesSent_[tile];
+  if (qRec > 1) {
+    return true;
+  }
+  tilesSent_[tile] = quality;
+  return false;
 }
 
 std::vector<std::string> Server::getTileList() {
