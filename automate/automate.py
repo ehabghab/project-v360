@@ -76,7 +76,7 @@ def main():
 	quality_name = "psnr_avgs.txt"
 	user_tile_per_frame_traces = ["tiles_per_frame_user_10.txt","tiles_per_frame_user_11.txt","tiles_per_frame_user_13.txt","tiles_per_frame_user_32.txt","tiles_per_frame_user_53.txt","tiles_per_frame_user_56.txt","tiles_per_frame_user_20.txt","tiles_per_frame_user_3.txt","tiles_per_frame_user_62.txt","tiles_per_frame_user_44.txt"]
 	bw_trace_dir = "/home/ehab/Desktop/Project-V360/automate/"        
-	bw_traces = ["trace_mahimahi_3.1mbps.txt","trace_mahimahi_6.2mbps.txt"]
+	bw_traces = ["trace_mahimahi_4.5mbps.txt","trace_mahimahi_6.2mbps.txt"]
 	displacement = "/home/ehab/Desktop/Project-V360/analysis/displacement_across_users_p100.txt"
 	delays = [0]	
 	out_file = open("exp_log.txt","w")
