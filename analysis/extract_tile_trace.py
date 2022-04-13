@@ -266,7 +266,7 @@ def main():
             if ".csv" in fname:
                 files.append(dirpath+"/"+fname)
 
-    for i in range(1, 2):
+    for i in range(1, 31):
         print("Video:"+str(i))
         video = i
         if video == 15 or video == 16:
@@ -303,8 +303,8 @@ def main():
                                         tileWidth, tileHeight, tileMap)
 
         for uID in yaws:
-            fi = open("traces_system/vp_corr_per_frame_user_" +
-                      str(uID)+".txt", 'w')
+            fi = open("traces_system/vid"+str(video)+"_uid" +
+                      str(uID)+"_vp_corr_per_frame.txt", 'w')
             for x, y in zip(yaws[uID], pitches[uID]):
                 fi.write(str(x)+","+str(y)+"\n")
             fi.close()
@@ -321,8 +321,8 @@ def main():
                 frames_count += num_frames_in_tile[user_id][chunk_id]
 
             chunk_in_sec = {}
-            fi = open("traces_system/tiles_per_frame_user_" +
-                      str(user_id)+".txt", 'w')
+            fi = open("traces_system/vid"+str(video)+"_uid" +
+                      str(user_id)+"_tiles_per_frame_user.txt", 'w')
             frame_id = 1
             FPS = 25
             for frame in sorted(tiles_per_frame):
