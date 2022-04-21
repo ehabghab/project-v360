@@ -62,7 +62,7 @@ class Server {
   bool isTileSent(std::pair<int, uint16_t> tile, uint8_t quality);
 
 public:
-  Server();
+  Server(std::string videoPathDir);
   virtual ~Server();
 };
 

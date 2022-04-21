@@ -240,6 +240,7 @@ std::map<int, int> AbrAlgorithm::getQualityIdx(
   int qualityIdx = 0;
   int frameIdx = 0;
   int currChunk = -1;
+  int maxQ = -1;
   for (qualityIdx; qualityIdx < qualitiesAssignments.size(); qualityIdx++) {
     bool qualityFound = false;
     int chunkId = -1;
@@ -311,6 +312,14 @@ std::map<int, int> AbrAlgorithm::getQualityIdx(
       currChunk = int((sortedFrameIds[frameIdx] - 1) / 25);
     }
   }
+
+  for (auto &chunkQassignment : chunkQualityAssignment) {
+    maxQ = std::max(maxQ, chunkQassignment.second);
+  }
+  for (auto &chunkQassignment : chunkQualityAssignment) {
+    chunkQualityAssignment[chunkQassignment.first] = maxQ;
+  }
+
   return chunkQualityAssignment;
 }
 
@@ -610,7 +619,7 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
   // This set will contain all tiles in prev sets (to contain duplicates)
   // tilechunk_tileIdx
   std::vector<std::pair<float, float>> predictedCorr;
-  std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
+  std::vector<std::pair<int, int>> vpResolutions = {{100, 100}};
   int chunkId;
 
   const int backgroundHorizonInSec = 3;
@@ -762,7 +771,7 @@ AbrAlgorithm::orderTilesByMaxUtility(
       continue;
     }
     // 50 = number of frames in the future (25) * number of classes (2)
-    auto maxUtility = 50.0 - tileChunk.second[24];
+    auto maxUtility = 25.0 - tileChunk.second[24];
     // deduct the utility of the frames that have already passed deadline.
 
     if (frameIdToRender > frameIdSt && frameIdToRender != 1) {
@@ -1143,9 +1152,9 @@ AbrAlgorithm::sortTilesByUtilityAndQuality(
     while (trace != nullptr) {
       auto &tile = trace->tile;
       float tileValueDiff =
-          utilityMatrix[tile][24] * (quality - trace->quality);
-      //(tileChunkPSNRPerQuality_[quality][tile.second][tile.first] -
-      // tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first]);
+          utilityMatrix[tile][24] *
+          (tileChunkPSNRPerQuality_[quality][tile.second][tile.first] -
+           tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first]);
       tilesUtilitySum.insert({tileValueDiff, tile});
       trace = trace->nextTile;
     }
@@ -1214,11 +1223,11 @@ AbrAlgorithm::qualityABR(
       }
       auto tileN = tilesNodeMap[tile];
       auto &tileUtilityVec = utilityMatrix[tile];
-      auto tileOldPsnr = tileN->quality;
-      // tileChunkPSNRPerQuality_[tileN->quality][tile.second][tile.first]; //
-      // change it in the removeNodeAndUpdateUtility as well.
-      auto tileNewPsnr = qualityIdx;
-      // tileChunkPSNRPerQuality_[qualityIdx][tile.second][tile.first];
+      auto tileOldPsnr =
+          tileChunkPSNRPerQuality_[tileN->quality][tile.second][tile.first];
+
+      auto tileNewPsnr =
+          tileChunkPSNRPerQuality_[qualityIdx][tile.second][tile.first];
 
       // calc the old value of the tile.
       float tileOldValue = 0;
@@ -1316,8 +1325,8 @@ AbrAlgorithm::qualityABR(
         tilesNodeMap.insert({trace->tile, trace});
         auto tile = trace->tile;
         auto tileUtilityVec = utilityMatrix[tile];
-        auto tilePsnr = trace->quality;
-        // tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first];
+        auto tilePsnr =
+            tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first];
         auto tileUtility =
             tileUtilityVec[24] -
             tileUtilityVec[int(trace->EstArrivalTime / 40) - frameIdSt];
@@ -1386,7 +1395,8 @@ void AbrAlgorithm::removeNodeAndUpdateUtility(
     auto estArrvFrameId = int(trace->EstArrivalTime / 40) - frameIdSt;
     overallValue += (utilityMatrix[trace->tile][24] -
                      utilityMatrix[trace->tile][estArrvFrameId]) *
-                    trace->quality;
+                    tileChunkSizePerQuality_[trace->quality][trace->tile.second]
+                                            [trace->tile.first];
     trace = trace->nextTile;
   }
 }
@@ -1424,9 +1434,9 @@ AbrAlgorithm::tileNode *AbrAlgorithm::returnBestPosition(
     }
     int toSwitchTileArrvFrameIdUpdated =
         int(toSwitchTileArrvTimeUpdated / 40) - frameIdSt;
-    auto toSwitchTilePsnr = trace->quality;
-    // tileChunkPSNRPerQuality_[trace->quality][trace->tile.second]
-    //                      [trace->tile.first];
+    auto toSwitchTilePsnr =
+        tileChunkPSNRPerQuality_[trace->quality][trace->tile.second]
+                                [trace->tile.first];
 
     float utilityLoss = toSwitchTilePsnr;
     // it the estimated new arrival frame Id is beyond 1 sec;
@@ -1631,32 +1641,33 @@ void AbrAlgorithm::checkTilesUtility(
       continue;
     }
     bool removeTile = true;
-    if (tileUtility == 0) {
-      while (trace->quality > 2) {
-        trace->quality -= 1;
-        auto EstDownloadTimeUpdated =
-            1e3 * (tileChunkSizePerQuality_[trace->quality][trace->tile.second]
-                                           [trace->tile.first] /
-                   estimatedBw);
-        auto estArrTime = EstDownloadTimeUpdated;
-        if (trace->prevTile != nullptr) {
-          estArrTime += trace->prevTile->EstArrivalTime;
-        } else {
-          estArrTime += currTime;
-        }
-        estArrFrameId = int(estArrTime / 40) - frameIdSt;
-        tileUtility = 0;
-        if (estArrFrameId < 25) {
-          tileUtility = tileUtilityVec[24] - tileUtilityVec[estArrFrameId];
-        }
-        if (tileUtility != 0) {
-          trace->EstDownloadTime = EstDownloadTimeUpdated;
-          trace->EstArrivalTime = estArrTime;
-          removeTile = false;
-          break;
-        }
-      }
-    }
+    // if (tileUtility == 0) {
+    //   while (trace->quality > 2) {
+    //     trace->quality -= 1;
+    //     auto EstDownloadTimeUpdated =
+    //         1e3 *
+    //         (tileChunkSizePerQuality_[trace->quality][trace->tile.second]
+    //                                        [trace->tile.first] /
+    //                estimatedBw);
+    //     auto estArrTime = EstDownloadTimeUpdated;
+    //     if (trace->prevTile != nullptr) {
+    //       estArrTime += trace->prevTile->EstArrivalTime;
+    //     } else {
+    //       estArrTime += currTime;
+    //     }
+    //     estArrFrameId = int(estArrTime / 40) - frameIdSt;
+    //     tileUtility = 0;
+    //     if (estArrFrameId < 25) {
+    //       tileUtility = tileUtilityVec[24] - tileUtilityVec[estArrFrameId];
+    //     }
+    //     if (tileUtility != 0) {
+    //       trace->EstDownloadTime = EstDownloadTimeUpdated;
+    //       trace->EstArrivalTime = estArrTime;
+    //       removeTile = false;
+    //       break;
+    //     }
+    //   }
+    // }
 
     // remove tile.
     tileNode *temp = trace;

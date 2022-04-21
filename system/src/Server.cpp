@@ -31,8 +31,8 @@
 #include <gflags/gflags.h>
 DEFINE_bool(utilityAbr, true, "true : utility, false : flare");
 
-Server::Server() {
-  videoRootDir_ = "/home/ehab/Desktop/v1_data";
+Server::Server(std::string videoPathDir) {
+  videoRootDir_ = videoPathDir;
 
   /// Users/eghabash/Desktop/System-github/Project-V360/
 
@@ -271,6 +271,7 @@ void Server::sender(Server *server, uint8_t socket) {
     std::string tilePath = server->videoRootDir_ + "/QP" + qualityIdx + "/" +
                            tileInfo[1] + "/" + std::to_string(chunkId) +
                            ".h264";
+
     LOG(INFO) << "tile Sent:" << std::to_string(chunkId - 1) << "_"
               << tileInfo[1] << "_" << tileInfo[2] << "\n";
     char *filePath = new char[tilePath.length() + 1];
@@ -424,18 +425,22 @@ Server::~Server() {
   // TODO Auto-generated destructor stub
 }
 
-void start() {
-  Server *server = new Server();
+void start(std::string videoPathDir) {
+  Server *server = new Server(videoPathDir);
   // to suppress warning
   assert(server != nullptr);
 }
 
 int main(int argc, char **argv) {
+
   google::SetLogDestination(google::INFO, "server_log.txt");
   google::InitGoogleLogging(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
+  if (std::stoi(argv[2]) == 0) {
+    FLAGS_utilityAbr = false;
+  }
+  std::thread serverThread(start, argv[1]);
 
-  std::thread serverThread(start);
   serverThread.join();
   return 0;
 }
