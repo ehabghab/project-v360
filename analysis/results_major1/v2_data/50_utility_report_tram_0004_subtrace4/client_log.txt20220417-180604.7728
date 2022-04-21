@@ -1,0 +1,3547 @@
+Log file created at: 2022/04/17 18:06:04
+Running on machine: ehab-OptiPlex-5070
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I0417 18:06:04.222106  7728 Client.cpp:70] Utility
+I0417 18:06:04.222174  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:04.322005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:04.422001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:04.423154  7732 VideoPlayer.cpp:359] Stitching F#1
+====
+I0417 18:06:04.463043  7732 VideoPlayer.cpp:359] Stitching F#2
+====
+I0417 18:06:04.503041  7732 VideoPlayer.cpp:359] Stitching F#3
+====
+I0417 18:06:04.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:04.543042  7732 VideoPlayer.cpp:359] Stitching F#4
+====
+I0417 18:06:04.583040  7732 VideoPlayer.cpp:359] Stitching F#5
+====
+I0417 18:06:04.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:04.623041  7732 VideoPlayer.cpp:359] Stitching F#6
+====
+I0417 18:06:04.663040  7732 VideoPlayer.cpp:359] Stitching F#7
+====
+I0417 18:06:04.703042  7732 VideoPlayer.cpp:359] Stitching F#8
+====
+I0417 18:06:04.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:04.743041  7732 VideoPlayer.cpp:359] Stitching F#9
+====
+I0417 18:06:04.783042  7732 VideoPlayer.cpp:359] Stitching F#10
+====
+I0417 18:06:04.822002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:04.823043  7732 VideoPlayer.cpp:359] Stitching F#11
+====
+I0417 18:06:04.863044  7732 VideoPlayer.cpp:359] Stitching F#12
+====
+I0417 18:06:04.903040  7732 VideoPlayer.cpp:359] Stitching F#13
+====
+I0417 18:06:04.922003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:04.943045  7732 VideoPlayer.cpp:359] Stitching F#14
+====
+I0417 18:06:04.983042  7732 VideoPlayer.cpp:359] Stitching F#15
+====
+I0417 18:06:05.022003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:05.023041  7732 VideoPlayer.cpp:359] Stitching F#16
+====
+I0417 18:06:05.063040  7732 VideoPlayer.cpp:359] Stitching F#17
+====
+I0417 18:06:05.103044  7732 VideoPlayer.cpp:359] Stitching F#18
+====
+I0417 18:06:05.122014  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:05.143043  7732 VideoPlayer.cpp:359] Stitching F#19
+====
+I0417 18:06:05.183040  7732 VideoPlayer.cpp:359] Stitching F#20
+====
+I0417 18:06:05.222021  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:05.223042  7732 VideoPlayer.cpp:359] Stitching F#21
+====
+I0417 18:06:05.263037  7732 VideoPlayer.cpp:359] Stitching F#22
+====
+I0417 18:06:05.303036  7732 VideoPlayer.cpp:359] Stitching F#23
+====
+I0417 18:06:05.322012  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:05.343036  7732 VideoPlayer.cpp:359] Stitching F#24
+====
+I0417 18:06:05.383038  7732 VideoPlayer.cpp:359] Stitching F#25
+====
+I0417 18:06:05.422019  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:05.423040  7732 VideoPlayer.cpp:359] Stitching F#26
+====
+I0417 18:06:05.463042  7732 VideoPlayer.cpp:359] Stitching F#27
+====
+I0417 18:06:05.503046  7732 VideoPlayer.cpp:359] Stitching F#28
+====
+I0417 18:06:05.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:05.543046  7732 VideoPlayer.cpp:359] Stitching F#29
+====
+I0417 18:06:05.583041  7732 VideoPlayer.cpp:359] Stitching F#30
+====
+I0417 18:06:05.622004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:05.623059  7732 VideoPlayer.cpp:359] Stitching F#31
+====
+I0417 18:06:05.663044  7732 VideoPlayer.cpp:359] Stitching F#32
+====
+I0417 18:06:05.703055  7732 VideoPlayer.cpp:359] Stitching F#33
+====
+I0417 18:06:05.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:05.743044  7732 VideoPlayer.cpp:359] Stitching F#34
+====
+I0417 18:06:05.783042  7732 VideoPlayer.cpp:359] Stitching F#35
+====
+I0417 18:06:05.822003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:05.823042  7732 VideoPlayer.cpp:359] Stitching F#36
+====
+I0417 18:06:05.863042  7732 VideoPlayer.cpp:359] Stitching F#37
+====
+I0417 18:06:05.903044  7732 VideoPlayer.cpp:359] Stitching F#38
+====
+I0417 18:06:05.922004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:05.943042  7732 VideoPlayer.cpp:359] Stitching F#39
+====
+I0417 18:06:05.983057  7732 VideoPlayer.cpp:359] Stitching F#40
+====
+I0417 18:06:06.022002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:06.023061  7732 VideoPlayer.cpp:359] Stitching F#41
+====
+I0417 18:06:06.063058  7732 VideoPlayer.cpp:359] Stitching F#42
+====
+I0417 18:06:06.103049  7732 VideoPlayer.cpp:359] Stitching F#43
+====
+I0417 18:06:06.122017  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:06.143047  7732 VideoPlayer.cpp:359] Stitching F#44
+====
+I0417 18:06:06.183048  7732 VideoPlayer.cpp:359] Stitching F#45
+====
+I0417 18:06:06.222020  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:06.223045  7732 VideoPlayer.cpp:359] Stitching F#46
+====
+I0417 18:06:06.263046  7732 VideoPlayer.cpp:359] Stitching F#47
+====
+I0417 18:06:06.303045  7732 VideoPlayer.cpp:359] Stitching F#48
+====
+I0417 18:06:06.322014  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:06.343060  7732 VideoPlayer.cpp:359] Stitching F#49
+====
+I0417 18:06:06.383059  7732 VideoPlayer.cpp:359] Stitching F#50
+====
+I0417 18:06:06.422017  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:06.423066  7732 VideoPlayer.cpp:359] Stitching F#51
+====
+I0417 18:06:06.463048  7732 VideoPlayer.cpp:359] Stitching F#52
+====
+I0417 18:06:06.503048  7732 VideoPlayer.cpp:359] Stitching F#53
+====
+I0417 18:06:06.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:06.543048  7732 VideoPlayer.cpp:359] Stitching F#54
+====
+I0417 18:06:06.583048  7732 VideoPlayer.cpp:359] Stitching F#55
+====
+I0417 18:06:06.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:06.623050  7732 VideoPlayer.cpp:359] Stitching F#56
+====
+I0417 18:06:06.663051  7732 VideoPlayer.cpp:359] Stitching F#57
+====
+I0417 18:06:06.703047  7732 VideoPlayer.cpp:359] Stitching F#58
+====
+I0417 18:06:06.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:06.743049  7732 VideoPlayer.cpp:359] Stitching F#59
+====
+I0417 18:06:06.783048  7732 VideoPlayer.cpp:359] Stitching F#60
+====
+I0417 18:06:06.822002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:06.823057  7732 VideoPlayer.cpp:359] Stitching F#61
+====
+I0417 18:06:06.863057  7732 VideoPlayer.cpp:359] Stitching F#62
+====
+I0417 18:06:06.903059  7732 VideoPlayer.cpp:359] Stitching F#63
+====
+I0417 18:06:06.922006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:06.943058  7732 VideoPlayer.cpp:359] Stitching F#64
+====
+I0417 18:06:06.983058  7732 VideoPlayer.cpp:359] Stitching F#65
+====
+I0417 18:06:07.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:07.023061  7732 VideoPlayer.cpp:359] Stitching F#66
+====
+I0417 18:06:07.063047  7732 VideoPlayer.cpp:359] Stitching F#67
+====
+I0417 18:06:07.103047  7732 VideoPlayer.cpp:359] Stitching F#68
+====
+I0417 18:06:07.122015  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:07.143046  7732 VideoPlayer.cpp:359] Stitching F#69
+====
+I0417 18:06:07.183049  7732 VideoPlayer.cpp:359] Stitching F#70
+====
+I0417 18:06:07.222016  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:07.223047  7732 VideoPlayer.cpp:359] Stitching F#71
+====
+I0417 18:06:07.263046  7732 VideoPlayer.cpp:359] Stitching F#72
+====
+I0417 18:06:07.303047  7732 VideoPlayer.cpp:359] Stitching F#73
+====
+I0417 18:06:07.322016  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:07.343046  7732 VideoPlayer.cpp:359] Stitching F#74
+====
+I0417 18:06:07.383047  7732 VideoPlayer.cpp:359] Stitching F#75
+====
+I0417 18:06:07.422027  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:07.423049  7732 VideoPlayer.cpp:359] Stitching F#76
+====
+I0417 18:06:07.463050  7732 VideoPlayer.cpp:359] Stitching F#77
+====
+I0417 18:06:07.503048  7732 VideoPlayer.cpp:359] Stitching F#78
+====
+I0417 18:06:07.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:07.543047  7732 VideoPlayer.cpp:359] Stitching F#79
+====
+I0417 18:06:07.583045  7732 VideoPlayer.cpp:359] Stitching F#80
+====
+I0417 18:06:07.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:07.623042  7732 VideoPlayer.cpp:359] Stitching F#81
+====
+I0417 18:06:07.663044  7732 VideoPlayer.cpp:359] Stitching F#82
+====
+I0417 18:06:07.703042  7732 VideoPlayer.cpp:359] Stitching F#83
+====
+I0417 18:06:07.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:07.743041  7732 VideoPlayer.cpp:359] Stitching F#84
+====
+I0417 18:06:07.783044  7732 VideoPlayer.cpp:359] Stitching F#85
+====
+I0417 18:06:07.822002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:07.823053  7732 VideoPlayer.cpp:359] Stitching F#86
+====
+I0417 18:06:07.863040  7732 VideoPlayer.cpp:359] Stitching F#87
+====
+I0417 18:06:07.903041  7732 VideoPlayer.cpp:359] Stitching F#88
+====
+I0417 18:06:07.922008  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:07.943042  7732 VideoPlayer.cpp:359] Stitching F#89
+====
+I0417 18:06:07.983053  7732 VideoPlayer.cpp:359] Stitching F#90
+====
+I0417 18:06:08.022004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:08.023051  7732 VideoPlayer.cpp:359] Stitching F#91
+====
+I0417 18:06:08.063040  7732 VideoPlayer.cpp:359] Stitching F#92
+====
+I0417 18:06:08.103040  7732 VideoPlayer.cpp:359] Stitching F#93
+====
+I0417 18:06:08.122005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:08.143046  7732 VideoPlayer.cpp:359] Stitching F#94
+====
+I0417 18:06:08.183040  7732 VideoPlayer.cpp:359] Stitching F#95
+====
+I0417 18:06:08.222004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:08.223047  7732 VideoPlayer.cpp:359] Stitching F#96
+====
+I0417 18:06:08.263051  7732 VideoPlayer.cpp:359] Stitching F#97
+====
+I0417 18:06:08.303076  7732 VideoPlayer.cpp:359] Stitching F#98
+====
+I0417 18:06:08.322005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:08.343040  7732 VideoPlayer.cpp:359] Stitching F#99
+====
+I0417 18:06:08.383039  7732 VideoPlayer.cpp:359] Stitching F#100
+====
+I0417 18:06:08.422006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:08.423041  7732 VideoPlayer.cpp:359] Stitching F#101
+====
+I0417 18:06:08.463052  7732 VideoPlayer.cpp:359] Stitching F#102
+====
+I0417 18:06:08.503051  7732 VideoPlayer.cpp:359] Stitching F#103
+====
+I0417 18:06:08.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:08.543041  7732 VideoPlayer.cpp:359] Stitching F#104
+====
+I0417 18:06:08.583041  7732 VideoPlayer.cpp:359] Stitching F#105
+====
+I0417 18:06:08.622005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:08.623044  7732 VideoPlayer.cpp:359] Stitching F#106
+====
+I0417 18:06:08.663043  7732 VideoPlayer.cpp:359] Stitching F#107
+====
+I0417 18:06:08.703047  7732 VideoPlayer.cpp:359] Stitching F#108
+====
+I0417 18:06:08.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:08.743047  7732 VideoPlayer.cpp:359] Stitching F#109
+====
+I0417 18:06:08.783051  7732 VideoPlayer.cpp:359] Stitching F#110
+====
+I0417 18:06:08.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:08.823046  7732 VideoPlayer.cpp:359] Stitching F#111
+====
+I0417 18:06:08.863050  7732 VideoPlayer.cpp:359] Stitching F#112
+====
+I0417 18:06:08.903059  7732 VideoPlayer.cpp:359] Stitching F#113
+====
+I0417 18:06:08.922005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:08.943058  7732 VideoPlayer.cpp:359] Stitching F#114
+====
+I0417 18:06:08.983057  7732 VideoPlayer.cpp:359] Stitching F#115
+====
+I0417 18:06:09.022003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:09.023051  7732 VideoPlayer.cpp:359] Stitching F#116
+====
+I0417 18:06:09.063045  7732 VideoPlayer.cpp:359] Stitching F#117
+====
+I0417 18:06:09.103039  7732 VideoPlayer.cpp:359] Stitching F#118
+====
+I0417 18:06:09.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:09.143039  7732 VideoPlayer.cpp:359] Stitching F#119
+====
+I0417 18:06:09.183038  7732 VideoPlayer.cpp:359] Stitching F#120
+====
+I0417 18:06:09.222000  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:09.223039  7732 VideoPlayer.cpp:359] Stitching F#121
+====
+I0417 18:06:09.263041  7732 VideoPlayer.cpp:359] Stitching F#122
+====
+I0417 18:06:09.303043  7732 VideoPlayer.cpp:359] Stitching F#123
+====
+I0417 18:06:09.322005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:09.343044  7732 VideoPlayer.cpp:359] Stitching F#124
+====
+I0417 18:06:09.383044  7732 VideoPlayer.cpp:359] Stitching F#125
+====
+I0417 18:06:09.422008  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:09.423064  7732 VideoPlayer.cpp:359] Stitching F#126
+====
+I0417 18:06:09.463059  7732 VideoPlayer.cpp:359] Stitching F#127
+====
+I0417 18:06:09.503062  7732 VideoPlayer.cpp:359] Stitching F#128
+====
+I0417 18:06:09.522006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:09.543058  7732 VideoPlayer.cpp:359] Stitching F#129
+====
+I0417 18:06:09.583057  7732 VideoPlayer.cpp:359] Stitching F#130
+====
+I0417 18:06:09.622006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:09.623057  7732 VideoPlayer.cpp:359] Stitching F#131
+====
+I0417 18:06:09.663050  7732 VideoPlayer.cpp:359] Stitching F#132
+====
+I0417 18:06:09.703048  7732 VideoPlayer.cpp:359] Stitching F#133
+====
+I0417 18:06:09.722007  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:09.743046  7732 VideoPlayer.cpp:359] Stitching F#134
+====
+I0417 18:06:09.783049  7732 VideoPlayer.cpp:359] Stitching F#135
+====
+I0417 18:06:09.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:09.823050  7732 VideoPlayer.cpp:359] Stitching F#136
+====
+I0417 18:06:09.863046  7732 VideoPlayer.cpp:359] Stitching F#137
+====
+I0417 18:06:09.903048  7732 VideoPlayer.cpp:359] Stitching F#138
+====
+I0417 18:06:09.922008  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:09.943048  7732 VideoPlayer.cpp:359] Stitching F#139
+====
+I0417 18:06:09.983047  7732 VideoPlayer.cpp:359] Stitching F#140
+====
+I0417 18:06:10.022004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:10.023057  7732 VideoPlayer.cpp:359] Stitching F#141
+====
+I0417 18:06:10.063057  7732 VideoPlayer.cpp:359] Stitching F#142
+====
+I0417 18:06:10.103060  7732 VideoPlayer.cpp:359] Stitching F#143
+====
+I0417 18:06:10.122005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:10.143046  7732 VideoPlayer.cpp:359] Stitching F#144
+====
+I0417 18:06:10.183046  7732 VideoPlayer.cpp:359] Stitching F#145
+====
+I0417 18:06:10.222004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:10.223047  7732 VideoPlayer.cpp:359] Stitching F#146
+====
+I0417 18:06:10.263051  7732 VideoPlayer.cpp:359] Stitching F#147
+====
+I0417 18:06:10.303047  7732 VideoPlayer.cpp:359] Stitching F#148
+====
+I0417 18:06:10.322005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:10.343045  7732 VideoPlayer.cpp:359] Stitching F#149
+====
+I0417 18:06:10.383059  7732 VideoPlayer.cpp:359] Stitching F#150
+====
+I0417 18:06:10.422039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:10.423059  7732 VideoPlayer.cpp:359] Stitching F#151
+====
+I0417 18:06:10.463063  7732 VideoPlayer.cpp:359] Stitching F#152
+====
+I0417 18:06:10.503062  7732 VideoPlayer.cpp:359] Stitching F#153
+====
+I0417 18:06:10.522006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:10.543047  7732 VideoPlayer.cpp:359] Stitching F#154
+====
+I0417 18:06:10.583048  7732 VideoPlayer.cpp:359] Stitching F#155
+====
+I0417 18:06:10.622005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:10.623047  7732 VideoPlayer.cpp:359] Stitching F#156
+====
+I0417 18:06:10.663050  7732 VideoPlayer.cpp:359] Stitching F#157
+====
+I0417 18:06:10.703047  7732 VideoPlayer.cpp:359] Stitching F#158
+====
+I0417 18:06:10.722005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:10.743046  7732 VideoPlayer.cpp:359] Stitching F#159
+====
+I0417 18:06:10.783046  7732 VideoPlayer.cpp:359] Stitching F#160
+====
+I0417 18:06:10.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:10.823050  7732 VideoPlayer.cpp:359] Stitching F#161
+====
+I0417 18:06:10.863045  7732 VideoPlayer.cpp:359] Stitching F#162
+====
+I0417 18:06:10.903045  7732 VideoPlayer.cpp:359] Stitching F#163
+====
+I0417 18:06:10.922004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:10.943046  7732 VideoPlayer.cpp:359] Stitching F#164
+====
+I0417 18:06:10.983048  7732 VideoPlayer.cpp:359] Stitching F#165
+====
+I0417 18:06:11.022004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:11.023046  7732 VideoPlayer.cpp:359] Stitching F#166
+====
+I0417 18:06:11.063045  7732 VideoPlayer.cpp:359] Stitching F#167
+====
+I0417 18:06:11.103045  7732 VideoPlayer.cpp:359] Stitching F#168
+====
+I0417 18:06:11.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:11.143047  7732 VideoPlayer.cpp:359] Stitching F#169
+====
+I0417 18:06:11.183045  7732 VideoPlayer.cpp:359] Stitching F#170
+====
+I0417 18:06:11.222004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:11.223047  7732 VideoPlayer.cpp:359] Stitching F#171
+====
+I0417 18:06:11.263046  7732 VideoPlayer.cpp:359] Stitching F#172
+====
+I0417 18:06:11.303048  7732 VideoPlayer.cpp:359] Stitching F#173
+====
+I0417 18:06:11.322005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:11.343052  7732 VideoPlayer.cpp:359] Stitching F#174
+====
+I0417 18:06:11.383044  7732 VideoPlayer.cpp:359] Stitching F#175
+====
+I0417 18:06:11.422003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:11.423053  7732 VideoPlayer.cpp:359] Stitching F#176
+====
+I0417 18:06:11.463053  7732 VideoPlayer.cpp:359] Stitching F#177
+====
+I0417 18:06:11.503049  7732 VideoPlayer.cpp:359] Stitching F#178
+====
+I0417 18:06:11.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:11.543049  7732 VideoPlayer.cpp:359] Stitching F#179
+====
+I0417 18:06:11.583050  7732 VideoPlayer.cpp:359] Stitching F#180
+====
+I0417 18:06:11.622005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:11.623046  7732 VideoPlayer.cpp:359] Stitching F#181
+====
+I0417 18:06:11.663046  7732 VideoPlayer.cpp:359] Stitching F#182
+====
+I0417 18:06:11.703047  7732 VideoPlayer.cpp:359] Stitching F#183
+====
+I0417 18:06:11.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:11.743050  7732 VideoPlayer.cpp:359] Stitching F#184
+====
+I0417 18:06:11.783048  7732 VideoPlayer.cpp:359] Stitching F#185
+====
+I0417 18:06:11.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:11.823045  7732 VideoPlayer.cpp:359] Stitching F#186
+====
+I0417 18:06:11.863047  7732 VideoPlayer.cpp:359] Stitching F#187
+====
+I0417 18:06:11.903049  7732 VideoPlayer.cpp:359] Stitching F#188
+====
+I0417 18:06:11.922003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:11.943048  7732 VideoPlayer.cpp:359] Stitching F#189
+====
+I0417 18:06:11.983045  7732 VideoPlayer.cpp:359] Stitching F#190
+====
+I0417 18:06:12.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:12.023046  7732 VideoPlayer.cpp:359] Stitching F#191
+====
+I0417 18:06:12.063048  7732 VideoPlayer.cpp:359] Stitching F#192
+====
+I0417 18:06:12.103047  7732 VideoPlayer.cpp:359] Stitching F#193
+====
+I0417 18:06:12.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:12.143047  7732 VideoPlayer.cpp:359] Stitching F#194
+====
+I0417 18:06:12.183046  7732 VideoPlayer.cpp:359] Stitching F#195
+====
+I0417 18:06:12.222005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:12.223048  7732 VideoPlayer.cpp:359] Stitching F#196
+====
+I0417 18:06:12.263044  7732 VideoPlayer.cpp:359] Stitching F#197
+====
+I0417 18:06:12.303046  7732 VideoPlayer.cpp:359] Stitching F#198
+====
+I0417 18:06:12.322028  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:12.343047  7732 VideoPlayer.cpp:359] Stitching F#199
+====
+I0417 18:06:12.383051  7732 VideoPlayer.cpp:359] Stitching F#200
+====
+I0417 18:06:12.422029  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:12.423049  7732 VideoPlayer.cpp:359] Stitching F#201
+====
+I0417 18:06:12.463055  7732 VideoPlayer.cpp:359] Stitching F#202
+====
+I0417 18:06:12.503049  7732 VideoPlayer.cpp:359] Stitching F#203
+====
+I0417 18:06:12.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:12.543052  7732 VideoPlayer.cpp:359] Stitching F#204
+====
+I0417 18:06:12.583047  7732 VideoPlayer.cpp:359] Stitching F#205
+====
+I0417 18:06:12.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:12.623047  7732 VideoPlayer.cpp:359] Stitching F#206
+====
+I0417 18:06:12.663046  7732 VideoPlayer.cpp:359] Stitching F#207
+====
+I0417 18:06:12.703050  7732 VideoPlayer.cpp:359] Stitching F#208
+====
+I0417 18:06:12.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:12.743047  7732 VideoPlayer.cpp:359] Stitching F#209
+====
+I0417 18:06:12.783047  7732 VideoPlayer.cpp:359] Stitching F#210
+====
+I0417 18:06:12.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:12.823048  7732 VideoPlayer.cpp:359] Stitching F#211
+====
+I0417 18:06:12.863049  7732 VideoPlayer.cpp:359] Stitching F#212
+====
+I0417 18:06:12.903048  7732 VideoPlayer.cpp:359] Stitching F#213
+====
+I0417 18:06:12.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:12.943048  7732 VideoPlayer.cpp:359] Stitching F#214
+====
+I0417 18:06:12.983050  7732 VideoPlayer.cpp:359] Stitching F#215
+====
+I0417 18:06:13.022025  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:13.023046  7732 VideoPlayer.cpp:359] Stitching F#216
+====
+I0417 18:06:13.063041  7732 VideoPlayer.cpp:359] Stitching F#217
+====
+I0417 18:06:13.103040  7732 VideoPlayer.cpp:359] Stitching F#218
+====
+I0417 18:06:13.122021  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:13.143054  7732 VideoPlayer.cpp:359] Stitching F#219
+====
+I0417 18:06:13.183053  7732 VideoPlayer.cpp:359] Stitching F#220
+====
+I0417 18:06:13.222003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:13.223042  7732 VideoPlayer.cpp:359] Stitching F#221
+====
+I0417 18:06:13.263047  7732 VideoPlayer.cpp:359] Stitching F#222
+====
+I0417 18:06:13.303050  7732 VideoPlayer.cpp:359] Stitching F#223
+====
+I0417 18:06:13.322033  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:13.343060  7732 VideoPlayer.cpp:359] Stitching F#224
+====
+I0417 18:06:13.383059  7732 VideoPlayer.cpp:359] Stitching F#225
+====
+I0417 18:06:13.422006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:13.423063  7732 VideoPlayer.cpp:359] Stitching F#226
+====
+I0417 18:06:13.463050  7732 VideoPlayer.cpp:359] Stitching F#227
+====
+I0417 18:06:13.503044  7732 VideoPlayer.cpp:359] Stitching F#228
+====
+I0417 18:06:13.522006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:13.543045  7732 VideoPlayer.cpp:359] Stitching F#229
+====
+I0417 18:06:13.583045  7732 VideoPlayer.cpp:359] Stitching F#230
+====
+I0417 18:06:13.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:13.623046  7732 VideoPlayer.cpp:359] Stitching F#231
+====
+I0417 18:06:13.663043  7732 VideoPlayer.cpp:359] Stitching F#232
+====
+I0417 18:06:13.703042  7732 VideoPlayer.cpp:359] Stitching F#233
+====
+I0417 18:06:13.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:13.743041  7732 VideoPlayer.cpp:359] Stitching F#234
+====
+I0417 18:06:13.783046  7732 VideoPlayer.cpp:359] Stitching F#235
+====
+I0417 18:06:13.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:13.823041  7732 VideoPlayer.cpp:359] Stitching F#236
+====
+I0417 18:06:13.863042  7732 VideoPlayer.cpp:359] Stitching F#237
+====
+I0417 18:06:13.903043  7732 VideoPlayer.cpp:359] Stitching F#238
+====
+I0417 18:06:13.922003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:13.943042  7732 VideoPlayer.cpp:359] Stitching F#239
+====
+I0417 18:06:13.983045  7732 VideoPlayer.cpp:359] Stitching F#240
+====
+I0417 18:06:14.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:14.023041  7732 VideoPlayer.cpp:359] Stitching F#241
+====
+I0417 18:06:14.063042  7732 VideoPlayer.cpp:359] Stitching F#242
+====
+I0417 18:06:14.103041  7732 VideoPlayer.cpp:359] Stitching F#243
+====
+I0417 18:06:14.122002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:14.143055  7732 VideoPlayer.cpp:359] Stitching F#244
+====
+I0417 18:06:14.183053  7732 VideoPlayer.cpp:359] Stitching F#245
+====
+I0417 18:06:14.222029  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:14.223052  7732 VideoPlayer.cpp:359] Stitching F#246
+====
+I0417 18:06:14.263056  7732 VideoPlayer.cpp:359] Stitching F#247
+====
+I0417 18:06:14.303051  7732 VideoPlayer.cpp:359] Stitching F#248
+====
+I0417 18:06:14.322028  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:14.343051  7732 VideoPlayer.cpp:359] Stitching F#249
+====
+I0417 18:06:14.383054  7732 VideoPlayer.cpp:359] Stitching F#250
+====
+I0417 18:06:14.422031  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:14.423054  7732 VideoPlayer.cpp:359] Stitching F#251
+====
+I0417 18:06:14.463057  7732 VideoPlayer.cpp:359] Stitching F#252
+====
+I0417 18:06:14.503063  7732 VideoPlayer.cpp:359] Stitching F#253
+====
+I0417 18:06:14.522035  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:14.543066  7732 VideoPlayer.cpp:359] Stitching F#254
+====
+I0417 18:06:14.583060  7732 VideoPlayer.cpp:359] Stitching F#255
+====
+I0417 18:06:14.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:14.623059  7732 VideoPlayer.cpp:359] Stitching F#256
+====
+I0417 18:06:14.663064  7732 VideoPlayer.cpp:359] Stitching F#257
+====
+I0417 18:06:14.703059  7732 VideoPlayer.cpp:359] Stitching F#258
+====
+I0417 18:06:14.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:14.743057  7732 VideoPlayer.cpp:359] Stitching F#259
+====
+I0417 18:06:14.783061  7732 VideoPlayer.cpp:359] Stitching F#260
+====
+I0417 18:06:14.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:14.823060  7732 VideoPlayer.cpp:359] Stitching F#261
+====
+I0417 18:06:14.863049  7732 VideoPlayer.cpp:359] Stitching F#262
+====
+I0417 18:06:14.903046  7732 VideoPlayer.cpp:359] Stitching F#263
+====
+I0417 18:06:14.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:14.943049  7732 VideoPlayer.cpp:359] Stitching F#264
+====
+I0417 18:06:14.983047  7732 VideoPlayer.cpp:359] Stitching F#265
+====
+I0417 18:06:15.022025  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:15.023051  7732 VideoPlayer.cpp:359] Stitching F#266
+====
+I0417 18:06:15.063045  7732 VideoPlayer.cpp:359] Stitching F#267
+====
+I0417 18:06:15.103052  7732 VideoPlayer.cpp:359] Stitching F#268
+====
+I0417 18:06:15.122025  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:15.143060  7732 VideoPlayer.cpp:359] Stitching F#269
+====
+I0417 18:06:15.183060  7732 VideoPlayer.cpp:359] Stitching F#270
+====
+I0417 18:06:15.222028  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:15.223052  7732 VideoPlayer.cpp:359] Stitching F#271
+====
+I0417 18:06:15.263049  7732 VideoPlayer.cpp:359] Stitching F#272
+====
+I0417 18:06:15.303048  7732 VideoPlayer.cpp:359] Stitching F#273
+====
+I0417 18:06:15.322033  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:15.343047  7732 VideoPlayer.cpp:359] Stitching F#274
+====
+I0417 18:06:15.383044  7732 VideoPlayer.cpp:359] Stitching F#275
+====
+I0417 18:06:15.422044  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:15.423058  7732 VideoPlayer.cpp:359] Stitching F#276
+====
+I0417 18:06:15.463061  7732 VideoPlayer.cpp:359] Stitching F#277
+====
+I0417 18:06:15.503068  7732 VideoPlayer.cpp:359] Stitching F#278
+====
+I0417 18:06:15.522027  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:15.543066  7732 VideoPlayer.cpp:359] Stitching F#279
+====
+I0417 18:06:15.583065  7732 VideoPlayer.cpp:359] Stitching F#280
+====
+I0417 18:06:15.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:15.623062  7732 VideoPlayer.cpp:359] Stitching F#281
+====
+I0417 18:06:15.663065  7732 VideoPlayer.cpp:359] Stitching F#282
+====
+I0417 18:06:15.703063  7732 VideoPlayer.cpp:359] Stitching F#283
+====
+I0417 18:06:15.722005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:15.743062  7732 VideoPlayer.cpp:359] Stitching F#284
+====
+I0417 18:06:15.783054  7732 VideoPlayer.cpp:359] Stitching F#285
+====
+I0417 18:06:15.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:15.823051  7732 VideoPlayer.cpp:359] Stitching F#286
+====
+I0417 18:06:15.863050  7732 VideoPlayer.cpp:359] Stitching F#287
+====
+I0417 18:06:15.903050  7732 VideoPlayer.cpp:359] Stitching F#288
+====
+I0417 18:06:15.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:15.943053  7732 VideoPlayer.cpp:359] Stitching F#289
+====
+I0417 18:06:15.983052  7732 VideoPlayer.cpp:359] Stitching F#290
+====
+I0417 18:06:16.022034  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:16.023051  7732 VideoPlayer.cpp:359] Stitching F#291
+====
+I0417 18:06:16.063050  7732 VideoPlayer.cpp:359] Stitching F#292
+====
+I0417 18:06:16.103065  7732 VideoPlayer.cpp:359] Stitching F#293
+====
+I0417 18:06:16.122005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:16.143062  7732 VideoPlayer.cpp:359] Stitching F#294
+====
+I0417 18:06:16.183063  7732 VideoPlayer.cpp:359] Stitching F#295
+====
+I0417 18:06:16.222035  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:16.223052  7732 VideoPlayer.cpp:359] Stitching F#296
+====
+I0417 18:06:16.263051  7732 VideoPlayer.cpp:359] Stitching F#297
+====
+I0417 18:06:16.303051  7732 VideoPlayer.cpp:359] Stitching F#298
+====
+I0417 18:06:16.322027  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:16.343050  7732 VideoPlayer.cpp:359] Stitching F#299
+====
+I0417 18:06:16.383054  7732 VideoPlayer.cpp:359] Stitching F#300
+====
+I0417 18:06:16.422030  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:16.423049  7732 VideoPlayer.cpp:359] Stitching F#301
+====
+I0417 18:06:16.463049  7732 VideoPlayer.cpp:359] Stitching F#302
+====
+I0417 18:06:16.503049  7732 VideoPlayer.cpp:359] Stitching F#303
+====
+I0417 18:06:16.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:16.543052  7732 VideoPlayer.cpp:359] Stitching F#304
+====
+I0417 18:06:16.583050  7732 VideoPlayer.cpp:359] Stitching F#305
+====
+I0417 18:06:16.622005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:16.623049  7732 VideoPlayer.cpp:359] Stitching F#306
+====
+I0417 18:06:16.663049  7732 VideoPlayer.cpp:359] Stitching F#307
+====
+I0417 18:06:16.703052  7732 VideoPlayer.cpp:359] Stitching F#308
+====
+I0417 18:06:16.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:16.743047  7732 VideoPlayer.cpp:359] Stitching F#309
+====
+I0417 18:06:16.783046  7732 VideoPlayer.cpp:359] Stitching F#310
+====
+I0417 18:06:16.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:16.823050  7732 VideoPlayer.cpp:359] Stitching F#311
+====
+I0417 18:06:16.863049  7732 VideoPlayer.cpp:359] Stitching F#312
+====
+I0417 18:06:16.903048  7732 VideoPlayer.cpp:359] Stitching F#313
+====
+I0417 18:06:16.922003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:16.943048  7732 VideoPlayer.cpp:359] Stitching F#314
+====
+I0417 18:06:16.983053  7732 VideoPlayer.cpp:359] Stitching F#315
+====
+I0417 18:06:17.022002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:17.023046  7732 VideoPlayer.cpp:359] Stitching F#316
+====
+I0417 18:06:17.063048  7732 VideoPlayer.cpp:359] Stitching F#317
+====
+I0417 18:06:17.103049  7732 VideoPlayer.cpp:359] Stitching F#318
+====
+I0417 18:06:17.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:17.143050  7732 VideoPlayer.cpp:359] Stitching F#319
+====
+I0417 18:06:17.183051  7732 VideoPlayer.cpp:359] Stitching F#320
+====
+I0417 18:06:17.222024  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:17.223047  7732 VideoPlayer.cpp:359] Stitching F#321
+====
+I0417 18:06:17.263041  7732 VideoPlayer.cpp:359] Stitching F#322
+====
+I0417 18:06:17.303046  7732 VideoPlayer.cpp:359] Stitching F#323
+====
+I0417 18:06:17.322026  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:17.343042  7732 VideoPlayer.cpp:359] Stitching F#324
+====
+I0417 18:06:17.383042  7732 VideoPlayer.cpp:359] Stitching F#325
+====
+I0417 18:06:17.422032  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:17.423045  7732 VideoPlayer.cpp:359] Stitching F#326
+====
+I0417 18:06:17.463043  7732 VideoPlayer.cpp:359] Stitching F#327
+====
+I0417 18:06:17.503049  7732 VideoPlayer.cpp:359] Stitching F#328
+====
+I0417 18:06:17.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:17.543045  7732 VideoPlayer.cpp:359] Stitching F#329
+====
+I0417 18:06:17.583045  7732 VideoPlayer.cpp:359] Stitching F#330
+====
+I0417 18:06:17.622004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:17.623044  7732 VideoPlayer.cpp:359] Stitching F#331
+====
+I0417 18:06:17.663048  7732 VideoPlayer.cpp:359] Stitching F#332
+====
+I0417 18:06:17.703044  7732 VideoPlayer.cpp:359] Stitching F#333
+====
+I0417 18:06:17.722007  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:17.743053  7732 VideoPlayer.cpp:359] Stitching F#334
+====
+I0417 18:06:17.783053  7732 VideoPlayer.cpp:359] Stitching F#335
+====
+I0417 18:06:17.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:17.823057  7732 VideoPlayer.cpp:359] Stitching F#336
+====
+I0417 18:06:17.863044  7732 VideoPlayer.cpp:359] Stitching F#337
+====
+I0417 18:06:17.903043  7732 VideoPlayer.cpp:359] Stitching F#338
+====
+I0417 18:06:17.922005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:17.943042  7732 VideoPlayer.cpp:359] Stitching F#339
+====
+I0417 18:06:17.983047  7732 VideoPlayer.cpp:359] Stitching F#340
+====
+I0417 18:06:18.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:18.023043  7732 VideoPlayer.cpp:359] Stitching F#341
+====
+I0417 18:06:18.063042  7732 VideoPlayer.cpp:359] Stitching F#342
+====
+I0417 18:06:18.103050  7732 VideoPlayer.cpp:359] Stitching F#343
+====
+I0417 18:06:18.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:18.143052  7732 VideoPlayer.cpp:359] Stitching F#344
+====
+I0417 18:06:18.183049  7732 VideoPlayer.cpp:359] Stitching F#345
+====
+I0417 18:06:18.222005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:18.223048  7732 VideoPlayer.cpp:359] Stitching F#346
+====
+I0417 18:06:18.263048  7732 VideoPlayer.cpp:359] Stitching F#347
+====
+I0417 18:06:18.303051  7732 VideoPlayer.cpp:359] Stitching F#348
+====
+I0417 18:06:18.322006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:18.343051  7732 VideoPlayer.cpp:359] Stitching F#349
+====
+I0417 18:06:18.383049  7732 VideoPlayer.cpp:359] Stitching F#350
+====
+I0417 18:06:18.422006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:18.423048  7732 VideoPlayer.cpp:359] Stitching F#351
+====
+I0417 18:06:18.463057  7732 VideoPlayer.cpp:359] Stitching F#352
+====
+I0417 18:06:18.503055  7732 VideoPlayer.cpp:359] Stitching F#353
+====
+I0417 18:06:18.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:18.543052  7732 VideoPlayer.cpp:359] Stitching F#354
+====
+I0417 18:06:18.583055  7732 VideoPlayer.cpp:359] Stitching F#355
+====
+I0417 18:06:18.622004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:18.623055  7732 VideoPlayer.cpp:359] Stitching F#356
+====
+I0417 18:06:18.663054  7732 VideoPlayer.cpp:359] Stitching F#357
+====
+I0417 18:06:18.703054  7732 VideoPlayer.cpp:359] Stitching F#358
+====
+I0417 18:06:18.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:18.743058  7732 VideoPlayer.cpp:359] Stitching F#359
+====
+I0417 18:06:18.783054  7732 VideoPlayer.cpp:359] Stitching F#360
+====
+I0417 18:06:18.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:18.823055  7732 VideoPlayer.cpp:359] Stitching F#361
+====
+I0417 18:06:18.863052  7732 VideoPlayer.cpp:359] Stitching F#362
+====
+I0417 18:06:18.903053  7732 VideoPlayer.cpp:359] Stitching F#363
+====
+I0417 18:06:18.922005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:18.943053  7732 VideoPlayer.cpp:359] Stitching F#364
+====
+I0417 18:06:18.983052  7732 VideoPlayer.cpp:359] Stitching F#365
+====
+I0417 18:06:19.022004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:19.023054  7732 VideoPlayer.cpp:359] Stitching F#366
+====
+I0417 18:06:19.063050  7732 VideoPlayer.cpp:359] Stitching F#367
+====
+I0417 18:06:19.103058  7732 VideoPlayer.cpp:359] Stitching F#368
+====
+I0417 18:06:19.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:19.143064  7732 VideoPlayer.cpp:359] Stitching F#369
+====
+I0417 18:06:19.183059  7732 VideoPlayer.cpp:359] Stitching F#370
+====
+I0417 18:06:19.222002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:19.223058  7732 VideoPlayer.cpp:359] Stitching F#371
+====
+I0417 18:06:19.263062  7732 VideoPlayer.cpp:359] Stitching F#372
+====
+I0417 18:06:19.303053  7732 VideoPlayer.cpp:359] Stitching F#373
+====
+I0417 18:06:19.322005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:19.343060  7732 VideoPlayer.cpp:359] Stitching F#374
+====
+I0417 18:06:19.383062  7732 VideoPlayer.cpp:359] Stitching F#375
+====
+I0417 18:06:19.422006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:19.423069  7732 VideoPlayer.cpp:359] Stitching F#376
+====
+I0417 18:06:19.463061  7732 VideoPlayer.cpp:359] Stitching F#377
+====
+I0417 18:06:19.503063  7732 VideoPlayer.cpp:359] Stitching F#378
+====
+I0417 18:06:19.522006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:19.543064  7732 VideoPlayer.cpp:359] Stitching F#379
+====
+I0417 18:06:19.583057  7732 VideoPlayer.cpp:359] Stitching F#380
+====
+I0417 18:06:19.622005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:19.623044  7732 VideoPlayer.cpp:359] Stitching F#381
+====
+I0417 18:06:19.663043  7732 VideoPlayer.cpp:359] Stitching F#382
+====
+I0417 18:06:19.703052  7732 VideoPlayer.cpp:359] Stitching F#383
+====
+I0417 18:06:19.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:19.743049  7732 VideoPlayer.cpp:359] Stitching F#384
+====
+I0417 18:06:19.783049  7732 VideoPlayer.cpp:359] Stitching F#385
+====
+I0417 18:06:19.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:19.823048  7732 VideoPlayer.cpp:359] Stitching F#386
+====
+I0417 18:06:19.863051  7732 VideoPlayer.cpp:359] Stitching F#387
+====
+I0417 18:06:19.903049  7732 VideoPlayer.cpp:359] Stitching F#388
+====
+I0417 18:06:19.922029  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:19.943048  7732 VideoPlayer.cpp:359] Stitching F#389
+====
+I0417 18:06:19.983049  7732 VideoPlayer.cpp:359] Stitching F#390
+====
+I0417 18:06:20.022028  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:20.023052  7732 VideoPlayer.cpp:359] Stitching F#391
+====
+I0417 18:06:20.063047  7732 VideoPlayer.cpp:359] Stitching F#392
+====
+I0417 18:06:20.103049  7732 VideoPlayer.cpp:359] Stitching F#393
+====
+I0417 18:06:20.122028  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:20.143049  7732 VideoPlayer.cpp:359] Stitching F#394
+====
+I0417 18:06:20.183053  7732 VideoPlayer.cpp:359] Stitching F#395
+====
+I0417 18:06:20.222029  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:20.223043  7732 VideoPlayer.cpp:359] Stitching F#396
+====
+I0417 18:06:20.263042  7732 VideoPlayer.cpp:359] Stitching F#397
+====
+I0417 18:06:20.303052  7732 VideoPlayer.cpp:359] Stitching F#398
+====
+I0417 18:06:20.322032  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:20.343056  7732 VideoPlayer.cpp:359] Stitching F#399
+====
+I0417 18:06:20.383054  7732 VideoPlayer.cpp:359] Stitching F#400
+====
+I0417 18:06:20.422039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:20.423065  7732 VideoPlayer.cpp:359] Stitching F#401
+====
+I0417 18:06:20.463055  7732 VideoPlayer.cpp:359] Stitching F#402
+====
+I0417 18:06:20.503049  7732 VideoPlayer.cpp:359] Stitching F#403
+====
+I0417 18:06:20.522045  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:20.543053  7732 VideoPlayer.cpp:359] Stitching F#404
+====
+I0417 18:06:20.583051  7732 VideoPlayer.cpp:359] Stitching F#405
+====
+I0417 18:06:20.622004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:20.623054  7732 VideoPlayer.cpp:359] Stitching F#406
+====
+I0417 18:06:20.663050  7732 VideoPlayer.cpp:359] Stitching F#407
+====
+I0417 18:06:20.703044  7732 VideoPlayer.cpp:359] Stitching F#408
+====
+I0417 18:06:20.722005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:20.743049  7732 VideoPlayer.cpp:359] Stitching F#409
+====
+I0417 18:06:20.783054  7732 VideoPlayer.cpp:359] Stitching F#410
+====
+I0417 18:06:20.822003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:20.823050  7732 VideoPlayer.cpp:359] Stitching F#411
+====
+I0417 18:06:20.863049  7732 VideoPlayer.cpp:359] Stitching F#412
+====
+I0417 18:06:20.903049  7732 VideoPlayer.cpp:359] Stitching F#413
+====
+I0417 18:06:20.922005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:20.943048  7732 VideoPlayer.cpp:359] Stitching F#414
+====
+I0417 18:06:20.983045  7732 VideoPlayer.cpp:359] Stitching F#415
+====
+I0417 18:06:21.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:21.023042  7732 VideoPlayer.cpp:359] Stitching F#416
+====
+I0417 18:06:21.063042  7732 VideoPlayer.cpp:359] Stitching F#417
+====
+I0417 18:06:21.103041  7732 VideoPlayer.cpp:359] Stitching F#418
+====
+I0417 18:06:21.122035  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:21.143045  7732 VideoPlayer.cpp:359] Stitching F#419
+====
+I0417 18:06:21.183041  7732 VideoPlayer.cpp:359] Stitching F#420
+====
+I0417 18:06:21.222033  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:21.223043  7732 VideoPlayer.cpp:359] Stitching F#421
+====
+I0417 18:06:21.263042  7732 VideoPlayer.cpp:359] Stitching F#422
+====
+I0417 18:06:21.303047  7732 VideoPlayer.cpp:359] Stitching F#423
+====
+I0417 18:06:21.322039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:21.343042  7732 VideoPlayer.cpp:359] Stitching F#424
+====
+I0417 18:06:21.383052  7732 VideoPlayer.cpp:359] Stitching F#425
+====
+I0417 18:06:21.422046  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:21.423055  7732 VideoPlayer.cpp:359] Stitching F#426
+====
+I0417 18:06:21.463060  7732 VideoPlayer.cpp:359] Stitching F#427
+====
+I0417 18:06:21.503058  7732 VideoPlayer.cpp:359] Stitching F#428
+====
+I0417 18:06:21.522048  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:21.543057  7732 VideoPlayer.cpp:359] Stitching F#429
+====
+I0417 18:06:21.583058  7732 VideoPlayer.cpp:359] Stitching F#430
+====
+I0417 18:06:21.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:21.623060  7732 VideoPlayer.cpp:359] Stitching F#431
+====
+I0417 18:06:21.663058  7732 VideoPlayer.cpp:359] Stitching F#432
+====
+I0417 18:06:21.703055  7732 VideoPlayer.cpp:359] Stitching F#433
+====
+I0417 18:06:21.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:21.743057  7732 VideoPlayer.cpp:359] Stitching F#434
+====
+I0417 18:06:21.783062  7732 VideoPlayer.cpp:359] Stitching F#435
+====
+I0417 18:06:21.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:21.823062  7732 VideoPlayer.cpp:359] Stitching F#436
+====
+I0417 18:06:21.863059  7732 VideoPlayer.cpp:359] Stitching F#437
+====
+I0417 18:06:21.903044  7732 VideoPlayer.cpp:359] Stitching F#438
+====
+I0417 18:06:21.922039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:21.943042  7732 VideoPlayer.cpp:359] Stitching F#439
+====
+I0417 18:06:21.983045  7732 VideoPlayer.cpp:359] Stitching F#440
+====
+I0417 18:06:22.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:22.023043  7732 VideoPlayer.cpp:359] Stitching F#441
+====
+I0417 18:06:22.063046  7732 VideoPlayer.cpp:359] Stitching F#442
+====
+I0417 18:06:22.103044  7732 VideoPlayer.cpp:359] Stitching F#443
+====
+I0417 18:06:22.122036  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:22.143054  7732 VideoPlayer.cpp:359] Stitching F#444
+====
+I0417 18:06:22.183054  7732 VideoPlayer.cpp:359] Stitching F#445
+====
+I0417 18:06:22.222043  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:22.223053  7732 VideoPlayer.cpp:359] Stitching F#446
+====
+I0417 18:06:22.263052  7732 VideoPlayer.cpp:359] Stitching F#447
+====
+I0417 18:06:22.303051  7732 VideoPlayer.cpp:359] Stitching F#448
+====
+I0417 18:06:22.322043  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:22.343051  7732 VideoPlayer.cpp:359] Stitching F#449
+====
+I0417 18:06:22.383054  7732 VideoPlayer.cpp:359] Stitching F#450
+====
+I0417 18:06:22.422046  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:22.423045  7732 VideoPlayer.cpp:359] Stitching F#451
+====
+I0417 18:06:22.463047  7732 VideoPlayer.cpp:359] Stitching F#452
+====
+I0417 18:06:22.503047  7732 VideoPlayer.cpp:359] Stitching F#453
+====
+I0417 18:06:22.522006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:22.543058  7732 VideoPlayer.cpp:359] Stitching F#454
+====
+I0417 18:06:22.583056  7732 VideoPlayer.cpp:359] Stitching F#455
+====
+I0417 18:06:22.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:22.623054  7732 VideoPlayer.cpp:359] Stitching F#456
+====
+I0417 18:06:22.663058  7732 VideoPlayer.cpp:359] Stitching F#457
+====
+I0417 18:06:22.703053  7732 VideoPlayer.cpp:359] Stitching F#458
+====
+I0417 18:06:22.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:22.743053  7732 VideoPlayer.cpp:359] Stitching F#459
+====
+I0417 18:06:22.783046  7732 VideoPlayer.cpp:359] Stitching F#460
+====
+I0417 18:06:22.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:22.823047  7732 VideoPlayer.cpp:359] Stitching F#461
+====
+I0417 18:06:22.863044  7732 VideoPlayer.cpp:359] Stitching F#462
+====
+I0417 18:06:22.903045  7732 VideoPlayer.cpp:359] Stitching F#463
+====
+I0417 18:06:22.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:22.943043  7732 VideoPlayer.cpp:359] Stitching F#464
+====
+I0417 18:06:22.983043  7732 VideoPlayer.cpp:359] Stitching F#465
+====
+I0417 18:06:23.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:23.023046  7732 VideoPlayer.cpp:359] Stitching F#466
+====
+I0417 18:06:23.063043  7732 VideoPlayer.cpp:359] Stitching F#467
+====
+I0417 18:06:23.103044  7732 VideoPlayer.cpp:359] Stitching F#468
+====
+I0417 18:06:23.122004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:23.143043  7732 VideoPlayer.cpp:359] Stitching F#469
+====
+I0417 18:06:23.183046  7732 VideoPlayer.cpp:359] Stitching F#470
+====
+I0417 18:06:23.222002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:23.223043  7732 VideoPlayer.cpp:359] Stitching F#471
+====
+I0417 18:06:23.263044  7732 VideoPlayer.cpp:359] Stitching F#472
+====
+I0417 18:06:23.303043  7732 VideoPlayer.cpp:359] Stitching F#473
+====
+I0417 18:06:23.322034  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:23.343044  7732 VideoPlayer.cpp:359] Stitching F#474
+====
+I0417 18:06:23.383045  7732 VideoPlayer.cpp:359] Stitching F#475
+====
+I0417 18:06:23.422049  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:23.423046  7732 VideoPlayer.cpp:359] Stitching F#476
+====
+I0417 18:06:23.463047  7732 VideoPlayer.cpp:359] Stitching F#477
+====
+I0417 18:06:23.503048  7732 VideoPlayer.cpp:359] Stitching F#478
+====
+I0417 18:06:23.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:23.543052  7732 VideoPlayer.cpp:359] Stitching F#479
+====
+I0417 18:06:23.583046  7732 VideoPlayer.cpp:359] Stitching F#480
+====
+I0417 18:06:23.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:23.623047  7732 VideoPlayer.cpp:359] Stitching F#481
+====
+I0417 18:06:23.663048  7732 VideoPlayer.cpp:359] Stitching F#482
+====
+I0417 18:06:23.703050  7732 VideoPlayer.cpp:359] Stitching F#483
+====
+I0417 18:06:23.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:23.743047  7732 VideoPlayer.cpp:359] Stitching F#484
+====
+I0417 18:06:23.783057  7732 VideoPlayer.cpp:359] Stitching F#485
+====
+I0417 18:06:23.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:23.823056  7732 VideoPlayer.cpp:359] Stitching F#486
+====
+I0417 18:06:23.863061  7732 VideoPlayer.cpp:359] Stitching F#487
+====
+I0417 18:06:23.903056  7732 VideoPlayer.cpp:359] Stitching F#488
+====
+I0417 18:06:23.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:23.943056  7732 VideoPlayer.cpp:359] Stitching F#489
+====
+I0417 18:06:23.983057  7732 VideoPlayer.cpp:359] Stitching F#490
+====
+I0417 18:06:24.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:24.023057  7732 VideoPlayer.cpp:359] Stitching F#491
+====
+I0417 18:06:24.063053  7732 VideoPlayer.cpp:359] Stitching F#492
+====
+I0417 18:06:24.103053  7732 VideoPlayer.cpp:359] Stitching F#493
+====
+I0417 18:06:24.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:24.143057  7732 VideoPlayer.cpp:359] Stitching F#494
+====
+I0417 18:06:24.183055  7732 VideoPlayer.cpp:359] Stitching F#495
+====
+I0417 18:06:24.222002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:24.223054  7732 VideoPlayer.cpp:359] Stitching F#496
+====
+I0417 18:06:24.263052  7732 VideoPlayer.cpp:359] Stitching F#497
+====
+I0417 18:06:24.303057  7732 VideoPlayer.cpp:359] Stitching F#498
+====
+I0417 18:06:24.322001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:24.343055  7732 VideoPlayer.cpp:359] Stitching F#499
+====
+I0417 18:06:24.383054  7732 VideoPlayer.cpp:359] Stitching F#500
+====
+I0417 18:06:24.422044  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:24.423063  7732 VideoPlayer.cpp:359] Stitching F#501
+====
+I0417 18:06:24.463057  7732 VideoPlayer.cpp:359] Stitching F#502
+====
+I0417 18:06:24.503057  7732 VideoPlayer.cpp:359] Stitching F#503
+====
+I0417 18:06:24.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:24.543066  7732 VideoPlayer.cpp:359] Stitching F#504
+====
+I0417 18:06:24.583060  7732 VideoPlayer.cpp:359] Stitching F#505
+====
+I0417 18:06:24.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:24.623054  7732 VideoPlayer.cpp:359] Stitching F#506
+====
+I0417 18:06:24.663053  7732 VideoPlayer.cpp:359] Stitching F#507
+====
+I0417 18:06:24.703058  7732 VideoPlayer.cpp:359] Stitching F#508
+====
+I0417 18:06:24.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:24.743054  7732 VideoPlayer.cpp:359] Stitching F#509
+====
+I0417 18:06:24.783053  7732 VideoPlayer.cpp:359] Stitching F#510
+====
+I0417 18:06:24.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:24.823053  7732 VideoPlayer.cpp:359] Stitching F#511
+====
+I0417 18:06:24.863057  7732 VideoPlayer.cpp:359] Stitching F#512
+====
+I0417 18:06:24.903043  7732 VideoPlayer.cpp:359] Stitching F#513
+====
+I0417 18:06:24.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:24.943043  7732 VideoPlayer.cpp:359] Stitching F#514
+====
+I0417 18:06:24.983044  7732 VideoPlayer.cpp:359] Stitching F#515
+====
+I0417 18:06:25.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:25.023044  7732 VideoPlayer.cpp:359] Stitching F#516
+====
+I0417 18:06:25.063043  7732 VideoPlayer.cpp:359] Stitching F#517
+====
+I0417 18:06:25.103044  7732 VideoPlayer.cpp:359] Stitching F#518
+====
+I0417 18:06:25.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:25.143043  7732 VideoPlayer.cpp:359] Stitching F#519
+====
+I0417 18:06:25.183059  7732 VideoPlayer.cpp:359] Stitching F#520
+====
+I0417 18:06:25.222029  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:25.223054  7732 VideoPlayer.cpp:359] Stitching F#521
+====
+I0417 18:06:25.263046  7732 VideoPlayer.cpp:359] Stitching F#522
+====
+I0417 18:06:25.303048  7732 VideoPlayer.cpp:359] Stitching F#523
+====
+I0417 18:06:25.322031  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:25.343052  7732 VideoPlayer.cpp:359] Stitching F#524
+====
+I0417 18:06:25.383061  7732 VideoPlayer.cpp:359] Stitching F#525
+====
+I0417 18:06:25.422045  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:25.423058  7732 VideoPlayer.cpp:359] Stitching F#526
+====
+I0417 18:06:25.463057  7732 VideoPlayer.cpp:359] Stitching F#527
+====
+I0417 18:06:25.503059  7732 VideoPlayer.cpp:359] Stitching F#528
+====
+I0417 18:06:25.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:25.543056  7732 VideoPlayer.cpp:359] Stitching F#529
+====
+I0417 18:06:25.583072  7732 VideoPlayer.cpp:359] Stitching F#530
+====
+I0417 18:06:25.622006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:25.623067  7732 VideoPlayer.cpp:359] Stitching F#531
+====
+I0417 18:06:25.663054  7732 VideoPlayer.cpp:359] Stitching F#532
+====
+I0417 18:06:25.703054  7732 VideoPlayer.cpp:359] Stitching F#533
+====
+I0417 18:06:25.722005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:25.743052  7732 VideoPlayer.cpp:359] Stitching F#534
+====
+I0417 18:06:25.783056  7732 VideoPlayer.cpp:359] Stitching F#535
+====
+I0417 18:06:25.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:25.823052  7732 VideoPlayer.cpp:359] Stitching F#536
+====
+I0417 18:06:25.863054  7732 VideoPlayer.cpp:359] Stitching F#537
+====
+I0417 18:06:25.903053  7732 VideoPlayer.cpp:359] Stitching F#538
+====
+I0417 18:06:25.922005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:25.943058  7732 VideoPlayer.cpp:359] Stitching F#539
+====
+I0417 18:06:25.983053  7732 VideoPlayer.cpp:359] Stitching F#540
+====
+I0417 18:06:26.022034  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:26.023052  7732 VideoPlayer.cpp:359] Stitching F#541
+====
+I0417 18:06:26.063055  7732 VideoPlayer.cpp:359] Stitching F#542
+====
+I0417 18:06:26.103057  7732 VideoPlayer.cpp:359] Stitching F#543
+====
+I0417 18:06:26.122036  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:26.143054  7732 VideoPlayer.cpp:359] Stitching F#544
+====
+I0417 18:06:26.183053  7732 VideoPlayer.cpp:359] Stitching F#545
+====
+I0417 18:06:26.222036  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:26.223053  7732 VideoPlayer.cpp:359] Stitching F#546
+====
+I0417 18:06:26.263056  7732 VideoPlayer.cpp:359] Stitching F#547
+====
+I0417 18:06:26.303052  7732 VideoPlayer.cpp:359] Stitching F#548
+====
+I0417 18:06:26.322031  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:26.343053  7732 VideoPlayer.cpp:359] Stitching F#549
+====
+I0417 18:06:26.383054  7732 VideoPlayer.cpp:359] Stitching F#550
+====
+I0417 18:06:26.422044  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:26.423058  7732 VideoPlayer.cpp:359] Stitching F#551
+====
+I0417 18:06:26.463057  7732 VideoPlayer.cpp:359] Stitching F#552
+====
+I0417 18:06:26.503051  7732 VideoPlayer.cpp:359] Stitching F#553
+====
+I0417 18:06:26.522037  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:26.543047  7732 VideoPlayer.cpp:359] Stitching F#554
+====
+I0417 18:06:26.583050  7732 VideoPlayer.cpp:359] Stitching F#555
+====
+I0417 18:06:26.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:26.623044  7732 VideoPlayer.cpp:359] Stitching F#556
+====
+I0417 18:06:26.663043  7732 VideoPlayer.cpp:359] Stitching F#557
+====
+I0417 18:06:26.703043  7732 VideoPlayer.cpp:359] Stitching F#558
+====
+I0417 18:06:26.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:26.743047  7732 VideoPlayer.cpp:359] Stitching F#559
+====
+I0417 18:06:26.783046  7732 VideoPlayer.cpp:359] Stitching F#560
+====
+I0417 18:06:26.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:26.823045  7732 VideoPlayer.cpp:359] Stitching F#561
+====
+I0417 18:06:26.863045  7732 VideoPlayer.cpp:359] Stitching F#562
+====
+I0417 18:06:26.903045  7732 VideoPlayer.cpp:359] Stitching F#563
+====
+I0417 18:06:26.922005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:26.943058  7732 VideoPlayer.cpp:359] Stitching F#564
+====
+I0417 18:06:26.983064  7732 VideoPlayer.cpp:359] Stitching F#565
+====
+I0417 18:06:27.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:27.023063  7732 VideoPlayer.cpp:359] Stitching F#566
+====
+I0417 18:06:27.063066  7732 VideoPlayer.cpp:359] Stitching F#567
+====
+I0417 18:06:27.103063  7732 VideoPlayer.cpp:359] Stitching F#568
+====
+I0417 18:06:27.122035  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:27.143064  7732 VideoPlayer.cpp:359] Stitching F#569
+====
+I0417 18:06:27.183066  7732 VideoPlayer.cpp:359] Stitching F#570
+====
+I0417 18:06:27.222035  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:27.223052  7732 VideoPlayer.cpp:359] Stitching F#571
+====
+I0417 18:06:27.263049  7732 VideoPlayer.cpp:359] Stitching F#572
+====
+I0417 18:06:27.303051  7732 VideoPlayer.cpp:359] Stitching F#573
+====
+I0417 18:06:27.322037  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:27.343053  7732 VideoPlayer.cpp:359] Stitching F#574
+====
+I0417 18:06:27.383052  7732 VideoPlayer.cpp:359] Stitching F#575
+====
+I0417 18:06:27.422044  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:27.423053  7732 VideoPlayer.cpp:359] Stitching F#576
+====
+I0417 18:06:27.463055  7732 VideoPlayer.cpp:359] Stitching F#577
+====
+I0417 18:06:27.503057  7732 VideoPlayer.cpp:359] Stitching F#578
+====
+I0417 18:06:27.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:27.543074  7732 VideoPlayer.cpp:359] Stitching F#579
+====
+I0417 18:06:27.583063  7732 VideoPlayer.cpp:359] Stitching F#580
+====
+I0417 18:06:27.622005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:27.623054  7732 VideoPlayer.cpp:359] Stitching F#581
+====
+I0417 18:06:27.663050  7732 VideoPlayer.cpp:359] Stitching F#582
+====
+I0417 18:06:27.703050  7732 VideoPlayer.cpp:359] Stitching F#583
+====
+I0417 18:06:27.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:27.743049  7732 VideoPlayer.cpp:359] Stitching F#584
+====
+I0417 18:06:27.783053  7732 VideoPlayer.cpp:359] Stitching F#585
+====
+I0417 18:06:27.822006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:27.823062  7732 VideoPlayer.cpp:359] Stitching F#586
+====
+I0417 18:06:27.863063  7732 VideoPlayer.cpp:359] Stitching F#587
+====
+I0417 18:06:27.903064  7732 VideoPlayer.cpp:359] Stitching F#588
+====
+I0417 18:06:27.922004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:27.943063  7732 VideoPlayer.cpp:359] Stitching F#589
+====
+I0417 18:06:27.983050  7732 VideoPlayer.cpp:359] Stitching F#590
+====
+I0417 18:06:28.022006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:28.023051  7732 VideoPlayer.cpp:359] Stitching F#591
+====
+I0417 18:06:28.063053  7732 VideoPlayer.cpp:359] Stitching F#592
+====
+I0417 18:06:28.103051  7732 VideoPlayer.cpp:359] Stitching F#593
+====
+I0417 18:06:28.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:28.143050  7732 VideoPlayer.cpp:359] Stitching F#594
+====
+I0417 18:06:28.183053  7732 VideoPlayer.cpp:359] Stitching F#595
+====
+I0417 18:06:28.222002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:28.223049  7732 VideoPlayer.cpp:359] Stitching F#596
+====
+I0417 18:06:28.263049  7732 VideoPlayer.cpp:359] Stitching F#597
+====
+I0417 18:06:28.303050  7732 VideoPlayer.cpp:359] Stitching F#598
+====
+I0417 18:06:28.322005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:28.343052  7732 VideoPlayer.cpp:359] Stitching F#599
+====
+I0417 18:06:28.383051  7732 VideoPlayer.cpp:359] Stitching F#600
+====
+I0417 18:06:28.422046  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:28.423067  7732 VideoPlayer.cpp:359] Stitching F#601
+====
+I0417 18:06:28.463069  7732 VideoPlayer.cpp:359] Stitching F#602
+====
+I0417 18:06:28.503065  7732 VideoPlayer.cpp:359] Stitching F#603
+====
+I0417 18:06:28.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:28.543062  7732 VideoPlayer.cpp:359] Stitching F#604
+====
+I0417 18:06:28.583063  7732 VideoPlayer.cpp:359] Stitching F#605
+====
+I0417 18:06:28.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:28.623066  7732 VideoPlayer.cpp:359] Stitching F#606
+====
+I0417 18:06:28.663062  7732 VideoPlayer.cpp:359] Stitching F#607
+====
+I0417 18:06:28.703063  7732 VideoPlayer.cpp:359] Stitching F#608
+====
+I0417 18:06:28.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:28.743067  7732 VideoPlayer.cpp:359] Stitching F#609
+====
+I0417 18:06:28.783062  7732 VideoPlayer.cpp:359] Stitching F#610
+====
+I0417 18:06:28.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:28.823061  7732 VideoPlayer.cpp:359] Stitching F#611
+====
+I0417 18:06:28.863065  7732 VideoPlayer.cpp:359] Stitching F#612
+====
+I0417 18:06:28.903064  7732 VideoPlayer.cpp:359] Stitching F#613
+====
+I0417 18:06:28.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:28.943051  7732 VideoPlayer.cpp:359] Stitching F#614
+====
+I0417 18:06:28.983057  7732 VideoPlayer.cpp:359] Stitching F#615
+====
+I0417 18:06:29.022006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:29.023051  7732 VideoPlayer.cpp:359] Stitching F#616
+====
+I0417 18:06:29.063051  7732 VideoPlayer.cpp:359] Stitching F#617
+====
+I0417 18:06:29.103049  7732 VideoPlayer.cpp:359] Stitching F#618
+====
+I0417 18:06:29.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:29.143054  7732 VideoPlayer.cpp:359] Stitching F#619
+====
+I0417 18:06:29.183063  7732 VideoPlayer.cpp:359] Stitching F#620
+====
+I0417 18:06:29.222002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:29.223062  7732 VideoPlayer.cpp:359] Stitching F#621
+====
+I0417 18:06:29.263065  7732 VideoPlayer.cpp:359] Stitching F#622
+====
+I0417 18:06:29.303063  7732 VideoPlayer.cpp:359] Stitching F#623
+====
+I0417 18:06:29.322001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:29.343062  7732 VideoPlayer.cpp:359] Stitching F#624
+====
+I0417 18:06:29.383065  7732 VideoPlayer.cpp:359] Stitching F#625
+====
+I0417 18:06:29.422048  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:29.423065  7732 VideoPlayer.cpp:359] Stitching F#626
+====
+I0417 18:06:29.463065  7732 VideoPlayer.cpp:359] Stitching F#627
+====
+I0417 18:06:29.503070  7732 VideoPlayer.cpp:359] Stitching F#628
+====
+I0417 18:06:29.522006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:29.543069  7732 VideoPlayer.cpp:359] Stitching F#629
+====
+I0417 18:06:29.583066  7732 VideoPlayer.cpp:359] Stitching F#630
+====
+I0417 18:06:29.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:29.623064  7732 VideoPlayer.cpp:359] Stitching F#631
+====
+I0417 18:06:29.663069  7732 VideoPlayer.cpp:359] Stitching F#632
+====
+I0417 18:06:29.703064  7732 VideoPlayer.cpp:359] Stitching F#633
+====
+I0417 18:06:29.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:29.743063  7732 VideoPlayer.cpp:359] Stitching F#634
+====
+I0417 18:06:29.783066  7732 VideoPlayer.cpp:359] Stitching F#635
+====
+I0417 18:06:29.822002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:29.823065  7732 VideoPlayer.cpp:359] Stitching F#636
+====
+I0417 18:06:29.863063  7732 VideoPlayer.cpp:359] Stitching F#637
+====
+I0417 18:06:29.903065  7732 VideoPlayer.cpp:359] Stitching F#638
+====
+I0417 18:06:29.922003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:29.943063  7732 VideoPlayer.cpp:359] Stitching F#639
+====
+I0417 18:06:29.983062  7732 VideoPlayer.cpp:359] Stitching F#640
+====
+I0417 18:06:30.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:30.023066  7732 VideoPlayer.cpp:359] Stitching F#641
+====
+I0417 18:06:30.063064  7732 VideoPlayer.cpp:359] Stitching F#642
+====
+I0417 18:06:30.103065  7732 VideoPlayer.cpp:359] Stitching F#643
+====
+I0417 18:06:30.122005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:30.143055  7732 VideoPlayer.cpp:359] Stitching F#644
+====
+I0417 18:06:30.183051  7732 VideoPlayer.cpp:359] Stitching F#645
+====
+I0417 18:06:30.222002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:30.223049  7732 VideoPlayer.cpp:359] Stitching F#646
+====
+I0417 18:06:30.263047  7732 VideoPlayer.cpp:359] Stitching F#647
+====
+I0417 18:06:30.303074  7732 VideoPlayer.cpp:359] Stitching F#648
+====
+I0417 18:06:30.322039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:30.343057  7732 VideoPlayer.cpp:359] Stitching F#649
+====
+I0417 18:06:30.383057  7732 VideoPlayer.cpp:359] Stitching F#650
+====
+I0417 18:06:30.422049  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:30.423065  7732 VideoPlayer.cpp:359] Stitching F#651
+====
+I0417 18:06:30.463068  7732 VideoPlayer.cpp:359] Stitching F#652
+====
+I0417 18:06:30.503064  7732 VideoPlayer.cpp:359] Stitching F#653
+====
+I0417 18:06:30.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:30.543062  7732 VideoPlayer.cpp:359] Stitching F#654
+====
+I0417 18:06:30.583066  7732 VideoPlayer.cpp:359] Stitching F#655
+====
+I0417 18:06:30.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:30.623061  7732 VideoPlayer.cpp:359] Stitching F#656
+====
+I0417 18:06:30.663050  7732 VideoPlayer.cpp:359] Stitching F#657
+====
+I0417 18:06:30.703055  7732 VideoPlayer.cpp:359] Stitching F#658
+====
+I0417 18:06:30.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:30.743050  7732 VideoPlayer.cpp:359] Stitching F#659
+====
+I0417 18:06:30.783048  7732 VideoPlayer.cpp:359] Stitching F#660
+====
+I0417 18:06:30.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:30.823048  7732 VideoPlayer.cpp:359] Stitching F#661
+====
+I0417 18:06:30.863052  7732 VideoPlayer.cpp:359] Stitching F#662
+====
+I0417 18:06:30.903062  7732 VideoPlayer.cpp:359] Stitching F#663
+====
+I0417 18:06:30.922035  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:30.943060  7732 VideoPlayer.cpp:359] Stitching F#664
+====
+I0417 18:06:30.983065  7732 VideoPlayer.cpp:359] Stitching F#665
+====
+I0417 18:06:31.022037  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:31.023049  7732 VideoPlayer.cpp:359] Stitching F#666
+====
+I0417 18:06:31.063053  7732 VideoPlayer.cpp:359] Stitching F#667
+====
+I0417 18:06:31.103051  7732 VideoPlayer.cpp:359] Stitching F#668
+====
+I0417 18:06:31.122041  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:31.143051  7732 VideoPlayer.cpp:359] Stitching F#669
+====
+I0417 18:06:31.183061  7732 VideoPlayer.cpp:359] Stitching F#670
+====
+I0417 18:06:31.222040  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:31.223060  7732 VideoPlayer.cpp:359] Stitching F#671
+====
+I0417 18:06:31.263067  7732 VideoPlayer.cpp:359] Stitching F#672
+====
+I0417 18:06:31.303061  7732 VideoPlayer.cpp:359] Stitching F#673
+====
+I0417 18:06:31.322043  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:31.343061  7732 VideoPlayer.cpp:359] Stitching F#674
+====
+I0417 18:06:31.383066  7732 VideoPlayer.cpp:359] Stitching F#675
+====
+I0417 18:06:31.422049  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:31.423065  7732 VideoPlayer.cpp:359] Stitching F#676
+====
+I0417 18:06:31.463065  7732 VideoPlayer.cpp:359] Stitching F#677
+====
+I0417 18:06:31.503059  7732 VideoPlayer.cpp:359] Stitching F#678
+====
+I0417 18:06:31.522011  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:31.543061  7732 VideoPlayer.cpp:359] Stitching F#679
+====
+I0417 18:06:31.583053  7732 VideoPlayer.cpp:359] Stitching F#680
+====
+I0417 18:06:31.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:31.623051  7732 VideoPlayer.cpp:359] Stitching F#681
+====
+I0417 18:06:31.663051  7732 VideoPlayer.cpp:359] Stitching F#682
+====
+I0417 18:06:31.703053  7732 VideoPlayer.cpp:359] Stitching F#683
+====
+I0417 18:06:31.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:31.743048  7732 VideoPlayer.cpp:359] Stitching F#684
+====
+I0417 18:06:31.783051  7732 VideoPlayer.cpp:359] Stitching F#685
+====
+I0417 18:06:31.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:31.823050  7732 VideoPlayer.cpp:359] Stitching F#686
+====
+I0417 18:06:31.863054  7732 VideoPlayer.cpp:359] Stitching F#687
+====
+I0417 18:06:31.903057  7732 VideoPlayer.cpp:359] Stitching F#688
+====
+I0417 18:06:31.922005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:31.943051  7732 VideoPlayer.cpp:359] Stitching F#689
+====
+I0417 18:06:31.983049  7732 VideoPlayer.cpp:359] Stitching F#690
+====
+I0417 18:06:32.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:32.023052  7732 VideoPlayer.cpp:359] Stitching F#691
+====
+I0417 18:06:32.063050  7732 VideoPlayer.cpp:359] Stitching F#692
+====
+I0417 18:06:32.103051  7732 VideoPlayer.cpp:359] Stitching F#693
+====
+I0417 18:06:32.122036  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:32.143054  7732 VideoPlayer.cpp:359] Stitching F#694
+====
+I0417 18:06:32.183051  7732 VideoPlayer.cpp:359] Stitching F#695
+====
+I0417 18:06:32.222038  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:32.223050  7732 VideoPlayer.cpp:359] Stitching F#696
+====
+I0417 18:06:32.263051  7732 VideoPlayer.cpp:359] Stitching F#697
+====
+I0417 18:06:32.303067  7732 VideoPlayer.cpp:359] Stitching F#698
+====
+I0417 18:06:32.322036  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:32.343063  7732 VideoPlayer.cpp:359] Stitching F#699
+====
+I0417 18:06:32.383064  7732 VideoPlayer.cpp:359] Stitching F#700
+====
+I0417 18:06:32.422051  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:32.423076  7732 VideoPlayer.cpp:359] Stitching F#701
+====
+I0417 18:06:32.463068  7732 VideoPlayer.cpp:359] Stitching F#702
+====
+I0417 18:06:32.503075  7732 VideoPlayer.cpp:359] Stitching F#703
+====
+I0417 18:06:32.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:32.543066  7732 VideoPlayer.cpp:359] Stitching F#704
+====
+I0417 18:06:32.583056  7732 VideoPlayer.cpp:359] Stitching F#705
+====
+I0417 18:06:32.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:32.623052  7732 VideoPlayer.cpp:359] Stitching F#706
+====
+I0417 18:06:32.663054  7732 VideoPlayer.cpp:359] Stitching F#707
+====
+I0417 18:06:32.703055  7732 VideoPlayer.cpp:359] Stitching F#708
+====
+I0417 18:06:32.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:32.743055  7732 VideoPlayer.cpp:359] Stitching F#709
+====
+I0417 18:06:32.783053  7732 VideoPlayer.cpp:359] Stitching F#710
+====
+I0417 18:06:32.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:32.823052  7732 VideoPlayer.cpp:359] Stitching F#711
+====
+I0417 18:06:32.863055  7732 VideoPlayer.cpp:359] Stitching F#712
+====
+I0417 18:06:32.903052  7732 VideoPlayer.cpp:359] Stitching F#713
+====
+I0417 18:06:32.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:32.943053  7732 VideoPlayer.cpp:359] Stitching F#714
+====
+I0417 18:06:32.983052  7732 VideoPlayer.cpp:359] Stitching F#715
+====
+I0417 18:06:33.022033  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:33.023056  7732 VideoPlayer.cpp:359] Stitching F#716
+====
+I0417 18:06:33.063052  7732 VideoPlayer.cpp:359] Stitching F#717
+====
+I0417 18:06:33.103053  7732 VideoPlayer.cpp:359] Stitching F#718
+====
+I0417 18:06:33.122032  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:33.143052  7732 VideoPlayer.cpp:359] Stitching F#719
+====
+I0417 18:06:33.183055  7732 VideoPlayer.cpp:359] Stitching F#720
+====
+I0417 18:06:33.222031  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:33.223052  7732 VideoPlayer.cpp:359] Stitching F#721
+====
+I0417 18:06:33.263051  7732 VideoPlayer.cpp:359] Stitching F#722
+====
+I0417 18:06:33.303051  7732 VideoPlayer.cpp:359] Stitching F#723
+====
+I0417 18:06:33.322032  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:33.343053  7732 VideoPlayer.cpp:359] Stitching F#724
+====
+I0417 18:06:33.383051  7732 VideoPlayer.cpp:359] Stitching F#725
+====
+I0417 18:06:33.422045  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:33.423058  7732 VideoPlayer.cpp:359] Stitching F#726
+====
+I0417 18:06:33.463057  7732 VideoPlayer.cpp:359] Stitching F#727
+====
+I0417 18:06:33.503060  7732 VideoPlayer.cpp:359] Stitching F#728
+====
+I0417 18:06:33.522003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:33.543061  7732 VideoPlayer.cpp:359] Stitching F#729
+====
+I0417 18:06:33.583055  7732 VideoPlayer.cpp:359] Stitching F#730
+====
+I0417 18:06:33.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:33.623051  7732 VideoPlayer.cpp:359] Stitching F#731
+====
+I0417 18:06:33.663055  7732 VideoPlayer.cpp:359] Stitching F#732
+====
+I0417 18:06:33.703053  7732 VideoPlayer.cpp:359] Stitching F#733
+====
+I0417 18:06:33.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:33.743054  7732 VideoPlayer.cpp:359] Stitching F#734
+====
+I0417 18:06:33.783053  7732 VideoPlayer.cpp:359] Stitching F#735
+====
+I0417 18:06:33.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:33.823055  7732 VideoPlayer.cpp:359] Stitching F#736
+====
+I0417 18:06:33.863054  7732 VideoPlayer.cpp:359] Stitching F#737
+====
+I0417 18:06:33.903053  7732 VideoPlayer.cpp:359] Stitching F#738
+====
+I0417 18:06:33.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:33.943053  7732 VideoPlayer.cpp:359] Stitching F#739
+====
+I0417 18:06:33.983057  7732 VideoPlayer.cpp:359] Stitching F#740
+====
+I0417 18:06:34.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:34.023054  7732 VideoPlayer.cpp:359] Stitching F#741
+====
+I0417 18:06:34.063055  7732 VideoPlayer.cpp:359] Stitching F#742
+====
+I0417 18:06:34.103058  7732 VideoPlayer.cpp:359] Stitching F#743
+====
+I0417 18:06:34.122032  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:34.143051  7732 VideoPlayer.cpp:359] Stitching F#744
+====
+I0417 18:06:34.183053  7732 VideoPlayer.cpp:359] Stitching F#745
+====
+I0417 18:06:34.222034  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:34.223054  7732 VideoPlayer.cpp:359] Stitching F#746
+====
+I0417 18:06:34.263054  7732 VideoPlayer.cpp:359] Stitching F#747
+====
+I0417 18:06:34.303052  7732 VideoPlayer.cpp:359] Stitching F#748
+====
+I0417 18:06:34.322032  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:34.343052  7732 VideoPlayer.cpp:359] Stitching F#749
+====
+I0417 18:06:34.383052  7732 VideoPlayer.cpp:359] Stitching F#750
+====
+I0417 18:06:34.422046  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:34.423064  7732 VideoPlayer.cpp:359] Stitching F#751
+====
+I0417 18:06:34.463055  7732 VideoPlayer.cpp:359] Stitching F#752
+====
+I0417 18:06:34.503057  7732 VideoPlayer.cpp:359] Stitching F#753
+====
+I0417 18:06:34.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:34.543056  7732 VideoPlayer.cpp:359] Stitching F#754
+====
+I0417 18:06:34.583057  7732 VideoPlayer.cpp:359] Stitching F#755
+====
+I0417 18:06:34.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:34.623054  7732 VideoPlayer.cpp:359] Stitching F#756
+====
+I0417 18:06:34.663055  7732 VideoPlayer.cpp:359] Stitching F#757
+====
+I0417 18:06:34.703056  7732 VideoPlayer.cpp:359] Stitching F#758
+====
+I0417 18:06:34.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:34.743057  7732 VideoPlayer.cpp:359] Stitching F#759
+====
+I0417 18:06:34.783054  7732 VideoPlayer.cpp:359] Stitching F#760
+====
+I0417 18:06:34.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:34.823052  7732 VideoPlayer.cpp:359] Stitching F#761
+====
+I0417 18:06:34.863052  7732 VideoPlayer.cpp:359] Stitching F#762
+====
+I0417 18:06:34.903055  7732 VideoPlayer.cpp:359] Stitching F#763
+====
+I0417 18:06:34.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:34.943053  7732 VideoPlayer.cpp:359] Stitching F#764
+====
+I0417 18:06:34.983054  7732 VideoPlayer.cpp:359] Stitching F#765
+====
+I0417 18:06:35.022039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:35.023054  7732 VideoPlayer.cpp:359] Stitching F#766
+====
+I0417 18:06:35.063055  7732 VideoPlayer.cpp:359] Stitching F#767
+====
+I0417 18:06:35.103052  7732 VideoPlayer.cpp:359] Stitching F#768
+====
+I0417 18:06:35.122035  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:35.143054  7732 VideoPlayer.cpp:359] Stitching F#769
+====
+I0417 18:06:35.183053  7732 VideoPlayer.cpp:359] Stitching F#770
+====
+I0417 18:06:35.222034  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:35.223055  7732 VideoPlayer.cpp:359] Stitching F#771
+====
+I0417 18:06:35.263054  7732 VideoPlayer.cpp:359] Stitching F#772
+====
+I0417 18:06:35.303053  7732 VideoPlayer.cpp:359] Stitching F#773
+====
+I0417 18:06:35.322036  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:35.343055  7732 VideoPlayer.cpp:359] Stitching F#774
+====
+I0417 18:06:35.383052  7732 VideoPlayer.cpp:359] Stitching F#775
+====
+I0417 18:06:35.422052  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:35.423058  7732 VideoPlayer.cpp:359] Stitching F#776
+====
+I0417 18:06:35.463063  7732 VideoPlayer.cpp:359] Stitching F#777
+====
+I0417 18:06:35.503064  7732 VideoPlayer.cpp:359] Stitching F#778
+====
+I0417 18:06:35.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:35.543056  7732 VideoPlayer.cpp:359] Stitching F#779
+====
+I0417 18:06:35.583056  7732 VideoPlayer.cpp:359] Stitching F#780
+====
+I0417 18:06:35.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:35.623052  7732 VideoPlayer.cpp:359] Stitching F#781
+====
+I0417 18:06:35.663056  7732 VideoPlayer.cpp:359] Stitching F#782
+====
+I0417 18:06:35.703054  7732 VideoPlayer.cpp:359] Stitching F#783
+====
+I0417 18:06:35.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:35.743053  7732 VideoPlayer.cpp:359] Stitching F#784
+====
+I0417 18:06:35.783054  7732 VideoPlayer.cpp:359] Stitching F#785
+====
+I0417 18:06:35.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:35.823057  7732 VideoPlayer.cpp:359] Stitching F#786
+====
+I0417 18:06:35.863056  7732 VideoPlayer.cpp:359] Stitching F#787
+====
+I0417 18:06:35.903052  7732 VideoPlayer.cpp:359] Stitching F#788
+====
+I0417 18:06:35.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:35.943053  7732 VideoPlayer.cpp:359] Stitching F#789
+====
+I0417 18:06:35.983055  7732 VideoPlayer.cpp:359] Stitching F#790
+====
+I0417 18:06:36.022033  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:36.023053  7732 VideoPlayer.cpp:359] Stitching F#791
+====
+I0417 18:06:36.063055  7732 VideoPlayer.cpp:359] Stitching F#792
+====
+I0417 18:06:36.103055  7732 VideoPlayer.cpp:359] Stitching F#793
+====
+I0417 18:06:36.122033  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:36.143055  7732 VideoPlayer.cpp:359] Stitching F#794
+====
+I0417 18:06:36.183053  7732 VideoPlayer.cpp:359] Stitching F#795
+====
+I0417 18:06:36.222033  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:36.223053  7732 VideoPlayer.cpp:359] Stitching F#796
+====
+I0417 18:06:36.263053  7732 VideoPlayer.cpp:359] Stitching F#797
+====
+I0417 18:06:36.303056  7732 VideoPlayer.cpp:359] Stitching F#798
+====
+I0417 18:06:36.322033  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:36.343053  7732 VideoPlayer.cpp:359] Stitching F#799
+====
+I0417 18:06:36.383052  7732 VideoPlayer.cpp:359] Stitching F#800
+====
+I0417 18:06:36.422039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:36.423056  7732 VideoPlayer.cpp:359] Stitching F#801
+====
+I0417 18:06:36.463066  7732 VideoPlayer.cpp:359] Stitching F#802
+====
+I0417 18:06:36.503062  7732 VideoPlayer.cpp:359] Stitching F#803
+====
+I0417 18:06:36.522042  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:36.543056  7732 VideoPlayer.cpp:359] Stitching F#804
+====
+I0417 18:06:36.583060  7732 VideoPlayer.cpp:359] Stitching F#805
+====
+I0417 18:06:36.622005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:36.623050  7732 VideoPlayer.cpp:359] Stitching F#806
+====
+I0417 18:06:36.663054  7732 VideoPlayer.cpp:359] Stitching F#807
+====
+I0417 18:06:36.703053  7732 VideoPlayer.cpp:359] Stitching F#808
+====
+I0417 18:06:36.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:36.743067  7732 VideoPlayer.cpp:359] Stitching F#809
+====
+I0417 18:06:36.783066  7732 VideoPlayer.cpp:359] Stitching F#810
+====
+I0417 18:06:36.822002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:36.823065  7732 VideoPlayer.cpp:359] Stitching F#811
+====
+I0417 18:06:36.863071  7732 VideoPlayer.cpp:359] Stitching F#812
+====
+I0417 18:06:36.903067  7732 VideoPlayer.cpp:359] Stitching F#813
+====
+I0417 18:06:36.922040  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:36.943066  7732 VideoPlayer.cpp:359] Stitching F#814
+====
+I0417 18:06:36.983067  7732 VideoPlayer.cpp:359] Stitching F#815
+====
+I0417 18:06:37.022034  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:37.023064  7732 VideoPlayer.cpp:359] Stitching F#816
+====
+I0417 18:06:37.063064  7732 VideoPlayer.cpp:359] Stitching F#817
+====
+I0417 18:06:37.103067  7732 VideoPlayer.cpp:359] Stitching F#818
+====
+I0417 18:06:37.122042  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:37.143064  7732 VideoPlayer.cpp:359] Stitching F#819
+====
+I0417 18:06:37.183064  7732 VideoPlayer.cpp:359] Stitching F#820
+====
+I0417 18:06:37.222038  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:37.223057  7732 VideoPlayer.cpp:359] Stitching F#821
+====
+I0417 18:06:37.263054  7732 VideoPlayer.cpp:359] Stitching F#822
+====
+I0417 18:06:37.303052  7732 VideoPlayer.cpp:359] Stitching F#823
+====
+I0417 18:06:37.322036  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:37.343051  7732 VideoPlayer.cpp:359] Stitching F#824
+====
+I0417 18:06:37.383051  7732 VideoPlayer.cpp:359] Stitching F#825
+====
+I0417 18:06:37.422041  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:37.423063  7732 VideoPlayer.cpp:359] Stitching F#826
+====
+I0417 18:06:37.463052  7732 VideoPlayer.cpp:359] Stitching F#827
+====
+I0417 18:06:37.503051  7732 VideoPlayer.cpp:359] Stitching F#828
+====
+I0417 18:06:37.522047  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:37.543061  7732 VideoPlayer.cpp:359] Stitching F#829
+====
+I0417 18:06:37.583062  7732 VideoPlayer.cpp:359] Stitching F#830
+====
+I0417 18:06:37.622005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:37.623057  7732 VideoPlayer.cpp:359] Stitching F#831
+====
+I0417 18:06:37.663059  7732 VideoPlayer.cpp:359] Stitching F#832
+====
+I0417 18:06:37.703052  7732 VideoPlayer.cpp:359] Stitching F#833
+====
+I0417 18:06:37.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:37.743047  7732 VideoPlayer.cpp:359] Stitching F#834
+====
+I0417 18:06:37.783046  7732 VideoPlayer.cpp:359] Stitching F#835
+====
+I0417 18:06:37.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:37.823047  7732 VideoPlayer.cpp:359] Stitching F#836
+====
+I0417 18:06:37.863047  7732 VideoPlayer.cpp:359] Stitching F#837
+====
+I0417 18:06:37.903050  7732 VideoPlayer.cpp:359] Stitching F#838
+====
+I0417 18:06:37.922040  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:37.943048  7732 VideoPlayer.cpp:359] Stitching F#839
+====
+I0417 18:06:37.983049  7732 VideoPlayer.cpp:359] Stitching F#840
+====
+I0417 18:06:38.022035  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:38.023047  7732 VideoPlayer.cpp:359] Stitching F#841
+====
+I0417 18:06:38.063050  7732 VideoPlayer.cpp:359] Stitching F#842
+====
+I0417 18:06:38.103049  7732 VideoPlayer.cpp:359] Stitching F#843
+====
+I0417 18:06:38.122030  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:38.143047  7732 VideoPlayer.cpp:359] Stitching F#844
+====
+I0417 18:06:38.183046  7732 VideoPlayer.cpp:359] Stitching F#845
+====
+I0417 18:06:38.222030  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:38.223047  7732 VideoPlayer.cpp:359] Stitching F#846
+====
+I0417 18:06:38.263049  7732 VideoPlayer.cpp:359] Stitching F#847
+====
+I0417 18:06:38.303046  7732 VideoPlayer.cpp:359] Stitching F#848
+====
+I0417 18:06:38.322031  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:38.343046  7732 VideoPlayer.cpp:359] Stitching F#849
+====
+I0417 18:06:38.383047  7732 VideoPlayer.cpp:359] Stitching F#850
+====
+I0417 18:06:38.422044  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:38.423053  7732 VideoPlayer.cpp:359] Stitching F#851
+====
+I0417 18:06:38.463048  7732 VideoPlayer.cpp:359] Stitching F#852
+====
+I0417 18:06:38.503048  7732 VideoPlayer.cpp:359] Stitching F#853
+====
+I0417 18:06:38.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:38.543047  7732 VideoPlayer.cpp:359] Stitching F#854
+====
+I0417 18:06:38.583045  7732 VideoPlayer.cpp:359] Stitching F#855
+====
+I0417 18:06:38.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:38.623049  7732 VideoPlayer.cpp:359] Stitching F#856
+====
+I0417 18:06:38.663045  7732 VideoPlayer.cpp:359] Stitching F#857
+====
+I0417 18:06:38.703045  7732 VideoPlayer.cpp:359] Stitching F#858
+====
+I0417 18:06:38.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:38.743045  7732 VideoPlayer.cpp:359] Stitching F#859
+====
+I0417 18:06:38.783048  7732 VideoPlayer.cpp:359] Stitching F#860
+====
+I0417 18:06:38.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:38.823045  7732 VideoPlayer.cpp:359] Stitching F#861
+====
+I0417 18:06:38.863044  7732 VideoPlayer.cpp:359] Stitching F#862
+====
+I0417 18:06:38.903044  7732 VideoPlayer.cpp:359] Stitching F#863
+====
+I0417 18:06:38.922031  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:38.943044  7732 VideoPlayer.cpp:359] Stitching F#864
+====
+I0417 18:06:38.983047  7732 VideoPlayer.cpp:359] Stitching F#865
+====
+I0417 18:06:39.022033  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:39.023046  7732 VideoPlayer.cpp:359] Stitching F#866
+====
+I0417 18:06:39.063045  7732 VideoPlayer.cpp:359] Stitching F#867
+====
+I0417 18:06:39.103058  7732 VideoPlayer.cpp:359] Stitching F#868
+====
+I0417 18:06:39.122035  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:39.143056  7732 VideoPlayer.cpp:359] Stitching F#869
+====
+I0417 18:06:39.183055  7732 VideoPlayer.cpp:359] Stitching F#870
+====
+I0417 18:06:39.222033  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:39.223057  7732 VideoPlayer.cpp:359] Stitching F#871
+====
+I0417 18:06:39.263057  7732 VideoPlayer.cpp:359] Stitching F#872
+====
+I0417 18:06:39.303056  7732 VideoPlayer.cpp:359] Stitching F#873
+====
+I0417 18:06:39.322041  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:39.343065  7732 VideoPlayer.cpp:359] Stitching F#874
+====
+I0417 18:06:39.383072  7732 VideoPlayer.cpp:359] Stitching F#875
+====
+I0417 18:06:39.422053  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:39.423072  7732 VideoPlayer.cpp:359] Stitching F#876
+====
+I0417 18:06:39.463073  7732 VideoPlayer.cpp:359] Stitching F#877
+====
+I0417 18:06:39.503078  7732 VideoPlayer.cpp:359] Stitching F#878
+====
+I0417 18:06:39.522006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:39.543078  7732 VideoPlayer.cpp:359] Stitching F#879
+====
+I0417 18:06:39.583071  7732 VideoPlayer.cpp:359] Stitching F#880
+====
+I0417 18:06:39.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:39.623070  7732 VideoPlayer.cpp:359] Stitching F#881
+====
+I0417 18:06:39.663069  7732 VideoPlayer.cpp:359] Stitching F#882
+====
+I0417 18:06:39.703069  7732 VideoPlayer.cpp:359] Stitching F#883
+====
+I0417 18:06:39.722007  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:39.743072  7732 VideoPlayer.cpp:359] Stitching F#884
+====
+I0417 18:06:39.783075  7732 VideoPlayer.cpp:359] Stitching F#885
+====
+I0417 18:06:39.822002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:39.823067  7732 VideoPlayer.cpp:359] Stitching F#886
+====
+I0417 18:06:39.863067  7732 VideoPlayer.cpp:359] Stitching F#887
+====
+I0417 18:06:39.903070  7732 VideoPlayer.cpp:359] Stitching F#888
+====
+I0417 18:06:39.922008  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:39.943066  7732 VideoPlayer.cpp:359] Stitching F#889
+====
+I0417 18:06:39.983068  7732 VideoPlayer.cpp:359] Stitching F#890
+====
+I0417 18:06:40.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:40.023069  7732 VideoPlayer.cpp:359] Stitching F#891
+====
+I0417 18:06:40.063066  7732 VideoPlayer.cpp:359] Stitching F#892
+====
+I0417 18:06:40.103066  7732 VideoPlayer.cpp:359] Stitching F#893
+====
+I0417 18:06:40.122038  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:40.143069  7732 VideoPlayer.cpp:359] Stitching F#894
+====
+I0417 18:06:40.183054  7732 VideoPlayer.cpp:359] Stitching F#895
+====
+I0417 18:06:40.222038  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:40.223053  7732 VideoPlayer.cpp:359] Stitching F#896
+====
+I0417 18:06:40.263054  7732 VideoPlayer.cpp:359] Stitching F#897
+====
+I0417 18:06:40.303056  7732 VideoPlayer.cpp:359] Stitching F#898
+====
+I0417 18:06:40.322039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:40.343052  7732 VideoPlayer.cpp:359] Stitching F#899
+====
+I0417 18:06:40.383054  7732 VideoPlayer.cpp:359] Stitching F#900
+====
+I0417 18:06:40.422039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:40.423055  7732 VideoPlayer.cpp:359] Stitching F#901
+====
+I0417 18:06:40.463059  7732 VideoPlayer.cpp:359] Stitching F#902
+====
+I0417 18:06:40.503059  7732 VideoPlayer.cpp:359] Stitching F#903
+====
+I0417 18:06:40.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:40.543054  7732 VideoPlayer.cpp:359] Stitching F#904
+====
+I0417 18:06:40.583055  7732 VideoPlayer.cpp:359] Stitching F#905
+====
+I0417 18:06:40.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:40.623068  7732 VideoPlayer.cpp:359] Stitching F#906
+====
+I0417 18:06:40.663069  7732 VideoPlayer.cpp:359] Stitching F#907
+====
+I0417 18:06:40.703054  7732 VideoPlayer.cpp:359] Stitching F#908
+====
+I0417 18:06:40.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:40.743054  7732 VideoPlayer.cpp:359] Stitching F#909
+====
+I0417 18:06:40.783052  7732 VideoPlayer.cpp:359] Stitching F#910
+====
+I0417 18:06:40.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:40.823051  7732 VideoPlayer.cpp:359] Stitching F#911
+====
+I0417 18:06:40.863054  7732 VideoPlayer.cpp:359] Stitching F#912
+====
+I0417 18:06:40.903069  7732 VideoPlayer.cpp:359] Stitching F#913
+====
+I0417 18:06:40.922006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:40.943063  7732 VideoPlayer.cpp:359] Stitching F#914
+====
+I0417 18:06:40.983053  7732 VideoPlayer.cpp:359] Stitching F#915
+====
+I0417 18:06:41.022042  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:41.023054  7732 VideoPlayer.cpp:359] Stitching F#916
+====
+I0417 18:06:41.063055  7732 VideoPlayer.cpp:359] Stitching F#917
+====
+I0417 18:06:41.103053  7732 VideoPlayer.cpp:359] Stitching F#918
+====
+I0417 18:06:41.122045  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:41.143052  7732 VideoPlayer.cpp:359] Stitching F#919
+====
+I0417 18:06:41.183056  7732 VideoPlayer.cpp:359] Stitching F#920
+====
+I0417 18:06:41.222040  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:41.223065  7732 VideoPlayer.cpp:359] Stitching F#921
+====
+I0417 18:06:41.263067  7732 VideoPlayer.cpp:359] Stitching F#922
+====
+I0417 18:06:41.303057  7732 VideoPlayer.cpp:359] Stitching F#923
+====
+I0417 18:06:41.322038  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:41.343053  7732 VideoPlayer.cpp:359] Stitching F#924
+====
+I0417 18:06:41.383056  7732 VideoPlayer.cpp:359] Stitching F#925
+====
+I0417 18:06:41.422055  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:41.423070  7732 VideoPlayer.cpp:359] Stitching F#926
+====
+I0417 18:06:41.463063  7732 VideoPlayer.cpp:359] Stitching F#927
+====
+I0417 18:06:41.503059  7732 VideoPlayer.cpp:359] Stitching F#928
+====
+I0417 18:06:41.522037  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:41.543061  7732 VideoPlayer.cpp:359] Stitching F#929
+====
+I0417 18:06:41.583058  7732 VideoPlayer.cpp:359] Stitching F#930
+====
+I0417 18:06:41.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:41.623059  7732 VideoPlayer.cpp:359] Stitching F#931
+====
+I0417 18:06:41.663055  7732 VideoPlayer.cpp:359] Stitching F#932
+====
+I0417 18:06:41.703055  7732 VideoPlayer.cpp:359] Stitching F#933
+====
+I0417 18:06:41.722005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:41.743054  7732 VideoPlayer.cpp:359] Stitching F#934
+====
+I0417 18:06:41.783057  7732 VideoPlayer.cpp:359] Stitching F#935
+====
+I0417 18:06:41.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:41.823053  7732 VideoPlayer.cpp:359] Stitching F#936
+====
+I0417 18:06:41.863054  7732 VideoPlayer.cpp:359] Stitching F#937
+====
+I0417 18:06:41.903056  7732 VideoPlayer.cpp:359] Stitching F#938
+====
+I0417 18:06:41.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:41.943059  7732 VideoPlayer.cpp:359] Stitching F#939
+====
+I0417 18:06:41.983055  7732 VideoPlayer.cpp:359] Stitching F#940
+====
+I0417 18:06:42.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:42.023054  7732 VideoPlayer.cpp:359] Stitching F#941
+====
+I0417 18:06:42.063056  7732 VideoPlayer.cpp:359] Stitching F#942
+====
+I0417 18:06:42.103057  7732 VideoPlayer.cpp:359] Stitching F#943
+====
+I0417 18:06:42.122036  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:42.143054  7732 VideoPlayer.cpp:359] Stitching F#944
+====
+I0417 18:06:42.183054  7732 VideoPlayer.cpp:359] Stitching F#945
+====
+I0417 18:06:42.222033  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:42.223054  7732 VideoPlayer.cpp:359] Stitching F#946
+====
+I0417 18:06:42.263057  7732 VideoPlayer.cpp:359] Stitching F#947
+====
+I0417 18:06:42.303056  7732 VideoPlayer.cpp:359] Stitching F#948
+====
+I0417 18:06:42.322034  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:42.343056  7732 VideoPlayer.cpp:359] Stitching F#949
+====
+I0417 18:06:42.383057  7732 VideoPlayer.cpp:359] Stitching F#950
+====
+I0417 18:06:42.422045  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:42.423053  7732 VideoPlayer.cpp:359] Stitching F#951
+====
+I0417 18:06:42.463057  7732 VideoPlayer.cpp:359] Stitching F#952
+====
+I0417 18:06:42.503057  7732 VideoPlayer.cpp:359] Stitching F#953
+====
+I0417 18:06:42.522047  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:42.543061  7732 VideoPlayer.cpp:359] Stitching F#954
+====
+I0417 18:06:42.583067  7732 VideoPlayer.cpp:359] Stitching F#955
+====
+I0417 18:06:42.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:42.623065  7732 VideoPlayer.cpp:359] Stitching F#956
+====
+I0417 18:06:42.663067  7732 VideoPlayer.cpp:359] Stitching F#957
+====
+I0417 18:06:42.703064  7732 VideoPlayer.cpp:359] Stitching F#958
+====
+I0417 18:06:42.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:42.743064  7732 VideoPlayer.cpp:359] Stitching F#959
+====
+I0417 18:06:42.783067  7732 VideoPlayer.cpp:359] Stitching F#960
+====
+I0417 18:06:42.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:42.823063  7732 VideoPlayer.cpp:359] Stitching F#961
+====
+I0417 18:06:42.863065  7732 VideoPlayer.cpp:359] Stitching F#962
+====
+I0417 18:06:42.903056  7732 VideoPlayer.cpp:359] Stitching F#963
+====
+I0417 18:06:42.922006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:42.943050  7732 VideoPlayer.cpp:359] Stitching F#964
+====
+I0417 18:06:42.983052  7732 VideoPlayer.cpp:359] Stitching F#965
+====
+I0417 18:06:43.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:43.023051  7732 VideoPlayer.cpp:359] Stitching F#966
+====
+I0417 18:06:43.063050  7732 VideoPlayer.cpp:359] Stitching F#967
+====
+I0417 18:06:43.103055  7732 VideoPlayer.cpp:359] Stitching F#968
+====
+I0417 18:06:43.122036  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:43.143050  7732 VideoPlayer.cpp:359] Stitching F#969
+====
+I0417 18:06:43.183051  7732 VideoPlayer.cpp:359] Stitching F#970
+====
+I0417 18:06:43.222036  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:43.223050  7732 VideoPlayer.cpp:359] Stitching F#971
+====
+I0417 18:06:43.263052  7732 VideoPlayer.cpp:359] Stitching F#972
+====
+I0417 18:06:43.303050  7732 VideoPlayer.cpp:359] Stitching F#973
+====
+I0417 18:06:43.322042  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:43.343050  7732 VideoPlayer.cpp:359] Stitching F#974
+====
+I0417 18:06:43.383050  7732 VideoPlayer.cpp:359] Stitching F#975
+====
+I0417 18:06:43.422003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:43.423063  7732 VideoPlayer.cpp:359] Stitching F#976
+====
+I0417 18:06:43.463057  7732 VideoPlayer.cpp:359] Stitching F#977
+====
+I0417 18:06:43.503055  7732 VideoPlayer.cpp:359] Stitching F#978
+====
+I0417 18:06:43.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:43.543058  7732 VideoPlayer.cpp:359] Stitching F#979
+====
+I0417 18:06:43.583055  7732 VideoPlayer.cpp:359] Stitching F#980
+====
+I0417 18:06:43.622009  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:43.623055  7732 VideoPlayer.cpp:359] Stitching F#981
+====
+I0417 18:06:43.663054  7732 VideoPlayer.cpp:359] Stitching F#982
+====
+I0417 18:06:43.703058  7732 VideoPlayer.cpp:359] Stitching F#983
+====
+I0417 18:06:43.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:43.743053  7732 VideoPlayer.cpp:359] Stitching F#984
+====
+I0417 18:06:43.783051  7732 VideoPlayer.cpp:359] Stitching F#985
+====
+I0417 18:06:43.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:43.823052  7732 VideoPlayer.cpp:359] Stitching F#986
+====
+I0417 18:06:43.863055  7732 VideoPlayer.cpp:359] Stitching F#987
+====
+I0417 18:06:43.903053  7732 VideoPlayer.cpp:359] Stitching F#988
+====
+I0417 18:06:43.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:43.943053  7732 VideoPlayer.cpp:359] Stitching F#989
+====
+I0417 18:06:43.983053  7732 VideoPlayer.cpp:359] Stitching F#990
+====
+I0417 18:06:44.022004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:44.023056  7732 VideoPlayer.cpp:359] Stitching F#991
+====
+I0417 18:06:44.063052  7732 VideoPlayer.cpp:359] Stitching F#992
+====
+I0417 18:06:44.103055  7732 VideoPlayer.cpp:359] Stitching F#993
+====
+I0417 18:06:44.122004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:44.143054  7732 VideoPlayer.cpp:359] Stitching F#994
+====
+I0417 18:06:44.183056  7732 VideoPlayer.cpp:359] Stitching F#995
+====
+I0417 18:06:44.222002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:44.223052  7732 VideoPlayer.cpp:359] Stitching F#996
+====
+I0417 18:06:44.263053  7732 VideoPlayer.cpp:359] Stitching F#997
+====
+I0417 18:06:44.303067  7732 VideoPlayer.cpp:359] Stitching F#998
+====
+I0417 18:06:44.322036  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:44.343065  7732 VideoPlayer.cpp:359] Stitching F#999
+====
+I0417 18:06:44.383052  7732 VideoPlayer.cpp:359] Stitching F#1000
+====
+I0417 18:06:44.422045  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:44.423054  7732 VideoPlayer.cpp:359] Stitching F#1001
+====
+I0417 18:06:44.463058  7732 VideoPlayer.cpp:359] Stitching F#1002
+====
+I0417 18:06:44.503068  7732 VideoPlayer.cpp:359] Stitching F#1003
+====
+I0417 18:06:44.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:44.543056  7732 VideoPlayer.cpp:359] Stitching F#1004
+====
+I0417 18:06:44.583053  7732 VideoPlayer.cpp:359] Stitching F#1005
+====
+I0417 18:06:44.622006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:44.623057  7732 VideoPlayer.cpp:359] Stitching F#1006
+====
+I0417 18:06:44.663055  7732 VideoPlayer.cpp:359] Stitching F#1007
+====
+I0417 18:06:44.703047  7732 VideoPlayer.cpp:359] Stitching F#1008
+====
+I0417 18:06:44.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:44.743045  7732 VideoPlayer.cpp:359] Stitching F#1009
+====
+I0417 18:06:44.783051  7732 VideoPlayer.cpp:359] Stitching F#1010
+====
+I0417 18:06:44.822002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:44.823046  7732 VideoPlayer.cpp:359] Stitching F#1011
+====
+I0417 18:06:44.863047  7732 VideoPlayer.cpp:359] Stitching F#1012
+====
+I0417 18:06:44.903057  7732 VideoPlayer.cpp:359] Stitching F#1013
+====
+I0417 18:06:44.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:44.943059  7732 VideoPlayer.cpp:359] Stitching F#1014
+====
+I0417 18:06:44.983054  7732 VideoPlayer.cpp:359] Stitching F#1015
+====
+I0417 18:06:45.022004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:45.023058  7732 VideoPlayer.cpp:359] Stitching F#1016
+====
+I0417 18:06:45.063050  7732 VideoPlayer.cpp:359] Stitching F#1017
+====
+I0417 18:06:45.103047  7732 VideoPlayer.cpp:359] Stitching F#1018
+====
+I0417 18:06:45.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:45.143055  7732 VideoPlayer.cpp:359] Stitching F#1019
+====
+I0417 18:06:45.183048  7732 VideoPlayer.cpp:359] Stitching F#1020
+====
+I0417 18:06:45.222004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:45.223044  7732 VideoPlayer.cpp:359] Stitching F#1021
+====
+I0417 18:06:45.263072  7732 VideoPlayer.cpp:359] Stitching F#1022
+====
+I0417 18:06:45.303066  7732 VideoPlayer.cpp:359] Stitching F#1023
+====
+I0417 18:06:45.322001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:45.343052  7732 VideoPlayer.cpp:359] Stitching F#1024
+====
+I0417 18:06:45.383055  7732 VideoPlayer.cpp:359] Stitching F#1025
+====
+I0417 18:06:45.422005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:45.423059  7732 VideoPlayer.cpp:359] Stitching F#1026
+====
+I0417 18:06:45.463057  7732 VideoPlayer.cpp:359] Stitching F#1027
+====
+I0417 18:06:45.503070  7732 VideoPlayer.cpp:359] Stitching F#1028
+====
+I0417 18:06:45.522011  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:45.543073  7732 VideoPlayer.cpp:359] Stitching F#1029
+====
+I0417 18:06:45.583081  7732 VideoPlayer.cpp:359] Stitching F#1030
+====
+I0417 18:06:45.622005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:45.623057  7732 VideoPlayer.cpp:359] Stitching F#1031
+====
+I0417 18:06:45.663061  7732 VideoPlayer.cpp:359] Stitching F#1032
+====
+I0417 18:06:45.703058  7732 VideoPlayer.cpp:359] Stitching F#1033
+====
+I0417 18:06:45.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:45.743058  7732 VideoPlayer.cpp:359] Stitching F#1034
+====
+I0417 18:06:45.783059  7732 VideoPlayer.cpp:359] Stitching F#1035
+====
+I0417 18:06:45.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:45.823060  7732 VideoPlayer.cpp:359] Stitching F#1036
+====
+I0417 18:06:45.863055  7732 VideoPlayer.cpp:359] Stitching F#1037
+====
+I0417 18:06:45.903055  7732 VideoPlayer.cpp:359] Stitching F#1038
+====
+I0417 18:06:45.922003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:45.943058  7732 VideoPlayer.cpp:359] Stitching F#1039
+====
+I0417 18:06:45.983054  7732 VideoPlayer.cpp:359] Stitching F#1040
+====
+I0417 18:06:46.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:46.023053  7732 VideoPlayer.cpp:359] Stitching F#1041
+====
+I0417 18:06:46.063053  7732 VideoPlayer.cpp:359] Stitching F#1042
+====
+I0417 18:06:46.103050  7732 VideoPlayer.cpp:359] Stitching F#1043
+====
+I0417 18:06:46.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:46.143059  7732 VideoPlayer.cpp:359] Stitching F#1044
+====
+I0417 18:06:46.183059  7732 VideoPlayer.cpp:359] Stitching F#1045
+====
+I0417 18:06:46.222002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:46.223060  7732 VideoPlayer.cpp:359] Stitching F#1046
+====
+I0417 18:06:46.263062  7732 VideoPlayer.cpp:359] Stitching F#1047
+====
+I0417 18:06:46.303059  7732 VideoPlayer.cpp:359] Stitching F#1048
+====
+I0417 18:06:46.322002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:46.343050  7732 VideoPlayer.cpp:359] Stitching F#1049
+====
+I0417 18:06:46.383047  7732 VideoPlayer.cpp:359] Stitching F#1050
+====
+I0417 18:06:46.422055  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:46.423053  7732 VideoPlayer.cpp:359] Stitching F#1051
+====
+I0417 18:06:46.463057  7732 VideoPlayer.cpp:359] Stitching F#1052
+====
+I0417 18:06:46.503057  7732 VideoPlayer.cpp:359] Stitching F#1053
+====
+I0417 18:06:46.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:46.543056  7732 VideoPlayer.cpp:359] Stitching F#1054
+====
+I0417 18:06:46.583055  7732 VideoPlayer.cpp:359] Stitching F#1055
+====
+I0417 18:06:46.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:46.623051  7732 VideoPlayer.cpp:359] Stitching F#1056
+====
+I0417 18:06:46.663053  7732 VideoPlayer.cpp:359] Stitching F#1057
+====
+I0417 18:06:46.703066  7732 VideoPlayer.cpp:359] Stitching F#1058
+====
+I0417 18:06:46.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:46.743064  7732 VideoPlayer.cpp:359] Stitching F#1059
+====
+I0417 18:06:46.783064  7732 VideoPlayer.cpp:359] Stitching F#1060
+====
+I0417 18:06:46.822006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:46.823065  7732 VideoPlayer.cpp:359] Stitching F#1061
+====
+I0417 18:06:46.863070  7732 VideoPlayer.cpp:359] Stitching F#1062
+====
+I0417 18:06:46.903054  7732 VideoPlayer.cpp:359] Stitching F#1063
+====
+I0417 18:06:46.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:46.943053  7732 VideoPlayer.cpp:359] Stitching F#1064
+====
+I0417 18:06:46.983055  7732 VideoPlayer.cpp:359] Stitching F#1065
+====
+I0417 18:06:47.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:47.023051  7732 VideoPlayer.cpp:359] Stitching F#1066
+====
+I0417 18:06:47.063051  7732 VideoPlayer.cpp:359] Stitching F#1067
+====
+I0417 18:06:47.103055  7732 VideoPlayer.cpp:359] Stitching F#1068
+====
+I0417 18:06:47.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:47.143059  7732 VideoPlayer.cpp:359] Stitching F#1069
+====
+I0417 18:06:47.183053  7732 VideoPlayer.cpp:359] Stitching F#1070
+====
+I0417 18:06:47.222004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:47.223052  7732 VideoPlayer.cpp:359] Stitching F#1071
+====
+I0417 18:06:47.263054  7732 VideoPlayer.cpp:359] Stitching F#1072
+====
+I0417 18:06:47.303068  7732 VideoPlayer.cpp:359] Stitching F#1073
+====
+I0417 18:06:47.322001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:47.343068  7732 VideoPlayer.cpp:359] Stitching F#1074
+====
+I0417 18:06:47.383067  7732 VideoPlayer.cpp:359] Stitching F#1075
+====
+I0417 18:06:47.422055  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:47.423072  7732 VideoPlayer.cpp:359] Stitching F#1076
+====
+I0417 18:06:47.463073  7732 VideoPlayer.cpp:359] Stitching F#1077
+====
+I0417 18:06:47.503059  7732 VideoPlayer.cpp:359] Stitching F#1078
+====
+I0417 18:06:47.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:47.543061  7732 VideoPlayer.cpp:359] Stitching F#1079
+====
+I0417 18:06:47.583060  7732 VideoPlayer.cpp:359] Stitching F#1080
+====
+I0417 18:06:47.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:47.623054  7732 VideoPlayer.cpp:359] Stitching F#1081
+====
+I0417 18:06:47.663053  7732 VideoPlayer.cpp:359] Stitching F#1082
+====
+I0417 18:06:47.703053  7732 VideoPlayer.cpp:359] Stitching F#1083
+====
+I0417 18:06:47.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:47.743057  7732 VideoPlayer.cpp:359] Stitching F#1084
+====
+I0417 18:06:47.783056  7732 VideoPlayer.cpp:359] Stitching F#1085
+====
+I0417 18:06:47.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:47.823053  7732 VideoPlayer.cpp:359] Stitching F#1086
+====
+I0417 18:06:47.863060  7732 VideoPlayer.cpp:359] Stitching F#1087
+====
+I0417 18:06:47.903054  7732 VideoPlayer.cpp:359] Stitching F#1088
+====
+I0417 18:06:47.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:47.943053  7732 VideoPlayer.cpp:359] Stitching F#1089
+====
+I0417 18:06:47.983053  7732 VideoPlayer.cpp:359] Stitching F#1090
+====
+I0417 18:06:48.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:48.023059  7732 VideoPlayer.cpp:359] Stitching F#1091
+====
+I0417 18:06:48.063067  7732 VideoPlayer.cpp:359] Stitching F#1092
+====
+I0417 18:06:48.103067  7732 VideoPlayer.cpp:359] Stitching F#1093
+====
+I0417 18:06:48.122045  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:48.143070  7732 VideoPlayer.cpp:359] Stitching F#1094
+====
+I0417 18:06:48.183063  7732 VideoPlayer.cpp:359] Stitching F#1095
+====
+I0417 18:06:48.222041  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:48.223065  7732 VideoPlayer.cpp:359] Stitching F#1096
+====
+I0417 18:06:48.263060  7732 VideoPlayer.cpp:359] Stitching F#1097
+====
+I0417 18:06:48.303056  7732 VideoPlayer.cpp:359] Stitching F#1098
+====
+I0417 18:06:48.322041  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:48.343047  7732 VideoPlayer.cpp:359] Stitching F#1099
+====
+I0417 18:06:48.383046  7732 VideoPlayer.cpp:359] Stitching F#1100
+====
+I0417 18:06:48.422051  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:48.423058  7732 VideoPlayer.cpp:359] Stitching F#1101
+====
+I0417 18:06:48.463063  7732 VideoPlayer.cpp:359] Stitching F#1102
+====
+I0417 18:06:48.503057  7732 VideoPlayer.cpp:359] Stitching F#1103
+====
+I0417 18:06:48.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:48.543056  7732 VideoPlayer.cpp:359] Stitching F#1104
+====
+I0417 18:06:48.583058  7732 VideoPlayer.cpp:359] Stitching F#1105
+====
+I0417 18:06:48.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:48.623059  7732 VideoPlayer.cpp:359] Stitching F#1106
+====
+I0417 18:06:48.663056  7732 VideoPlayer.cpp:359] Stitching F#1107
+====
+I0417 18:06:48.703055  7732 VideoPlayer.cpp:359] Stitching F#1108
+====
+I0417 18:06:48.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:48.743047  7732 VideoPlayer.cpp:359] Stitching F#1109
+====
+I0417 18:06:48.783047  7732 VideoPlayer.cpp:359] Stitching F#1110
+====
+I0417 18:06:48.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:48.823046  7732 VideoPlayer.cpp:359] Stitching F#1111
+====
+I0417 18:06:48.863052  7732 VideoPlayer.cpp:359] Stitching F#1112
+====
+I0417 18:06:48.903054  7732 VideoPlayer.cpp:359] Stitching F#1113
+====
+I0417 18:06:48.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:48.943055  7732 VideoPlayer.cpp:359] Stitching F#1114
+====
+I0417 18:06:48.983053  7732 VideoPlayer.cpp:359] Stitching F#1115
+====
+I0417 18:06:49.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:49.023052  7732 VideoPlayer.cpp:359] Stitching F#1116
+====
+I0417 18:06:49.063052  7732 VideoPlayer.cpp:359] Stitching F#1117
+====
+I0417 18:06:49.103055  7732 VideoPlayer.cpp:359] Stitching F#1118
+====
+I0417 18:06:49.122035  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:49.143067  7732 VideoPlayer.cpp:359] Stitching F#1119
+====
+I0417 18:06:49.183068  7732 VideoPlayer.cpp:359] Stitching F#1120
+====
+I0417 18:06:49.222038  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:49.223057  7732 VideoPlayer.cpp:359] Stitching F#1121
+====
+I0417 18:06:49.263048  7732 VideoPlayer.cpp:359] Stitching F#1122
+====
+I0417 18:06:49.303050  7732 VideoPlayer.cpp:359] Stitching F#1123
+====
+I0417 18:06:49.322037  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:49.343047  7732 VideoPlayer.cpp:359] Stitching F#1124
+====
+I0417 18:06:49.383049  7732 VideoPlayer.cpp:359] Stitching F#1125
+====
+I0417 18:06:49.422039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:49.423059  7732 VideoPlayer.cpp:359] Stitching F#1126
+====
+I0417 18:06:49.463049  7732 VideoPlayer.cpp:359] Stitching F#1127
+====
+I0417 18:06:49.503051  7732 VideoPlayer.cpp:359] Stitching F#1128
+====
+I0417 18:06:49.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:49.543049  7732 VideoPlayer.cpp:359] Stitching F#1129
+====
+I0417 18:06:49.583066  7732 VideoPlayer.cpp:359] Stitching F#1130
+====
+I0417 18:06:49.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:49.623068  7732 VideoPlayer.cpp:359] Stitching F#1131
+====
+I0417 18:06:49.663070  7732 VideoPlayer.cpp:359] Stitching F#1132
+====
+I0417 18:06:49.703078  7732 VideoPlayer.cpp:359] Stitching F#1133
+====
+I0417 18:06:49.722005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:49.743055  7732 VideoPlayer.cpp:359] Stitching F#1134
+====
+I0417 18:06:49.783054  7732 VideoPlayer.cpp:359] Stitching F#1135
+====
+I0417 18:06:49.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:49.823056  7732 VideoPlayer.cpp:359] Stitching F#1136
+====
+I0417 18:06:49.863056  7732 VideoPlayer.cpp:359] Stitching F#1137
+====
+I0417 18:06:49.903053  7732 VideoPlayer.cpp:359] Stitching F#1138
+====
+I0417 18:06:49.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:49.943054  7732 VideoPlayer.cpp:359] Stitching F#1139
+====
+I0417 18:06:49.983054  7732 VideoPlayer.cpp:359] Stitching F#1140
+====
+I0417 18:06:50.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:50.023069  7732 VideoPlayer.cpp:359] Stitching F#1141
+====
+I0417 18:06:50.063067  7732 VideoPlayer.cpp:359] Stitching F#1142
+====
+I0417 18:06:50.103067  7732 VideoPlayer.cpp:359] Stitching F#1143
+====
+I0417 18:06:50.122005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:50.143066  7732 VideoPlayer.cpp:359] Stitching F#1144
+====
+I0417 18:06:50.183068  7732 VideoPlayer.cpp:359] Stitching F#1145
+====
+I0417 18:06:50.222004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:50.223059  7732 VideoPlayer.cpp:359] Stitching F#1146
+====
+I0417 18:06:50.263063  7732 VideoPlayer.cpp:359] Stitching F#1147
+====
+I0417 18:06:50.303048  7732 VideoPlayer.cpp:359] Stitching F#1148
+====
+I0417 18:06:50.322005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:50.343047  7732 VideoPlayer.cpp:359] Stitching F#1149
+====
+I0417 18:06:50.383049  7732 VideoPlayer.cpp:359] Stitching F#1150
+====
+I0417 18:06:50.422001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:50.423053  7732 VideoPlayer.cpp:359] Stitching F#1151
+====
+I0417 18:06:50.463063  7732 VideoPlayer.cpp:359] Stitching F#1152
+====
+I0417 18:06:50.503067  7732 VideoPlayer.cpp:359] Stitching F#1153
+====
+I0417 18:06:50.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:50.543063  7732 VideoPlayer.cpp:359] Stitching F#1154
+====
+I0417 18:06:50.583063  7732 VideoPlayer.cpp:359] Stitching F#1155
+====
+I0417 18:06:50.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:50.623059  7732 VideoPlayer.cpp:359] Stitching F#1156
+====
+I0417 18:06:50.663060  7732 VideoPlayer.cpp:359] Stitching F#1157
+====
+I0417 18:06:50.703052  7732 VideoPlayer.cpp:359] Stitching F#1158
+====
+I0417 18:06:50.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:50.743057  7732 VideoPlayer.cpp:359] Stitching F#1159
+====
+I0417 18:06:50.783057  7732 VideoPlayer.cpp:359] Stitching F#1160
+====
+I0417 18:06:50.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:50.823057  7732 VideoPlayer.cpp:359] Stitching F#1161
+====
+I0417 18:06:50.863072  7732 VideoPlayer.cpp:359] Stitching F#1162
+====
+I0417 18:06:50.903057  7732 VideoPlayer.cpp:359] Stitching F#1163
+====
+I0417 18:06:50.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:50.943058  7732 VideoPlayer.cpp:359] Stitching F#1164
+====
+I0417 18:06:50.983055  7732 VideoPlayer.cpp:359] Stitching F#1165
+====
+I0417 18:06:51.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:51.023056  7732 VideoPlayer.cpp:359] Stitching F#1166
+====
+I0417 18:06:51.063068  7732 VideoPlayer.cpp:359] Stitching F#1167
+====
+I0417 18:06:51.103055  7732 VideoPlayer.cpp:359] Stitching F#1168
+====
+I0417 18:06:51.122004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:51.143054  7732 VideoPlayer.cpp:359] Stitching F#1169
+====
+I0417 18:06:51.183069  7732 VideoPlayer.cpp:359] Stitching F#1170
+====
+I0417 18:06:51.222004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:51.223055  7732 VideoPlayer.cpp:359] Stitching F#1171
+====
+I0417 18:06:51.263047  7732 VideoPlayer.cpp:359] Stitching F#1172
+====
+I0417 18:06:51.303062  7732 VideoPlayer.cpp:359] Stitching F#1173
+====
+I0417 18:06:51.322049  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:51.343046  7732 VideoPlayer.cpp:359] Stitching F#1174
+====
+I0417 18:06:51.383059  7732 VideoPlayer.cpp:359] Stitching F#1175
+====
+I0417 18:06:51.422003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:51.423059  7732 VideoPlayer.cpp:359] Stitching F#1176
+====
+I0417 18:06:51.463078  7732 VideoPlayer.cpp:359] Stitching F#1177
+====
+I0417 18:06:51.503062  7732 VideoPlayer.cpp:359] Stitching F#1178
+====
+I0417 18:06:51.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:51.543061  7732 VideoPlayer.cpp:359] Stitching F#1179
+====
+I0417 18:06:51.583062  7732 VideoPlayer.cpp:359] Stitching F#1180
+====
+I0417 18:06:51.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:51.623075  7732 VideoPlayer.cpp:359] Stitching F#1181
+====
+I0417 18:06:51.663058  7732 VideoPlayer.cpp:359] Stitching F#1182
+====
+I0417 18:06:51.703058  7732 VideoPlayer.cpp:359] Stitching F#1183
+====
+I0417 18:06:51.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:51.743062  7732 VideoPlayer.cpp:359] Stitching F#1184
+====
+I0417 18:06:51.783058  7732 VideoPlayer.cpp:359] Stitching F#1185
+====
+I0417 18:06:51.822002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:51.823071  7732 VideoPlayer.cpp:359] Stitching F#1186
+====
+I0417 18:06:51.863075  7732 VideoPlayer.cpp:359] Stitching F#1187
+====
+I0417 18:06:51.903070  7732 VideoPlayer.cpp:359] Stitching F#1188
+====
+I0417 18:06:51.922003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:51.943070  7732 VideoPlayer.cpp:359] Stitching F#1189
+====
+I0417 18:06:51.983057  7732 VideoPlayer.cpp:359] Stitching F#1190
+====
+I0417 18:06:52.022039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:52.023057  7732 VideoPlayer.cpp:359] Stitching F#1191
+====
+I0417 18:06:52.063055  7732 VideoPlayer.cpp:359] Stitching F#1192
+====
+I0417 18:06:52.103055  7732 VideoPlayer.cpp:359] Stitching F#1193
+====
+I0417 18:06:52.122038  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:52.143055  7732 VideoPlayer.cpp:359] Stitching F#1194
+====
+I0417 18:06:52.183058  7732 VideoPlayer.cpp:359] Stitching F#1195
+====
+I0417 18:06:52.222038  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:52.223055  7732 VideoPlayer.cpp:359] Stitching F#1196
+====
+I0417 18:06:52.263058  7732 VideoPlayer.cpp:359] Stitching F#1197
+====
+I0417 18:06:52.303056  7732 VideoPlayer.cpp:359] Stitching F#1198
+====
+I0417 18:06:52.322041  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:52.343060  7732 VideoPlayer.cpp:359] Stitching F#1199
+====
+I0417 18:06:52.383055  7732 VideoPlayer.cpp:359] Stitching F#1200
+====
+I0417 18:06:52.422045  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:52.423058  7732 VideoPlayer.cpp:359] Stitching F#1201
+====
+I0417 18:06:52.463058  7732 VideoPlayer.cpp:359] Stitching F#1202
+====
+I0417 18:06:52.503062  7732 VideoPlayer.cpp:359] Stitching F#1203
+====
+I0417 18:06:52.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:52.543071  7732 VideoPlayer.cpp:359] Stitching F#1204
+====
+I0417 18:06:52.583068  7732 VideoPlayer.cpp:359] Stitching F#1205
+====
+I0417 18:06:52.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:52.623059  7732 VideoPlayer.cpp:359] Stitching F#1206
+====
+I0417 18:06:52.663054  7732 VideoPlayer.cpp:359] Stitching F#1207
+====
+I0417 18:06:52.703068  7732 VideoPlayer.cpp:359] Stitching F#1208
+====
+I0417 18:06:52.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:52.743057  7732 VideoPlayer.cpp:359] Stitching F#1209
+====
+I0417 18:06:52.783056  7732 VideoPlayer.cpp:359] Stitching F#1210
+====
+I0417 18:06:52.822002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:52.823067  7732 VideoPlayer.cpp:359] Stitching F#1211
+====
+I0417 18:06:52.863056  7732 VideoPlayer.cpp:359] Stitching F#1212
+====
+I0417 18:06:52.903061  7732 VideoPlayer.cpp:359] Stitching F#1213
+====
+I0417 18:06:52.922003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:52.943068  7732 VideoPlayer.cpp:359] Stitching F#1214
+====
+I0417 18:06:52.983067  7732 VideoPlayer.cpp:359] Stitching F#1215
+====
+I0417 18:06:53.022006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:53.023057  7732 VideoPlayer.cpp:359] Stitching F#1216
+====
+I0417 18:06:53.063057  7732 VideoPlayer.cpp:359] Stitching F#1217
+====
+I0417 18:06:53.103056  7732 VideoPlayer.cpp:359] Stitching F#1218
+====
+I0417 18:06:53.122006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:53.143054  7732 VideoPlayer.cpp:359] Stitching F#1219
+====
+I0417 18:06:53.183055  7732 VideoPlayer.cpp:359] Stitching F#1220
+====
+I0417 18:06:53.222002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:53.223057  7732 VideoPlayer.cpp:359] Stitching F#1221
+====
+I0417 18:06:53.263056  7732 VideoPlayer.cpp:359] Stitching F#1222
+====
+I0417 18:06:53.303053  7732 VideoPlayer.cpp:359] Stitching F#1223
+====
+I0417 18:06:53.322002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:53.343056  7732 VideoPlayer.cpp:359] Stitching F#1224
+====
+I0417 18:06:53.383054  7732 VideoPlayer.cpp:359] Stitching F#1225
+====
+I0417 18:06:53.422003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:53.423059  7732 VideoPlayer.cpp:359] Stitching F#1226
+====
+I0417 18:06:53.463074  7732 VideoPlayer.cpp:359] Stitching F#1227
+====
+I0417 18:06:53.503064  7732 VideoPlayer.cpp:359] Stitching F#1228
+====
+I0417 18:06:53.522006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:53.543058  7732 VideoPlayer.cpp:359] Stitching F#1229
+====
+I0417 18:06:53.583072  7732 VideoPlayer.cpp:359] Stitching F#1230
+====
+I0417 18:06:53.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:53.623062  7732 VideoPlayer.cpp:359] Stitching F#1231
+====
+I0417 18:06:53.663058  7732 VideoPlayer.cpp:359] Stitching F#1232
+====
+I0417 18:06:53.703056  7732 VideoPlayer.cpp:359] Stitching F#1233
+====
+I0417 18:06:53.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:53.743070  7732 VideoPlayer.cpp:359] Stitching F#1234
+====
+I0417 18:06:53.783059  7732 VideoPlayer.cpp:359] Stitching F#1235
+====
+I0417 18:06:53.822002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:53.823053  7732 VideoPlayer.cpp:359] Stitching F#1236
+====
+I0417 18:06:53.863054  7732 VideoPlayer.cpp:359] Stitching F#1237
+====
+I0417 18:06:53.903054  7732 VideoPlayer.cpp:359] Stitching F#1238
+====
+I0417 18:06:53.922003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:53.943070  7732 VideoPlayer.cpp:359] Stitching F#1239
+====
+I0417 18:06:53.983067  7732 VideoPlayer.cpp:359] Stitching F#1240
+====
+I0417 18:06:54.022002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:54.023068  7732 VideoPlayer.cpp:359] Stitching F#1241
+====
+I0417 18:06:54.063071  7732 VideoPlayer.cpp:359] Stitching F#1242
+====
+I0417 18:06:54.103067  7732 VideoPlayer.cpp:359] Stitching F#1243
+====
+I0417 18:06:54.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:54.143067  7732 VideoPlayer.cpp:359] Stitching F#1244
+====
+I0417 18:06:54.183073  7732 VideoPlayer.cpp:359] Stitching F#1245
+====
+I0417 18:06:54.222002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:54.223057  7732 VideoPlayer.cpp:359] Stitching F#1246
+====
+I0417 18:06:54.263054  7732 VideoPlayer.cpp:359] Stitching F#1247
+====
+I0417 18:06:54.303054  7732 VideoPlayer.cpp:359] Stitching F#1248
+====
+I0417 18:06:54.322034  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:54.343056  7732 VideoPlayer.cpp:359] Stitching F#1249
+====
+I0417 18:06:54.383054  7732 VideoPlayer.cpp:359] Stitching F#1250
+====
+I0417 18:06:54.422006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:54.423058  7732 VideoPlayer.cpp:359] Stitching F#1251
+====
+I0417 18:06:54.463060  7732 VideoPlayer.cpp:359] Stitching F#1252
+====
+I0417 18:06:54.503072  7732 VideoPlayer.cpp:359] Stitching F#1253
+====
+I0417 18:06:54.522002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:54.543071  7732 VideoPlayer.cpp:359] Stitching F#1254
+====
+I0417 18:06:54.583073  7732 VideoPlayer.cpp:359] Stitching F#1255
+====
+I0417 18:06:54.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:54.623075  7732 VideoPlayer.cpp:359] Stitching F#1256
+====
+I0417 18:06:54.663061  7732 VideoPlayer.cpp:359] Stitching F#1257
+====
+I0417 18:06:54.703061  7732 VideoPlayer.cpp:359] Stitching F#1258
+====
+I0417 18:06:54.722003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:54.743060  7732 VideoPlayer.cpp:359] Stitching F#1259
+====
+I0417 18:06:54.783063  7732 VideoPlayer.cpp:359] Stitching F#1260
+====
+I0417 18:06:54.822002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:54.823056  7732 VideoPlayer.cpp:359] Stitching F#1261
+====
+I0417 18:06:54.863057  7732 VideoPlayer.cpp:359] Stitching F#1262
+====
+I0417 18:06:54.903076  7732 VideoPlayer.cpp:359] Stitching F#1263
+====
+I0417 18:06:54.922003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:54.943068  7732 VideoPlayer.cpp:359] Stitching F#1264
+====
+I0417 18:06:54.983057  7732 VideoPlayer.cpp:359] Stitching F#1265
+====
+I0417 18:06:55.022006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:55.023057  7732 VideoPlayer.cpp:359] Stitching F#1266
+====
+I0417 18:06:55.063057  7732 VideoPlayer.cpp:359] Stitching F#1267
+====
+I0417 18:06:55.103055  7732 VideoPlayer.cpp:359] Stitching F#1268
+====
+I0417 18:06:55.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:55.143054  7732 VideoPlayer.cpp:359] Stitching F#1269
+====
+I0417 18:06:55.183069  7732 VideoPlayer.cpp:359] Stitching F#1270
+====
+I0417 18:06:55.222005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:55.223057  7732 VideoPlayer.cpp:359] Stitching F#1271
+====
+I0417 18:06:55.263054  7732 VideoPlayer.cpp:359] Stitching F#1272
+====
+I0417 18:06:55.303056  7732 VideoPlayer.cpp:359] Stitching F#1273
+====
+I0417 18:06:55.322005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:55.343058  7732 VideoPlayer.cpp:359] Stitching F#1274
+====
+I0417 18:06:55.383055  7732 VideoPlayer.cpp:359] Stitching F#1275
+====
+I0417 18:06:55.422006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:55.423072  7732 VideoPlayer.cpp:359] Stitching F#1276
+====
+I0417 18:06:55.463061  7732 VideoPlayer.cpp:359] Stitching F#1277
+====
+I0417 18:06:55.503064  7732 VideoPlayer.cpp:359] Stitching F#1278
+====
+I0417 18:06:55.522006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:55.543062  7732 VideoPlayer.cpp:359] Stitching F#1279
+====
+I0417 18:06:55.583076  7732 VideoPlayer.cpp:359] Stitching F#1280
+====
+I0417 18:06:55.622004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:55.623065  7732 VideoPlayer.cpp:359] Stitching F#1281
+====
+I0417 18:06:55.663061  7732 VideoPlayer.cpp:359] Stitching F#1282
+====
+I0417 18:06:55.703058  7732 VideoPlayer.cpp:359] Stitching F#1283
+====
+I0417 18:06:55.722004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:55.743073  7732 VideoPlayer.cpp:359] Stitching F#1284
+====
+I0417 18:06:55.783077  7732 VideoPlayer.cpp:359] Stitching F#1285
+====
+I0417 18:06:55.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:55.823058  7732 VideoPlayer.cpp:359] Stitching F#1286
+====
+I0417 18:06:55.863061  7732 VideoPlayer.cpp:359] Stitching F#1287
+====
+I0417 18:06:55.903059  7732 VideoPlayer.cpp:359] Stitching F#1288
+====
+I0417 18:06:55.922005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:55.943074  7732 VideoPlayer.cpp:359] Stitching F#1289
+====
+I0417 18:06:55.983073  7732 VideoPlayer.cpp:359] Stitching F#1290
+====
+I0417 18:06:56.022002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:56.023070  7732 VideoPlayer.cpp:359] Stitching F#1291
+====
+I0417 18:06:56.063061  7732 VideoPlayer.cpp:359] Stitching F#1292
+====
+I0417 18:06:56.103060  7732 VideoPlayer.cpp:359] Stitching F#1293
+====
+I0417 18:06:56.122002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:56.143059  7732 VideoPlayer.cpp:359] Stitching F#1294
+====
+I0417 18:06:56.183059  7732 VideoPlayer.cpp:359] Stitching F#1295
+====
+I0417 18:06:56.222043  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:56.223059  7732 VideoPlayer.cpp:359] Stitching F#1296
+====
+I0417 18:06:56.263059  7732 VideoPlayer.cpp:359] Stitching F#1297
+====
+I0417 18:06:56.303059  7732 VideoPlayer.cpp:359] Stitching F#1298
+====
+I0417 18:06:56.322041  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:56.343075  7732 VideoPlayer.cpp:359] Stitching F#1299
+====
+I0417 18:06:56.383070  7732 VideoPlayer.cpp:359] Stitching F#1300
+====
+I0417 18:06:56.422050  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:56.423074  7732 VideoPlayer.cpp:359] Stitching F#1301
+====
+I0417 18:06:56.463074  7732 VideoPlayer.cpp:359] Stitching F#1302
+====
+I0417 18:06:56.503068  7732 VideoPlayer.cpp:359] Stitching F#1303
+====
+I0417 18:06:56.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:56.543061  7732 VideoPlayer.cpp:359] Stitching F#1304
+====
+I0417 18:06:56.583057  7732 VideoPlayer.cpp:359] Stitching F#1305
+====
+I0417 18:06:56.622002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:56.623059  7732 VideoPlayer.cpp:359] Stitching F#1306
+====
+I0417 18:06:56.663058  7732 VideoPlayer.cpp:359] Stitching F#1307
+====
+I0417 18:06:56.703055  7732 VideoPlayer.cpp:359] Stitching F#1308
+====
+I0417 18:06:56.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:56.743057  7732 VideoPlayer.cpp:359] Stitching F#1309
+====
+I0417 18:06:56.783058  7732 VideoPlayer.cpp:359] Stitching F#1310
+====
+I0417 18:06:56.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:56.823056  7732 VideoPlayer.cpp:359] Stitching F#1311
+====
+I0417 18:06:56.863059  7732 VideoPlayer.cpp:359] Stitching F#1312
+====
+I0417 18:06:56.903056  7732 VideoPlayer.cpp:359] Stitching F#1313
+====
+I0417 18:06:56.922003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:56.943059  7732 VideoPlayer.cpp:359] Stitching F#1314
+====
+I0417 18:06:56.983054  7732 VideoPlayer.cpp:359] Stitching F#1315
+====
+I0417 18:06:57.022037  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:57.023054  7732 VideoPlayer.cpp:359] Stitching F#1316
+====
+I0417 18:06:57.063056  7732 VideoPlayer.cpp:359] Stitching F#1317
+====
+I0417 18:06:57.103058  7732 VideoPlayer.cpp:359] Stitching F#1318
+====
+I0417 18:06:57.122037  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:57.143054  7732 VideoPlayer.cpp:359] Stitching F#1319
+====
+I0417 18:06:57.183055  7732 VideoPlayer.cpp:359] Stitching F#1320
+====
+I0417 18:06:57.222038  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:57.223057  7732 VideoPlayer.cpp:359] Stitching F#1321
+====
+I0417 18:06:57.263058  7732 VideoPlayer.cpp:359] Stitching F#1322
+====
+I0417 18:06:57.303054  7732 VideoPlayer.cpp:359] Stitching F#1323
+====
+I0417 18:06:57.322034  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:57.343052  7732 VideoPlayer.cpp:359] Stitching F#1324
+====
+I0417 18:06:57.383055  7732 VideoPlayer.cpp:359] Stitching F#1325
+====
+I0417 18:06:57.422050  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:57.423061  7732 VideoPlayer.cpp:359] Stitching F#1326
+====
+I0417 18:06:57.463071  7732 VideoPlayer.cpp:359] Stitching F#1327
+====
+I0417 18:06:57.503069  7732 VideoPlayer.cpp:359] Stitching F#1328
+====
+I0417 18:06:57.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:57.543069  7732 VideoPlayer.cpp:359] Stitching F#1329
+====
+I0417 18:06:57.583070  7732 VideoPlayer.cpp:359] Stitching F#1330
+====
+I0417 18:06:57.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:57.623067  7732 VideoPlayer.cpp:359] Stitching F#1331
+====
+I0417 18:06:57.663069  7732 VideoPlayer.cpp:359] Stitching F#1332
+====
+I0417 18:06:57.703068  7732 VideoPlayer.cpp:359] Stitching F#1333
+====
+I0417 18:06:57.722038  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:57.743067  7732 VideoPlayer.cpp:359] Stitching F#1334
+====
+I0417 18:06:57.783073  7732 VideoPlayer.cpp:359] Stitching F#1335
+====
+I0417 18:06:57.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:57.823066  7732 VideoPlayer.cpp:359] Stitching F#1336
+====
+I0417 18:06:57.863056  7732 VideoPlayer.cpp:359] Stitching F#1337
+====
+I0417 18:06:57.903054  7732 VideoPlayer.cpp:359] Stitching F#1338
+====
+I0417 18:06:57.922041  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:57.943058  7732 VideoPlayer.cpp:359] Stitching F#1339
+====
+I0417 18:06:57.983053  7732 VideoPlayer.cpp:359] Stitching F#1340
+====
+I0417 18:06:58.022037  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:58.023053  7732 VideoPlayer.cpp:359] Stitching F#1341
+====
+I0417 18:06:58.063055  7732 VideoPlayer.cpp:359] Stitching F#1342
+====
+I0417 18:06:58.103058  7732 VideoPlayer.cpp:359] Stitching F#1343
+====
+I0417 18:06:58.122037  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:58.143054  7732 VideoPlayer.cpp:359] Stitching F#1344
+====
+I0417 18:06:58.183056  7732 VideoPlayer.cpp:359] Stitching F#1345
+====
+I0417 18:06:58.222043  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:58.223057  7732 VideoPlayer.cpp:359] Stitching F#1346
+====
+I0417 18:06:58.263052  7732 VideoPlayer.cpp:359] Stitching F#1347
+====
+I0417 18:06:58.303056  7732 VideoPlayer.cpp:359] Stitching F#1348
+====
+I0417 18:06:58.322039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:58.343060  7732 VideoPlayer.cpp:359] Stitching F#1349
+====
+I0417 18:06:58.383061  7732 VideoPlayer.cpp:359] Stitching F#1350
+====
+I0417 18:06:58.422044  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:58.423053  7732 VideoPlayer.cpp:359] Stitching F#1351
+====
+I0417 18:06:58.463049  7732 VideoPlayer.cpp:359] Stitching F#1352
+====
+I0417 18:06:58.503053  7732 VideoPlayer.cpp:359] Stitching F#1353
+====
+I0417 18:06:58.522040  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:58.543048  7732 VideoPlayer.cpp:359] Stitching F#1354
+====
+I0417 18:06:58.583062  7732 VideoPlayer.cpp:359] Stitching F#1355
+====
+I0417 18:06:58.622004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:58.623056  7732 VideoPlayer.cpp:359] Stitching F#1356
+====
+I0417 18:06:58.663058  7732 VideoPlayer.cpp:359] Stitching F#1357
+====
+I0417 18:06:58.703052  7732 VideoPlayer.cpp:359] Stitching F#1358
+====
+I0417 18:06:58.722003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:58.743046  7732 VideoPlayer.cpp:359] Stitching F#1359
+====
+I0417 18:06:58.783047  7732 VideoPlayer.cpp:359] Stitching F#1360
+====
+I0417 18:06:58.822003  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:58.823053  7732 VideoPlayer.cpp:359] Stitching F#1361
+====
+I0417 18:06:58.863060  7732 VideoPlayer.cpp:359] Stitching F#1362
+====
+I0417 18:06:58.903054  7732 VideoPlayer.cpp:359] Stitching F#1363
+====
+I0417 18:06:58.929679  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:58.943054  7732 VideoPlayer.cpp:359] Stitching F#1364
+====
+I0417 18:06:58.983052  7732 VideoPlayer.cpp:359] Stitching F#1365
+====
+I0417 18:06:59.023056  7732 VideoPlayer.cpp:359] Stitching F#1366
+====
+I0417 18:06:59.043112  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:59.063053  7732 VideoPlayer.cpp:359] Stitching F#1367
+====
+I0417 18:06:59.103053  7732 VideoPlayer.cpp:359] Stitching F#1368
+====
+I0417 18:06:59.139955  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:59.143052  7732 VideoPlayer.cpp:359] Stitching F#1369
+====
+I0417 18:06:59.183054  7732 VideoPlayer.cpp:359] Stitching F#1370
+====
+I0417 18:06:59.222000  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:59.223054  7732 VideoPlayer.cpp:359] Stitching F#1371
+====
+I0417 18:06:59.263054  7732 VideoPlayer.cpp:359] Stitching F#1372
+====
+I0417 18:06:59.303052  7732 VideoPlayer.cpp:359] Stitching F#1373
+====
+I0417 18:06:59.322006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:59.343055  7732 VideoPlayer.cpp:359] Stitching F#1374
+====
+I0417 18:06:59.383052  7732 VideoPlayer.cpp:359] Stitching F#1375
+====
+I0417 18:06:59.422005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:59.423058  7732 VideoPlayer.cpp:359] Stitching F#1376
+====
+I0417 18:06:59.463053  7732 VideoPlayer.cpp:359] Stitching F#1377
+====
+I0417 18:06:59.503058  7732 VideoPlayer.cpp:359] Stitching F#1378
+====
+I0417 18:06:59.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:59.543056  7732 VideoPlayer.cpp:359] Stitching F#1379
+====
+I0417 18:06:59.583057  7732 VideoPlayer.cpp:359] Stitching F#1380
+====
+I0417 18:06:59.622005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:59.623055  7732 VideoPlayer.cpp:359] Stitching F#1381
+====
+I0417 18:06:59.663071  7732 VideoPlayer.cpp:359] Stitching F#1382
+====
+I0417 18:06:59.703068  7732 VideoPlayer.cpp:359] Stitching F#1383
+====
+I0417 18:06:59.722005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:59.743068  7732 VideoPlayer.cpp:359] Stitching F#1384
+====
+I0417 18:06:59.783073  7732 VideoPlayer.cpp:359] Stitching F#1385
+====
+I0417 18:06:59.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:59.823056  7732 VideoPlayer.cpp:359] Stitching F#1386
+====
+I0417 18:06:59.863059  7732 VideoPlayer.cpp:359] Stitching F#1387
+====
+I0417 18:06:59.903059  7732 VideoPlayer.cpp:359] Stitching F#1388
+====
+I0417 18:06:59.922005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:06:59.943056  7732 VideoPlayer.cpp:359] Stitching F#1389
+====
+I0417 18:06:59.983055  7732 VideoPlayer.cpp:359] Stitching F#1390
+====
+I0417 18:07:00.022001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:00.023058  7732 VideoPlayer.cpp:359] Stitching F#1391
+====
+I0417 18:07:00.063060  7732 VideoPlayer.cpp:359] Stitching F#1392
+====
+I0417 18:07:00.103057  7732 VideoPlayer.cpp:359] Stitching F#1393
+====
+I0417 18:07:00.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:00.143056  7732 VideoPlayer.cpp:359] Stitching F#1394
+====
+I0417 18:07:00.183054  7732 VideoPlayer.cpp:359] Stitching F#1395
+====
+I0417 18:07:00.222005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:00.223058  7732 VideoPlayer.cpp:359] Stitching F#1396
+====
+I0417 18:07:00.263054  7732 VideoPlayer.cpp:359] Stitching F#1397
+====
+I0417 18:07:00.303056  7732 VideoPlayer.cpp:359] Stitching F#1398
+====
+I0417 18:07:00.322005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:00.343055  7732 VideoPlayer.cpp:359] Stitching F#1399
+====
+I0417 18:07:00.383059  7732 VideoPlayer.cpp:359] Stitching F#1400
+====
+I0417 18:07:00.422006  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:00.423058  7732 VideoPlayer.cpp:359] Stitching F#1401
+====
+I0417 18:07:00.463066  7732 VideoPlayer.cpp:359] Stitching F#1402
+====
+I0417 18:07:00.503059  7732 VideoPlayer.cpp:359] Stitching F#1403
+====
+I0417 18:07:00.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:00.543058  7732 VideoPlayer.cpp:359] Stitching F#1404
+====
+I0417 18:07:00.583056  7732 VideoPlayer.cpp:359] Stitching F#1405
+====
+I0417 18:07:00.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:00.623052  7732 VideoPlayer.cpp:359] Stitching F#1406
+====
+I0417 18:07:00.663054  7732 VideoPlayer.cpp:359] Stitching F#1407
+====
+I0417 18:07:00.703056  7732 VideoPlayer.cpp:359] Stitching F#1408
+====
+I0417 18:07:00.722007  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:00.743054  7732 VideoPlayer.cpp:359] Stitching F#1409
+====
+I0417 18:07:00.783051  7732 VideoPlayer.cpp:359] Stitching F#1410
+====
+I0417 18:07:00.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:00.823051  7732 VideoPlayer.cpp:359] Stitching F#1411
+====
+I0417 18:07:00.863057  7732 VideoPlayer.cpp:359] Stitching F#1412
+====
+I0417 18:07:00.903053  7732 VideoPlayer.cpp:359] Stitching F#1413
+====
+I0417 18:07:00.922048  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:00.943053  7732 VideoPlayer.cpp:359] Stitching F#1414
+====
+I0417 18:07:00.983052  7732 VideoPlayer.cpp:359] Stitching F#1415
+====
+I0417 18:07:01.022039  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:01.023056  7732 VideoPlayer.cpp:359] Stitching F#1416
+====
+I0417 18:07:01.063055  7732 VideoPlayer.cpp:359] Stitching F#1417
+====
+I0417 18:07:01.103053  7732 VideoPlayer.cpp:359] Stitching F#1418
+====
+I0417 18:07:01.122045  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:01.143055  7732 VideoPlayer.cpp:359] Stitching F#1419
+====
+I0417 18:07:01.183053  7732 VideoPlayer.cpp:359] Stitching F#1420
+====
+I0417 18:07:01.222041  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:01.223053  7732 VideoPlayer.cpp:359] Stitching F#1421
+====
+I0417 18:07:01.263053  7732 VideoPlayer.cpp:359] Stitching F#1422
+====
+I0417 18:07:01.303054  7732 VideoPlayer.cpp:359] Stitching F#1423
+====
+I0417 18:07:01.322044  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:01.343051  7732 VideoPlayer.cpp:359] Stitching F#1424
+====
+I0417 18:07:01.383057  7732 VideoPlayer.cpp:359] Stitching F#1425
+====
+I0417 18:07:01.422052  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:01.423055  7732 VideoPlayer.cpp:359] Stitching F#1426
+====
+I0417 18:07:01.463066  7732 VideoPlayer.cpp:359] Stitching F#1427
+====
+I0417 18:07:01.503058  7732 VideoPlayer.cpp:359] Stitching F#1428
+====
+I0417 18:07:01.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:01.543058  7732 VideoPlayer.cpp:359] Stitching F#1429
+====
+I0417 18:07:01.583065  7732 VideoPlayer.cpp:359] Stitching F#1430
+====
+I0417 18:07:01.622005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:01.623059  7732 VideoPlayer.cpp:359] Stitching F#1431
+====
+I0417 18:07:01.663055  7732 VideoPlayer.cpp:359] Stitching F#1432
+====
+I0417 18:07:01.703055  7732 VideoPlayer.cpp:359] Stitching F#1433
+====
+I0417 18:07:01.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:01.743055  7732 VideoPlayer.cpp:359] Stitching F#1434
+====
+I0417 18:07:01.783059  7732 VideoPlayer.cpp:359] Stitching F#1435
+====
+I0417 18:07:01.822001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:01.823055  7732 VideoPlayer.cpp:359] Stitching F#1436
+====
+I0417 18:07:01.863054  7732 VideoPlayer.cpp:359] Stitching F#1437
+====
+I0417 18:07:01.903054  7732 VideoPlayer.cpp:359] Stitching F#1438
+====
+I0417 18:07:01.922042  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:01.943058  7732 VideoPlayer.cpp:359] Stitching F#1439
+====
+I0417 18:07:01.983054  7732 VideoPlayer.cpp:359] Stitching F#1440
+====
+I0417 18:07:02.022037  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:02.023053  7732 VideoPlayer.cpp:359] Stitching F#1441
+====
+I0417 18:07:02.063052  7732 VideoPlayer.cpp:359] Stitching F#1442
+====
+I0417 18:07:02.103058  7732 VideoPlayer.cpp:359] Stitching F#1443
+====
+I0417 18:07:02.122043  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:02.143054  7732 VideoPlayer.cpp:359] Stitching F#1444
+====
+I0417 18:07:02.183053  7732 VideoPlayer.cpp:359] Stitching F#1445
+====
+I0417 18:07:02.222038  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:02.223053  7732 VideoPlayer.cpp:359] Stitching F#1446
+====
+I0417 18:07:02.263056  7732 VideoPlayer.cpp:359] Stitching F#1447
+====
+I0417 18:07:02.303053  7732 VideoPlayer.cpp:359] Stitching F#1448
+====
+I0417 18:07:02.322001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:02.343052  7732 VideoPlayer.cpp:359] Stitching F#1449
+====
+I0417 18:07:02.383055  7732 VideoPlayer.cpp:359] Stitching F#1450
+====
+I0417 18:07:02.422001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:02.423058  7732 VideoPlayer.cpp:359] Stitching F#1451
+====
+I0417 18:07:02.463052  7732 VideoPlayer.cpp:359] Stitching F#1452
+====
+I0417 18:07:02.503053  7732 VideoPlayer.cpp:359] Stitching F#1453
+====
+I0417 18:07:02.522001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:02.543056  7732 VideoPlayer.cpp:359] Stitching F#1454
+====
+I0417 18:07:02.583053  7732 VideoPlayer.cpp:359] Stitching F#1455
+====
+I0417 18:07:02.622001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:02.623054  7732 VideoPlayer.cpp:359] Stitching F#1456
+====
+I0417 18:07:02.663053  7732 VideoPlayer.cpp:359] Stitching F#1457
+====
+I0417 18:07:02.703058  7732 VideoPlayer.cpp:359] Stitching F#1458
+====
+I0417 18:07:02.722002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:02.743053  7732 VideoPlayer.cpp:359] Stitching F#1459
+====
+I0417 18:07:02.783052  7732 VideoPlayer.cpp:359] Stitching F#1460
+====
+I0417 18:07:02.822005  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:02.823055  7732 VideoPlayer.cpp:359] Stitching F#1461
+====
+I0417 18:07:02.863056  7732 VideoPlayer.cpp:359] Stitching F#1462
+====
+I0417 18:07:02.903052  7732 VideoPlayer.cpp:359] Stitching F#1463
+====
+I0417 18:07:02.922001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:02.943053  7732 VideoPlayer.cpp:359] Stitching F#1464
+====
+I0417 18:07:02.983053  7732 VideoPlayer.cpp:359] Stitching F#1465
+====
+I0417 18:07:03.022004  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:03.023056  7732 VideoPlayer.cpp:359] Stitching F#1466
+====
+I0417 18:07:03.063055  7732 VideoPlayer.cpp:359] Stitching F#1467
+====
+I0417 18:07:03.103053  7732 VideoPlayer.cpp:359] Stitching F#1468
+====
+I0417 18:07:03.122001  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:03.143056  7732 VideoPlayer.cpp:359] Stitching F#1469
+====
+I0417 18:07:03.183058  7732 VideoPlayer.cpp:359] Stitching F#1470
+====
+I0417 18:07:03.222002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:03.223053  7732 VideoPlayer.cpp:359] Stitching F#1471
+====
+I0417 18:07:03.263060  7732 VideoPlayer.cpp:359] Stitching F#1472
+====
+I0417 18:07:03.303062  7732 VideoPlayer.cpp:359] Stitching F#1473
+====
+I0417 18:07:03.322002  7735 TilePredictor.cpp:845] Linear Regression
+I0417 18:07:03.343060  7732 VideoPlayer.cpp:359] Stitching F#1474
+====
+I0417 18:07:03.383057  7732 VideoPlayer.cpp:359] Stitching F#1475
+====
+I0417 18:07:03.384423  7732 VideoPlayer.cpp:388] Video Ended!
