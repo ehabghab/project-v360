@@ -32,7 +32,8 @@ public:
   static void panoAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
                       BandwidthPredictor *bandwidthPredictor,
                       ClientNetworkLayer *clientNetworkLayer,
-                      VideoPlayer *videoPlayer);
+                      VideoPlayer *videoPlayer, std::string panoTilesGroupsPath,
+                      std::string panoVideoBitrate);
 
 private:
   struct tileNode {
@@ -68,8 +69,8 @@ private:
   // quality --> chunkIdx --> avg PNSR for all tiles.
   std::map<uint8_t, std::vector<float>> qualityChunkPSNR_;
 
-  // possible quality chunk assignments
-  std::vector<std::vector<uint8_t>> qualityAssignments_;
+  // possible chunk bitrates
+  std::vector<std::vector<uint8_t>> bitrateAssignments_;
 
   /**
    * this will all return all possible quality assignments per tile class using
@@ -246,8 +247,9 @@ private:
    * @param frameId
    * @return std::vector<uint16_t>
    */
-  std::vector<uint16_t> getBufferStatus(ClientNetworkLayer *clientNetworkLayer,
-                                        uint32_t frameId);
+  std::vector<uint16_t>
+  getBufferChunkStatus(ClientNetworkLayer *clientNetworkLayer,
+                       uint32_t frameId);
 
   /**
    * @brief This returns the bitrate to assign for the next 3 chunks,
@@ -258,12 +260,20 @@ private:
    * @param frameId
    * @return std::vector<uint64_t>
    */
-  std::vector<uint64_t> mpc(BandwidthPredictor *bandwidthPredictor,
-                            ClientNetworkLayer *clientNetworkLayer,
-                            uint32_t frameId);
+  int mpcBitratePerChunk(BandwidthPredictor *bandwidthPredictor,
+                         ClientNetworkLayer *clientNetworkLayer,
+                         std::map<uint8_t, std::vector<float>> &chunksBitrates,
+                         uint32_t frameId, int maxQuality);
 
-  void buildQualityAssigment(std::vector<uint8_t> assignment,
-                             int numOfChunkInHorizon);
+  void buildBitrateAssigment(std::vector<uint8_t> assignment,
+                             int numOfChunkInHorizon,
+                             int numOfPossibleBitrates);
+
+  void readTilesGroups(uint8_t tilesGroups[], int numTilesW, int numbTilesH,
+                       std::string tilesGroupsFilePath);
+
+  void readChunksBitrates(std::map<uint8_t, std::vector<float>> &chunksBitrates,
+                          std::string chunkBitratesFilePath);
 
   float getAvgPSNR(ClientNetworkLayer *clientNetworkLayer, int chunkId);
 

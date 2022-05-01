@@ -7,6 +7,7 @@
 
 #include "AbrAlgorithm.h"
 
+#include <float.h>
 #include <unistd.h>
 
 #include <chrono>
@@ -1769,19 +1770,33 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
                            TilePredictor *tilePredictor,
                            BandwidthPredictor *bandwidthPredictor,
                            ClientNetworkLayer *clientNetworkLayer,
-                           VideoPlayer *videoPlayer) {
+                           VideoPlayer *videoPlayer,
+                           std::string panoTilesGroupsPath,
+                           std::string panoVideoBitrate) {
+
+  abrAlgorithm->buildBitrateAssigment({}, 3, 15);
+
+  // index at zero is not used.
+  uint8_t tilesGroups[12 * 12 + 1];
+
+  abrAlgorithm->readTilesGroups(tilesGroups, 12, 12, panoTilesGroupsPath);
+
+  std::map<uint8_t, std::vector<float>> chunksBitrates;
+  abrAlgorithm->readChunksBitrates(chunksBitrates, panoVideoBitrate);
+  abrAlgorithm->mpcBitratePerChunk(bandwidthPredictor, clientNetworkLayer,
+                                   chunksBitrates,
+                                   videoPlayer->getFrameToRenderId(), 15);
   // every 100ms, update tile list.
   long stime = Util::getTime();
   float videoTime = 0;
   std::map<uint8_t, std::vector<std::pair<int, uint16_t>>> tilesRequest;
-  abrAlgorithm->buildQualityAssigment({}, 3);
 
   while (true) {
     // std::cout << req << std::endl;
     // clientNetworkLayer->setRequest(req);
-    auto frameToRenderId = videoPlayer->getFrameToRenderId();
-    auto chunksBitrates = abrAlgorithm->mpc(
-        bandwidthPredictor, clientNetworkLayer, frameToRenderId);
+    // auto frameToRenderId = videoPlayer->getFrameToRenderId();
+    // auto chunksBitrates = abrAlgorithm->mpc(
+    //   bandwidthPredictor, clientNetworkLayer, frameToRenderId);
 
     tilesRequest.clear();
     Util::sleep(stime, ABR_FREQ);
@@ -1790,91 +1805,82 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
   }
 }
 
-std::vector<uint64_t> AbrAlgorithm::mpc(BandwidthPredictor *bandwidthPredictor,
-                                        ClientNetworkLayer *clientNetworkLayer,
-                                        uint32_t frameId) {
+int AbrAlgorithm::mpcBitratePerChunk(
+    BandwidthPredictor *bandwidthPredictor,
+    ClientNetworkLayer *clientNetworkLayer,
+    std::map<uint8_t, std::vector<float>> &chunksBitrates, uint32_t frameId,
+    int maxQuality) {
 
+  // this should return the highest chunk bitrate with minimum rebuffering.
   // determine buffer occupancy
-  auto bufferStat = getBufferStatus(clientNetworkLayer, frameId);
-  int chunkId = ((frameId - 1) / 25);
-  int stChunkId = chunkId;
-  // (first frame in next chunk - current frame) * <frame duration in sec>
-  uint32_t timeLeftInCurrChunk = (((chunkId + 1) * 25) - (frameId - 1)) * 0.04;
-  int buff = bufferStat[0] == 144 ? timeLeftInCurrChunk : -timeLeftInCurrChunk;
+  auto bufferChunkStat = getBufferChunkStatus(clientNetworkLayer, frameId);
 
-  for (auto const numRecvTiles : bufferStat) {
-    if (numRecvTiles == 144) {
-      stChunkId++;
-    }
+  float predictedBw =
+      (bandwidthPredictor->getMpcBandwidthPrediction() * 8.0) / 1e6; // mbps
+
+  assert(predictedBw >= 0);
+  if (predictedBw == 0) {
+    return bitrateAssignments_.size() - 1;
   }
 
-  float predictedBw = bandwidthPredictor->getMpcBandwidthPrediction();
-  float highestPSNR =
-      qualityChunkPSNR_.find(qualityChunkPSNR_.size() - 1)->second[chunkId];
+  int stChunkId = ((frameId - 1) / 25);
+  // (first frame in next chunk - current frame) * <frame duration in sec>
+  uint32_t timeLeftInCurrChunk = (((stChunkId + 1) * 25) - (frameId - 1)) * 40;
 
-  int currRebuffer;
-  int bufferCal;
-  int bitrateSum;
-  float smoothnessDiff;
-  float prevPSNR;
-  std::vector<uint8_t> bestAssignment;
-  float reward;
-  float maxReward = std::numeric_limits<float>::min();
-  for (auto const &qulityAssignment : qualityAssignments_) {
-    currRebuffer = 0;
-    bufferCal = buff;
-    bitrateSum = 0;
-    smoothnessDiff = 0;
-    prevPSNR = getAvgPSNR(clientNetworkLayer, chunkId);
-    for (uint8_t qIdx = 0; qulityAssignment.size(); qIdx++) {
-      auto qualityForchunkId = chunkId + qIdx;
-      // if chunk is received, then skip finding quality for it.
-      if (qualityForchunkId < stChunkId) {
-        // add 1 second to buffer if not the first chunk
-        // if it is the first, then we already timeLeftInCurrChunk
-        // to buffer
-        if (qualityForchunkId != chunkId) {
-          bufferCal += 1;
-        }
+  // initially set to the highest possible quality.
+  int idxBestBitrate = 0;
+  float maxReward = -FLT_MAX;
+  for (int idx = 0; idx < bitrateAssignments_.size(); idx++) {
+    auto &bitrateAssignment = bitrateAssignments_[idx];
+    float rebuffering = 0;
+    float buffer = 0;
+    float reward = 0;
+    for (int chunkIdx = 0; chunkIdx < bufferChunkStat.size(); chunkIdx++) {
+      // time to be added to buffer if this chunk is downloaded.
+      auto bufferTimeForThisChunk =
+          (chunkIdx == 0 ? timeLeftInCurrChunk : 1000);
+      if (bufferChunkStat[chunkIdx] == 144) { // chunk is fully received.
+        buffer += bufferTimeForThisChunk;
         continue;
       }
+      float fracOfMissedChunk = (144 - bufferChunkStat[chunkIdx]) / 144.0;
+      float chunkDownloadTimeInMs =
+          1e3 *
+          ((chunksBitrates[bitrateAssignment[chunkIdx]][chunkIdx + stChunkId] *
+            fracOfMissedChunk) /
+           predictedBw);
 
-      int chunkSize = qualityChunkSize_.find(qulityAssignment[qIdx])
-                          ->second[qualityForchunkId];
-      float downloadTime = chunkSize / predictedBw; // seconds.
-      if (downloadTime > bufferCal) {
-        currRebuffer += (downloadTime - bufferCal);
-        bufferCal = 0;
+      // it the download time > buffer size, then rebuffer.
+      if (buffer - chunkDownloadTimeInMs < 0) {
+        rebuffering += std::abs(buffer - chunkDownloadTimeInMs);
+        buffer = bufferTimeForThisChunk;
       } else {
-        bufferCal -= downloadTime;
+        buffer = (buffer - chunkDownloadTimeInMs) + bufferTimeForThisChunk;
       }
-      bufferCal += 1; // length of chunk
-      auto const chunkPSNR = qualityChunkPSNR_.find(qulityAssignment[qIdx])
-                                 ->second[qualityForchunkId];
-      smoothnessDiff += std::abs(prevPSNR - chunkPSNR);
-      bitrateSum += chunkPSNR;
-      prevPSNR = chunkPSNR;
+      // we deduct maxQuality from bitrateAssignment
+      // because 0 quality is the highest, and 14 is the lowest
+      reward +=
+          (maxQuality - bitrateAssignment[chunkIdx]) * bufferTimeForThisChunk;
     }
-    reward = bitrateSum - smoothnessDiff - (currRebuffer * highestPSNR);
+
+    reward = reward - rebuffering * maxQuality;
+    if (VLOG_IS_ON(1)) {
+      VLOG(1) << idx;
+      VLOG(1) << "[" << std::to_string(bitrateAssignment[0]) << ","
+              << std::to_string(bitrateAssignment[1]) << ","
+              << std::to_string(bitrateAssignment[2]) << "]";
+      VLOG(1) << chunksBitrates[bitrateAssignment[0]][stChunkId] << ","
+              << chunksBitrates[bitrateAssignment[1]][stChunkId + 1] << ","
+              << chunksBitrates[bitrateAssignment[2]][2 + stChunkId] << "";
+      VLOG(1) << reward << "====";
+    }
     if (reward > maxReward) {
       maxReward = reward;
-      bestAssignment = qulityAssignment;
+      idxBestBitrate = idx;
     }
   }
-
-  // bitrate per chunk.
-  // 0 means chunk recieved.
-  std::vector<uint64_t> chunksBitrate;
-  for (uint8_t qIdx = 0; bestAssignment.size(); qIdx++) {
-    auto qualityForchunkId = chunkId + qIdx;
-    if (qualityForchunkId < stChunkId) {
-      chunksBitrate.push_back(0);
-      continue;
-    }
-    chunksBitrate.push_back(qualityChunkSize_.find(bestAssignment[qIdx])
-                                ->second[qualityForchunkId]);
-  }
-  return chunksBitrate;
+  auto bestAssignment = bitrateAssignments_[idxBestBitrate];
+  return idxBestBitrate;
 }
 
 float AbrAlgorithm::getAvgPSNR(ClientNetworkLayer *clientNetworkLayer,
@@ -1892,8 +1898,10 @@ float AbrAlgorithm::getAvgPSNR(ClientNetworkLayer *clientNetworkLayer,
 }
 
 std::vector<uint16_t>
-AbrAlgorithm::getBufferStatus(ClientNetworkLayer *clientNetworkLayer,
-                              uint32_t frameId) {
+AbrAlgorithm::getBufferChunkStatus(ClientNetworkLayer *clientNetworkLayer,
+                                   uint32_t frameId) {
+
+  // if not all tiles are received then video chunk is not received.
   std::vector<uint16_t> numOfTilesRecvPerChunk;
   int stChunkId = ((frameId - 1) / 25) + 1; // server adds one.
   for (auto chunkId = stChunkId; chunkId < stChunkId + 3; chunkId++) {
@@ -1908,15 +1916,64 @@ AbrAlgorithm::getBufferStatus(ClientNetworkLayer *clientNetworkLayer,
   return numOfTilesRecvPerChunk;
 }
 
-void AbrAlgorithm::buildQualityAssigment(std::vector<uint8_t> assignment,
-                                         int numOfChunkInHorizon) {
+void AbrAlgorithm::buildBitrateAssigment(std::vector<uint8_t> assignment,
+                                         int numOfChunkInHorizon,
+                                         int numOfPossibleBitrates) {
   if (numOfChunkInHorizon == 0) {
-    qualityAssignments_.push_back(assignment);
+    bitrateAssignments_.push_back(assignment);
     return;
   }
-  for (uint8_t quality = 1; quality <= numberOfQualities_; quality++) {
-    assignment.push_back(quality);
-    buildQualityAssigment(assignment, numOfChunkInHorizon - 1);
+  for (uint8_t bitrate = 0; bitrate < numOfPossibleBitrates; bitrate++) {
+    assignment.push_back(bitrate);
+    buildBitrateAssigment(assignment, numOfChunkInHorizon - 1,
+                          numOfPossibleBitrates);
     assignment.pop_back();
+  }
+}
+
+void AbrAlgorithm::readTilesGroups(uint8_t tilesGroups[], int numTilesW,
+                                   int numbTilesH,
+                                   std::string tilesGroupsFilePath) {
+  std::ifstream infile(tilesGroupsFilePath);
+  std::string line;
+  while (std::getline(infile, line)) {
+    std::vector<int> groupLine;
+    try {
+      folly::split(",", line, groupLine);
+      auto groupId = groupLine[0];
+      auto stR = groupLine[1];
+      auto enR = groupLine[2];
+      auto stC = groupLine[3];
+      auto enC = groupLine[4];
+      for (auto rowIdx = stR - 1; rowIdx < enR; rowIdx++) {
+        for (auto colIdx = stC; colIdx <= enC; colIdx++) {
+          auto tileId = rowIdx * numTilesW + colIdx;
+          tilesGroups[tileId] = groupId;
+        }
+      }
+    } catch (std::invalid_argument &e) {
+      LOG(ERROR) << "AbrAlgorithm::readTilesGroups(): cannot read line :"
+                 << line;
+    }
+  }
+}
+
+void AbrAlgorithm::readChunksBitrates(
+    std::map<uint8_t, std::vector<float>> &chunksBitrates,
+    std::string chunkBitratesFilePath) {
+  std::ifstream infile(chunkBitratesFilePath);
+  uint8_t brIdx = 0;
+  std::string line;
+  while (std::getline(infile, line)) {
+    std::vector<float> bitrates;
+    line.pop_back();
+    line = line.substr(1);
+    try {
+      folly::split(",", line, bitrates);
+      chunksBitrates.insert({brIdx++, bitrates});
+    } catch (std::invalid_argument &e) {
+      LOG(ERROR) << "AbrAlgorithm::readChunksBitrates(): cannot read line :"
+                 << line;
+    }
   }
 }
