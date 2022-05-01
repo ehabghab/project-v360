@@ -16,14 +16,15 @@
 #include "ClientNetworkLayer.h"
 #include "Decoder.h"
 #include "VideoPlayer.h"
-DEFINE_bool(utilityAbr, true, "true : utility, false : flare");
+DEFINE_string(model, "Utility", "Utility, Pano, Flare");
 DEFINE_bool(skipModel, true, "true : skip model, false : rebuffer model");
 
 Client::Client(std::string tilesPerFrameTracePath,
                std::string vpCorrPerFrameTracePath,
                std::string tileChunkSizesPath,
                std::string tileChunksQaulityPath,
-               std::string backgroundDisplacementPath, std::string serverIp) {
+               std::string backgroundDisplacementPath, std::string serverIp,
+               std::string panoTilesGroupsPath, std::string panoVideoBitrate) {
   // Initiate all instances to create threads.
   // 1- Network layer (sender and receiver).
   // 2- Video player along with the decoder.
@@ -50,7 +51,7 @@ Client::Client(std::string tilesPerFrameTracePath,
   if (FLAGS_skipModel) {
     videoPlayerThread = std::thread(VideoPlayer::startVideoWithSkip,
                                     videoPlayer, tilePredictor);
-  } else if (!FLAGS_skipModel && !FLAGS_utilityAbr) {
+  } else if (!FLAGS_skipModel && FLAGS_model != "Utility") {
     videoPlayerThread = std::thread(VideoPlayer::startVideoWithRebuffer,
                                     videoPlayer, tilePredictor);
   } else {
@@ -63,16 +64,21 @@ Client::Client(std::string tilesPerFrameTracePath,
 
   std::thread senderThread(ClientNetworkLayer::sender, clientNetworkLayer);
   std::thread abrThread;
-  if (FLAGS_utilityAbr) {
+  if (FLAGS_model == "Utility") {
     abrThread =
         std::thread(AbrAlgorithm::utilityAbr, abr, tilePredictor,
                     bandwidthPredictor, clientNetworkLayer, videoPlayer);
     LOG(INFO) << "Utility";
-  } else {
+  } else if (FLAGS_model == "Flare") {
     abrThread =
         std::thread(AbrAlgorithm::flareAbr, abr, tilePredictor,
                     bandwidthPredictor, clientNetworkLayer, videoPlayer);
     LOG(INFO) << "Flare";
+  } else {
+    abrThread = std::thread(AbrAlgorithm::panoAbr, abr, tilePredictor,
+                            bandwidthPredictor, clientNetworkLayer, videoPlayer,
+                            panoTilesGroupsPath, panoVideoBitrate);
+    LOG(INFO) << "Pano";
   }
 
   videoPlayerThread.join();
@@ -93,13 +99,34 @@ int main(int argc, char **argv) {
            "<background_displacement> <server_ip>";
     return -1;
   }
+  if (FLAGS_model != "Flare" && FLAGS_model != "Pano" &&
+      FLAGS_model != "Utility") {
+    LOG(ERROR) << "Model must be either Utility, Flare, or Pano";
+    return -1;
+  }
+
+  if (FLAGS_model == "Pano" && argc < 8) {
+    LOG(ERROR)
+        << "Usage: ./client <tiles_per_frame_trace> "
+           "<vp_corrdinates_per_frame> <tile_chunk_sizes> <tile_chunk_quality>"
+           "<background_displacement> <server_ip> <pano_tile_grouping> "
+           "<pano_video_bitrate>";
+    return -1;
+  }
 
   google::SetLogDestination(google::INFO, "client_log.txt");
   google::InitGoogleLogging(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-  Client *client =
-      new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
+  Client *client = nullptr;
+  if (FLAGS_model == "Pano") {
+    client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
+                        argv[7], argv[8]);
+  } else {
+    client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
+                        "", "");
+  }
+
   // to suppress warning
   assert(client != nullptr);
   return 0;
