@@ -99,7 +99,8 @@ void AbrAlgorithm::getTileSetSizePerQuality(
   // get all tiles need per frame in each class.
   // frame[i] needs M tiles for Class C1, and N tiles for Class C2
   // note that M ∩ N = Φ, tiles in class M cannot be in N (not duplicate tiles)
-  auto tileClassesOfFutureFrames = tilePredictor->getPredictedTilesFlareLR();
+  auto tileClassesOfFutureFrames =
+      tilePredictor->getPredictedTilesFlareLR({{100, 100}, {120, 120}}, 25);
   if (tileClassesOfFutureFrames.size() == 0) {
     return;
   }
@@ -1778,11 +1779,13 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
 
   // index at zero is not used.
   uint8_t tilesGroups[12 * 12 + 1];
-
   abrAlgorithm->readTilesGroups(tilesGroups, 12, 12, panoTilesGroupsPath);
 
   std::map<uint8_t, std::vector<float>> chunksBitrates;
   abrAlgorithm->readChunksBitrates(chunksBitrates, panoVideoBitrate);
+  // this can be done in the constructor
+  abrAlgorithm->fillGroupQualityInfo(tilesGroups, 12 * 12 + 1);
+
   abrAlgorithm->mpcBitratePerChunk(bandwidthPredictor, clientNetworkLayer,
                                    chunksBitrates,
                                    videoPlayer->getFrameToRenderId(), 15);
@@ -1883,18 +1886,39 @@ int AbrAlgorithm::mpcBitratePerChunk(
   return idxBestBitrate;
 }
 
-float AbrAlgorithm::getAvgPSNR(ClientNetworkLayer *clientNetworkLayer,
-                               int chunkId) {
-  int tilesPSNR = 0;
-  int tilesCount = 0;
-  for (uint16_t tileId = 0; tileId <= 144; tileId++) {
-    auto tileQuality = clientNetworkLayer->isReceived(chunkId, tileId);
-    if (tileQuality > 0) {
-      tilesPSNR += tilesPSNR;
-      tilesCount++;
+void AbrAlgorithm::fillGroupQualityInfo(uint8_t tilesGroups[], int numOfTiles) {
+  for (int tileIdx = 1; tileIdx < numOfTiles; tileIdx++) {
+    auto groupId = tilesGroups[tileIdx];
+    for (uint8_t qualityIdx = 1; qualityIdx <= numberOfQualities_;
+         qualityIdx++) {
+
+      if (groupChunkSizePerQuality_.find(qualityIdx) ==
+          groupChunkSizePerQuality_.end()) {
+        groupChunkSizePerQuality_.insert({qualityIdx, {}});
+        groupChunkPSNRPerQuality_.insert({qualityIdx, {}});
+      }
+      if (groupChunkSizePerQuality_[qualityIdx].find(groupId) ==
+          groupChunkSizePerQuality_[qualityIdx].end()) {
+        groupChunkSizePerQuality_[qualityIdx].insert({groupId, {}});
+      }
+      for (int chunkIdx = 0;
+           chunkIdx < tileChunkSizePerQuality_[qualityIdx][tileIdx].size();
+           chunkIdx++) {
+        if (groupChunkSizePerQuality_[qualityIdx][groupId].size() <
+            tileChunkSizePerQuality_[qualityIdx][tileIdx].size()) {
+          groupChunkSizePerQuality_[qualityIdx][groupId].push_back(
+              tileChunkSizePerQuality_[qualityIdx][tileIdx][chunkIdx]);
+          groupChunkPSNRPerQuality_[qualityIdx][groupId].push_back(
+              tileChunkPSNRPerQuality_[qualityIdx][tileIdx][chunkIdx]);
+        } else {
+          groupChunkSizePerQuality_[qualityIdx][groupId][chunkIdx] +=
+              tileChunkSizePerQuality_[qualityIdx][tileIdx][chunkIdx];
+          groupChunkPSNRPerQuality_[qualityIdx][groupId][chunkIdx] +=
+              tileChunkPSNRPerQuality_[qualityIdx][tileIdx][chunkIdx];
+        }
+      }
     }
   }
-  return (tilesPSNR * 1.0) / tilesCount;
 }
 
 std::vector<uint16_t>

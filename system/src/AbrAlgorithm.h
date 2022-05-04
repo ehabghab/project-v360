@@ -63,11 +63,13 @@ private:
   std::vector<std::pair<std::pair<float, float>, std::pair<float, float>>>
       backgroundDisplacement_;
 
-  // quality --> chunkIdx --> total size
-  std::map<uint8_t, std::vector<uint64_t>> qualityChunkSize_;
+  // quality --> group --> chunk
+  std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
+      groupChunkSizePerQuality_;
 
-  // quality --> chunkIdx --> avg PNSR for all tiles.
-  std::map<uint8_t, std::vector<float>> qualityChunkPSNR_;
+  // quality --> group --> psnr
+  std::map<uint8_t, std::map<uint16_t, std::vector<float>>>
+      groupChunkPSNRPerQuality_;
 
   // possible chunk bitrates
   std::vector<std::vector<uint8_t>> bitrateAssignments_;
@@ -275,7 +277,7 @@ private:
   void readChunksBitrates(std::map<uint8_t, std::vector<float>> &chunksBitrates,
                           std::string chunkBitratesFilePath);
 
-  float getAvgPSNR(ClientNetworkLayer *clientNetworkLayer, int chunkId);
+  void fillGroupQualityInfo(uint8_t tilesGroups[], int numOfTiles);
 
   std::vector<std::pair<int, uint16_t>> sortTilesByUtilityAndQuality(
       uint8_t quality,

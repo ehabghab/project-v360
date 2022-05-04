@@ -24,7 +24,8 @@ public:
   getPredictedTilesStatic();
 
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
-  getPredictedTilesFlareLR();
+  getPredictedTilesFlareLR(std::vector<std::pair<int, int>> vpResolutions,
+                           int predictionWindow);
 
   /**
    * @brief This function calculates the utility for all to-be-recevied tiles in

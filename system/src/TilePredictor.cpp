@@ -497,14 +497,15 @@ void TilePredictor::getBackgroundTiles(
 }
 
 std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
-TilePredictor::getPredictedTilesFlareLR() {
+TilePredictor::getPredictedTilesFlareLR(
+    std::vector<std::pair<int, int>> vpResolutions, int predictionWindow) {
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
       tileClassAllFrames;
 
   // video join time as it only happens at the start of video sessions.
   while (frameId_ == 0)
     ;
-  std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
+  // std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
 
   std::vector<std::pair<float, float>> predictedCorr;
 
@@ -520,7 +521,7 @@ TilePredictor::getPredictedTilesFlareLR() {
   }
   uint16_t frameId = frameId_;
 
-  for (uint16_t idx = 0; idx < 25; idx++) { // per frame
+  for (uint16_t idx = 0; idx < predictionWindow; idx++) { // per frame
     if (frameId >= 1475) {
       break;
     }
