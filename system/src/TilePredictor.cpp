@@ -819,12 +819,13 @@ void TilePredictor::addVpCoordinate(std::pair<float, float> coordinate) {
   frameId_++;
 }
 
-TilePredictor::TilePredictor(std::string vpCorrPerFrameTracePath) {
+TilePredictor::TilePredictor(std::string vpCorrPerFrameTracePath,
+                             std::string model) {
   vpGroundTruth_.reserve(2000);
   vpPredictions_.reserve(2000);
   frameId_ = 0;
 
-  linearRegressor_ = new LinearRegression(vpCorrPerFrameTracePath);
+  linearRegressor_ = new LinearRegression(vpCorrPerFrameTracePath, model);
 
   // fill
   uint16_t c = 1;

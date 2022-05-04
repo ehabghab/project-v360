@@ -177,6 +177,8 @@ void LinearRegression::initPerfect() {
   fprintf(predictionLog_, "%-50s %s \n", "frame id (yaw,pitch)", "predictions");
 }
 
-LinearRegression::LinearRegression(std::string vpCorrPerFrameTracePath) {
+LinearRegression::LinearRegression(std::string vpCorrPerFrameTracePath,
+                                   std::string model) {
   vpCorrPerFrameTracePath_ = vpCorrPerFrameTracePath;
+  pw_ = model == "Pano" ? 75 : 25;
 }

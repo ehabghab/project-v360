@@ -35,7 +35,8 @@ Client::Client(std::string tilesPerFrameTracePath,
   Decoder *decoder = new Decoder();
   AbrAlgorithm *abr = new AbrAlgorithm(
       tileChunkSizesPath, tileChunksQaulityPath, backgroundDisplacementPath);
-  TilePredictor *tilePredictor = new TilePredictor(vpCorrPerFrameTracePath);
+  TilePredictor *tilePredictor =
+      new TilePredictor(vpCorrPerFrameTracePath, FLAGS_model);
   BandwidthPredictor *bandwidthPredictor = new BandwidthPredictor();
 
   // Start all threads:

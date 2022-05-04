@@ -17,7 +17,6 @@
 class LinearRegression {
 private:
   static constexpr size_t kHW = 13;
-  static constexpr size_t kPW = 25;
   static constexpr float kLowerBound_ = 1e-5;
   static constexpr float kYawAlpha_ = 0.01;   // initializing our learning rate
   static constexpr float kPitchAlpha_ = 0.01; // initializing our learning rate
@@ -31,7 +30,7 @@ private:
   bool initalized = false;
 
   size_t hw_{kHW};
-  size_t pw_{kPW};
+  size_t pw_;
 
   float yawInput_[kHW];
   float pitchInput_[kHW];
@@ -48,7 +47,7 @@ private:
   void initPerfect();
 
 public:
-  LinearRegression(std::string vpCorrPerFrameTracePath);
+  LinearRegression(std::string vpCorrPerFrameTracePath, std::string model);
 
   /**
    * @brief It takes the histroy --half second-- of the user vp coordinates, and

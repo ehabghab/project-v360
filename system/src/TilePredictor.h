@@ -42,7 +42,7 @@ public:
                      std::vector<std::pair<int, int>> &vpResolutions,
                      uint8_t numberOfFutureFrames);
 
-  TilePredictor(std::string vpCorrPerFrameTracePath);
+  TilePredictor(std::string vpCorrPerFrameTracePath, std::string model);
   uint16_t getFrameId();
 
   // key1: High/low quality tiles
