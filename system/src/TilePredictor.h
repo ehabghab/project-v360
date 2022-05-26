@@ -69,6 +69,19 @@ public:
                     std::pair<float, float> &viewportCenter,
                     std::pair<int, int> &viewportResolution);
 
+  /**
+   * @brief Get the Overlapping Area Size Per Tile object;
+   *        used by Pano to determine the importance per tile-group
+   *
+   * @param vpResolution viewport resolution in degrees.
+   * @param predictionWindow number of frames in horizon.
+   * @return std::map<uint16_t, std::map<float, std::vector<uint16_t>>>
+   *         <frame, <area_normalized,<tiles>>
+   */
+  std::map<uint16_t, std::map<float, std::vector<uint16_t>>>
+  getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution,
+                                int predictionWindow);
+
 private:
   struct SquareCoordinates {
     std::pair<float, float> upperLeft;

@@ -1775,33 +1775,110 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
                            std::string panoTilesGroupsPath,
                            std::string panoVideoBitrate) {
 
-  abrAlgorithm->buildBitrateAssigment({}, 3, 15);
+  abrAlgorithm->buildBitrateAssigment({}, 3, 16);
 
   // index at zero is not used.
   uint8_t tilesGroups[12 * 12 + 1];
-  abrAlgorithm->readTilesGroups(tilesGroups, 12, 12, panoTilesGroupsPath);
+
+  // number of groups is 30 by default
+  uint8_t groupCount[30 + 1] = {0};
+  std::map<uint8_t, std::vector<uint16_t>> groupsTiles;
+
+  abrAlgorithm->readTilesGroups(tilesGroups, groupsTiles, groupCount, 12, 12,
+                                panoTilesGroupsPath);
 
   std::map<uint8_t, std::vector<float>> chunksBitrates;
   abrAlgorithm->readChunksBitrates(chunksBitrates, panoVideoBitrate);
+
   // this can be done in the constructor
   abrAlgorithm->fillGroupQualityInfo(tilesGroups, 12 * 12 + 1);
 
-  abrAlgorithm->mpcBitratePerChunk(bandwidthPredictor, clientNetworkLayer,
-                                   chunksBitrates,
-                                   videoPlayer->getFrameToRenderId(), 15);
   // every 100ms, update tile list.
   long stime = Util::getTime();
   float videoTime = 0;
   std::map<uint8_t, std::vector<std::pair<int, uint16_t>>> tilesRequest;
-
+  // this the id of the chunk currently being downloaded.
+  int chunkRequested = -1;
   while (true) {
-    // std::cout << req << std::endl;
-    // clientNetworkLayer->setRequest(req);
-    // auto frameToRenderId = videoPlayer->getFrameToRenderId();
-    // auto chunksBitrates = abrAlgorithm->mpc(
-    //   bandwidthPredictor, clientNetworkLayer, frameToRenderId);
 
-    tilesRequest.clear();
+    auto frameId = videoPlayer->getFrameToRenderId();
+    int chunkId = (frameId - 1) / 25;
+    auto bufferChunkStat =
+        abrAlgorithm->getBufferChunkStatus(clientNetworkLayer, frameId);
+
+    // if 100ms wake up, if the current chunk being download (is done and buffer
+    // size <= 2) or passed its deadline ,
+    // then update the request. if not sleep.
+
+    // Request for this chunk is sent and it has not been fully downloaded.
+    // OR
+    // buffer is full
+    if ((chunkRequested - chunkId >= 2) ||
+        (bufferChunkStat[chunkRequested - chunkId] != 144 &&
+         chunkRequested >= chunkId)) {
+      Util::sleep(stime, 100);
+      videoTime += (Util::getTime() - stime);
+      stime += 100;
+      VLOG(3) << "=== sleep ===\n"
+              << chunkId << ":" << chunkRequested << "\n"
+              << bufferChunkStat[0] << " : " << bufferChunkStat[1] << " : "
+              << bufferChunkStat[2];
+      continue;
+    }
+    chunkRequested++;
+
+    VLOG(3) << "=== awake ===\n"
+            << Util::getTime() << "\n"
+            << chunkId << ":" << chunkRequested << "\n"
+            << bufferChunkStat[0] << " : " << bufferChunkStat[1] << " : "
+            << bufferChunkStat[2];
+
+    auto bitrateAssignmentIdx = abrAlgorithm->mpcBitratePerChunk(
+        bandwidthPredictor, clientNetworkLayer, chunksBitrates,
+        videoPlayer->getFrameToRenderId(), 16);
+
+    auto assignment = abrAlgorithm->bitrateAssignments_[bitrateAssignmentIdx];
+    VLOG(3) << chunksBitrates[assignment[0]][chunkId] << "   :   "
+            << chunksBitrates[assignment[1]][chunkId + 1] << "    :   "
+            << chunksBitrates[assignment[2]][chunkId + 2] << "\n";
+
+    auto areaPerGroup = abrAlgorithm->areaPerGroup(tilePredictor, tilesGroups);
+    auto groupsQualityPerChunk = abrAlgorithm->selectIntraGroupQuality(
+        bitrateAssignmentIdx, chunksBitrates, areaPerGroup);
+
+    std::string req = "Tiles\n";
+    for (auto stChunk = chunkRequested - chunkId;
+         stChunk < groupsQualityPerChunk.size(); stChunk++) { // for chunk
+      for (auto const &groupPair : areaPerGroup.find(chunkRequested)
+                                       ->second) { // for group [sorted by area]
+        auto groupId = groupPair.first;
+        for (auto tileId : groupsTiles.find(groupId)->second) { // for tile
+          auto qualityId = groupsQualityPerChunk[stChunk][groupId];
+          req += std::to_string(stChunk + chunkId) + "_" +
+                 std::to_string(tileId) + "_" + std::to_string(qualityId) + ",";
+        }
+      }
+    }
+    if (VLOG_IS_ON(3)) {
+      std::vector<int> sizes(3, 0);
+      for (int chunkIds = 0; chunkIds < groupsQualityPerChunk.size();
+           chunkIds++) {
+        for (int idx = 1; idx < groupsQualityPerChunk[chunkIds].size(); idx++) {
+          sizes[chunkIds] +=
+              abrAlgorithm
+                  ->groupChunkSizePerQuality_[groupsQualityPerChunk[chunkIds]
+                                                                   [idx]][idx]
+                                             [chunkIds + chunkId];
+        }
+      }
+      VLOG(3) << sizes[0] * 8 / 1e6 << "   :   " << sizes[1] * 8 / 1e6
+              << "    :   " << sizes[2] * 8 / 1e6 << "\n======\n";
+    }
+    req.pop_back();
+
+    req += "\nQuality\n" + std::to_string(0);
+    clientNetworkLayer->setRequest(req);
+
     Util::sleep(stime, ABR_FREQ);
     videoTime += (Util::getTime() - stime);
     stime += 100;
@@ -1820,7 +1897,6 @@ int AbrAlgorithm::mpcBitratePerChunk(
 
   float predictedBw =
       (bandwidthPredictor->getMpcBandwidthPrediction() * 8.0) / 1e6; // mbps
-
   assert(predictedBw >= 0);
   if (predictedBw == 0) {
     return bitrateAssignments_.size() - 1;
@@ -1867,28 +1943,142 @@ int AbrAlgorithm::mpcBitratePerChunk(
     }
 
     reward = reward - rebuffering * maxQuality;
-    if (VLOG_IS_ON(1)) {
-      VLOG(1) << idx;
-      VLOG(1) << "[" << std::to_string(bitrateAssignment[0]) << ","
-              << std::to_string(bitrateAssignment[1]) << ","
-              << std::to_string(bitrateAssignment[2]) << "]";
-      VLOG(1) << chunksBitrates[bitrateAssignment[0]][stChunkId] << ","
+    if (VLOG_IS_ON(3)) {
+      VLOG(3) << "Sol id:" << idx << "[" << std::to_string(bitrateAssignment[0])
+              << "," << std::to_string(bitrateAssignment[1]) << ","
+              << std::to_string(bitrateAssignment[2]) << "]"
+              << chunksBitrates[bitrateAssignment[0]][stChunkId] << ","
               << chunksBitrates[bitrateAssignment[1]][stChunkId + 1] << ","
-              << chunksBitrates[bitrateAssignment[2]][2 + stChunkId] << "";
-      VLOG(1) << reward << "====";
+              << chunksBitrates[bitrateAssignment[2]][2 + stChunkId] << reward
+              << "====";
     }
     if (reward > maxReward) {
       maxReward = reward;
       idxBestBitrate = idx;
     }
   }
-  auto bestAssignment = bitrateAssignments_[idxBestBitrate];
   return idxBestBitrate;
 }
 
+std::vector<std::vector<uint8_t>> AbrAlgorithm::selectIntraGroupQuality(
+    int bitrateAssignmentIdx,
+    std::map<uint8_t, std::vector<float>> chunksBitrates,
+    std::map<int, std::map<uint8_t, float>> groupsAreaPerChunk) {
+  std::vector<std::vector<uint8_t>> intraGroupQPerChunk;
+  auto &chunkBitrateAssignment = bitrateAssignments_[bitrateAssignmentIdx];
+  int idx = 0;
+  // chunk(i, i+1,i+2) --> group--> area.
+  for (auto &chunkAreaPerGroup : groupsAreaPerChunk) { // per chunk
+    if (idx > 2) {                                     // limit W to 3seconds.
+      break;
+    }
+    auto chunkId = chunkAreaPerGroup.first;
+    auto chunkTargetSize =
+        (chunksBitrates[chunkBitrateAssignment[idx]][chunkId] * 1e6) /
+        8.0; // Bytes
+
+    // size of all groups in lowest quality.
+    std::vector<uint8_t> groupsQ(chunkAreaPerGroup.second.size() + 1, 1);
+    float initSize = 0;
+    for (auto groupArea : chunkAreaPerGroup.second) {
+      auto groupId = groupArea.first;
+      initSize += groupChunkSizePerQuality_.find(1)
+                      ->second.find(groupId)
+                      ->second[chunkId];
+    }
+    // increase the quality of each group by one at a time;
+    // if the total size >= assigned bitrate; Stop.
+    for (int qualityId = 2; qualityId <= groupChunkSizePerQuality_.size();
+         qualityId++) {
+      auto sortedGroups = sortedGroupsByMaxPsnrImpact(
+          chunkAreaPerGroup.second, groupsQ, chunkId, qualityId);
+      for (auto &gainGroups : sortedGroups) {
+        // gain is zero (does not overlapp, or diff psnr is zero)
+        if (gainGroups.first == 0) {
+          continue;
+        }
+        for (auto groupId : gainGroups.second) {
+          auto oldSize =
+              groupChunkSizePerQuality_[groupsQ[groupId]][groupId][chunkId];
+          auto newSize = groupChunkSizePerQuality_[qualityId][groupId][chunkId];
+          // if we cannot increase the quality of the current group; try
+          // next group.
+          if (initSize + newSize - oldSize > chunkTargetSize) {
+            continue;
+          }
+          initSize += (newSize - oldSize);
+          groupsQ[groupId] = qualityId;
+        }
+      }
+    }
+    intraGroupQPerChunk.push_back(groupsQ);
+    idx++;
+  }
+  return intraGroupQPerChunk;
+}
+
+std::map<int, std::map<uint8_t, float>>
+AbrAlgorithm::areaPerGroup(TilePredictor *tilePredictor,
+                           uint8_t tilesGroups[]) {
+
+  auto areaPerTile =
+      tilePredictor->getOverlappingAreaSizePerTile({100, 100}, 75);
+
+  std::map<int, std::map<uint8_t, float>> groupTotalAreaPerChunk;
+
+  for (auto &frameTilesArea : areaPerTile) { // per frame
+    auto frameId = frameTilesArea.first;
+    int chunkId = frameId / 25;
+    if (groupTotalAreaPerChunk.find(chunkId) == groupTotalAreaPerChunk.end()) {
+      groupTotalAreaPerChunk.insert({chunkId, {}});
+    }
+    for (auto &tilesArea : frameTilesArea.second) { // tile area
+      auto tileArea = 1 - tilesArea.first;
+      for (auto tile : tilesArea.second) {
+        auto groupId = tilesGroups[tile];
+        if (groupTotalAreaPerChunk[chunkId].find(groupId) ==
+            groupTotalAreaPerChunk[chunkId].end()) {
+          groupTotalAreaPerChunk[chunkId].insert({groupId, 0});
+        }
+        groupTotalAreaPerChunk[chunkId][groupId] += tileArea;
+      }
+    }
+  }
+  return groupTotalAreaPerChunk;
+}
+
+std::map<float, std::vector<uint8_t>> AbrAlgorithm::sortedGroupsByMaxPsnrImpact(
+    std::map<uint8_t, float> groupsArea,
+    std::vector<uint8_t> groupCurQualityVec, int chunkId,
+    uint8_t qualityTarget) {
+  std::map<float, std::vector<uint8_t>> sortedGroups;
+  for (auto &groupArea : groupsArea) {
+    auto newPsnr =
+        groupChunkPSNRPerQuality_[qualityTarget][groupArea.first][chunkId];
+    auto oldPsnr =
+        groupChunkPSNRPerQuality_[groupCurQualityVec[groupArea.first]]
+                                 [groupArea.first][chunkId];
+    auto gain = (newPsnr - oldPsnr) * groupsArea.find(groupArea.first)->second;
+    // map is ascendingly ordered, we flip the gain so that groups with highest
+    // gain comes first.
+    float sortedGain = gain * -1;
+    if (sortedGroups.find(sortedGain) == sortedGroups.end()) {
+      sortedGroups.insert({sortedGain, {}});
+    }
+    sortedGroups[sortedGain].push_back(groupArea.first);
+  }
+
+  return sortedGroups;
+}
+
 void AbrAlgorithm::fillGroupQualityInfo(uint8_t tilesGroups[], int numOfTiles) {
+  std::map<uint8_t, uint8_t> numTilesPerGroup;
   for (int tileIdx = 1; tileIdx < numOfTiles; tileIdx++) {
     auto groupId = tilesGroups[tileIdx];
+    if (numTilesPerGroup.find(groupId) == numTilesPerGroup.end()) {
+      numTilesPerGroup.insert({groupId, 0});
+    }
+    numTilesPerGroup[groupId] += 1;
     for (uint8_t qualityIdx = 1; qualityIdx <= numberOfQualities_;
          qualityIdx++) {
 
@@ -1916,6 +2106,13 @@ void AbrAlgorithm::fillGroupQualityInfo(uint8_t tilesGroups[], int numOfTiles) {
           groupChunkPSNRPerQuality_[qualityIdx][groupId][chunkIdx] +=
               tileChunkPSNRPerQuality_[qualityIdx][tileIdx][chunkIdx];
         }
+      }
+    }
+  }
+  for (auto &groupChunkPSNRPerQuality : groupChunkPSNRPerQuality_) {
+    for (auto &qualityPnsr : groupChunkPSNRPerQuality.second) {
+      for (auto idx = 0; idx < qualityPnsr.second.size(); idx++) {
+        qualityPnsr.second[idx] /= numTilesPerGroup[qualityPnsr.first];
       }
     }
   }
@@ -1955,9 +2152,10 @@ void AbrAlgorithm::buildBitrateAssigment(std::vector<uint8_t> assignment,
   }
 }
 
-void AbrAlgorithm::readTilesGroups(uint8_t tilesGroups[], int numTilesW,
-                                   int numbTilesH,
-                                   std::string tilesGroupsFilePath) {
+void AbrAlgorithm::readTilesGroups(
+    uint8_t tilesGroups[],
+    std::map<uint8_t, std::vector<uint16_t>> &groupsTiles, uint8_t groupCount[],
+    int numTilesW, int numbTilesH, std::string tilesGroupsFilePath) {
   std::ifstream infile(tilesGroupsFilePath);
   std::string line;
   while (std::getline(infile, line)) {
@@ -1969,10 +2167,15 @@ void AbrAlgorithm::readTilesGroups(uint8_t tilesGroups[], int numTilesW,
       auto enR = groupLine[2];
       auto stC = groupLine[3];
       auto enC = groupLine[4];
+      if (groupsTiles.find(groupId) == groupsTiles.end()) {
+        groupsTiles.insert({groupId, {}});
+      }
       for (auto rowIdx = stR - 1; rowIdx < enR; rowIdx++) {
         for (auto colIdx = stC; colIdx <= enC; colIdx++) {
           auto tileId = rowIdx * numTilesW + colIdx;
           tilesGroups[tileId] = groupId;
+          groupsTiles[groupId].push_back(tileId);
+          groupCount[groupId]++;
         }
       }
     } catch (std::invalid_argument &e) {

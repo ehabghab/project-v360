@@ -609,6 +609,56 @@ TilePredictor::getPredictedTilesFlareLR(
   return tileClassAllFrames;
 }
 
+std::map<uint16_t, std::map<float, std::vector<uint16_t>>>
+TilePredictor::getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution,
+                                             int predictionWindow) {
+  // video join time as it only happens at the start of video sessions.
+  while (frameId_ == 0)
+    ;
+
+  std::vector<std::pair<float, float>> predictedCorr;
+
+  if (FLAGS_predLR) {
+    LOG(INFO) << "Linear Regression";
+    if (frameId_ >= 13) {
+      linearRegressor_->predict(predictedCorr, std::ref(vpGroundTruth_),
+                                frameId_);
+    }
+  } else {
+    LOG(INFO) << "Perfect predictor";
+    linearRegressor_->predictPerfect(predictedCorr, frameId_);
+  }
+
+  std::map<uint16_t, std::map<float, std::vector<uint16_t>>> tileAreaPerFrame;
+
+  uint16_t frameId = frameId_;
+  for (uint16_t idx = 0; idx < predictionWindow; idx++) { // per frame
+    if (frameId >= 1475) {
+      break;
+    }
+    int chunkId = ((frameId + idx) - 1) / 25;
+
+    std::pair<float, float> viewportCenter;
+    // use static predictor.
+    if (predictedCorr.size() == 0) {
+      viewportCenter = vpGroundTruth_[frameId_ - 1];
+    } else {
+      viewportCenter = predictedCorr[idx];
+    }
+    // Key: tile-class (i.e. rank).
+    // Value: all tiles with that class.
+    std::map<uint8_t, std::vector<uint16_t>> fillingMap;
+
+    std::map<float, std::vector<uint16_t>> tilesSortedByArea;
+    // sortTileSetByArea(tilesSortedByArea, vpSqrs,
+    //                vpResolution.first * vpResolution.second);
+    sortTileSetByArea(std::ref(tilesSortedByArea), viewportCenter,
+                      vpResolution);
+    tileAreaPerFrame.insert({(frameId + idx) - 1, tilesSortedByArea});
+  }
+  return tileAreaPerFrame;
+}
+
 std::map<std::pair<int, uint16_t>, std::vector<float>>
 TilePredictor::buildUtilityMatrix(
     std::vector<std::pair<float, float>> &predictedCorr,

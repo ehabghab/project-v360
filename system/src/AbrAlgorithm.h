@@ -64,11 +64,12 @@ private:
       backgroundDisplacement_;
 
   // quality --> group --> chunk
-  std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
+  // quality range starts from 1 (being the lowest) to N (the highest)
+  std::map<uint8_t, std::map<uint8_t, std::vector<uint64_t>>>
       groupChunkSizePerQuality_;
 
   // quality --> group --> psnr
-  std::map<uint8_t, std::map<uint16_t, std::vector<float>>>
+  std::map<uint8_t, std::map<uint8_t, std::vector<float>>>
       groupChunkPSNRPerQuality_;
 
   // possible chunk bitrates
@@ -267,11 +268,56 @@ private:
                          std::map<uint8_t, std::vector<float>> &chunksBitrates,
                          uint32_t frameId, int maxQuality);
 
+  /**
+   * @brief this select the quality of the groups per chunk
+   *        for the next 3 chunks.
+   * @param bitrateAssignmentIdx This contains the target bitrate idx for each
+   *                             chunk.
+   * @param chunksBitrates       The bitrate for all chunks in all qualities.
+   * @param groupsAreaPerChunk   The overlapping area per group of tiles per
+   *                             chunk.
+   * @return std::vector<std::vector<uint8_t>>
+   *         chunk --> group = quality.
+   *
+   */
+  std::vector<std::vector<uint8_t>> selectIntraGroupQuality(
+      int bitrateAssignmentIdx,
+      std::map<uint8_t, std::vector<float>> chunksBitrates,
+      std::map<int, std::map<uint8_t, float>> groupsAreaPerChunk);
+
+  /**
+   * @brief sorted groups by diff in psnr * overlapping area with vp
+   *
+   * @param groupsArea
+   * @param groupCurQualityArray
+   * @param chunkId
+   * @param qualityTarget
+   * @return std::map<float, std::vector<uint8_t>> --> <gain, list of groups>
+   *         groups with highest impact first since gain is flipped.
+   */
+  std::map<float, std::vector<uint8_t>>
+  sortedGroupsByMaxPsnrImpact(std::map<uint8_t, float> groupsArea,
+                              std::vector<uint8_t> groupCurQualityVec,
+                              int chunkId, uint8_t qualityTarget);
+  /**
+   * @brief calculates the overlapping area per group in each chunk,
+   *        for the next 3-sec chunks.
+   *
+   * @param tilePredictor
+   * @param tilesGroups     the group id per tile   [tileId] = groupId
+   * @return std::map<int, std::map<uint8_t, float>>
+   *         chunk --> group --> overlapping area.
+   */
+  std::map<int, std::map<uint8_t, float>>
+  areaPerGroup(TilePredictor *tilePredictor, uint8_t tilesGroups[]);
+
   void buildBitrateAssigment(std::vector<uint8_t> assignment,
                              int numOfChunkInHorizon,
                              int numOfPossibleBitrates);
 
-  void readTilesGroups(uint8_t tilesGroups[], int numTilesW, int numbTilesH,
+  void readTilesGroups(uint8_t tilesGroups[],
+                       std::map<uint8_t, std::vector<uint16_t>> &groupsTiles,
+                       uint8_t groupCount[], int numTilesW, int numbTilesH,
                        std::string tilesGroupsFilePath);
 
   void readChunksBitrates(std::map<uint8_t, std::vector<float>> &chunksBitrates,
