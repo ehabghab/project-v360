@@ -674,7 +674,7 @@ TilePredictor::buildUtilityMatrix(
   std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix;
 
   // keep track of what is the frameId for utility at zero (base frame id)
-  utilityMatrix.insert({{-1, -1}, {static_cast<float>(frameId - 1)}});
+  utilityMatrix.insert({{-1, -1}, {static_cast<float>(frameId)}});
 
   for (uint8_t idx = 0; idx < numberOfFutureFrames; idx++) { // per frame
     if (frameId >= 1475) {

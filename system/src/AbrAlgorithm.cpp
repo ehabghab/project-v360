@@ -1296,7 +1296,7 @@ AbrAlgorithm::qualityABR(
       ////// TILE PLACEMENT \\\\
       // Place tile in its potention new place if exists.
       if (!placeAtTail && potentionalPos == nullptr) {
-        continue;
+        goto EXIT_L1;
       } else if (potentionalPos != nullptr) {
         placeAtTail = false;
       }
@@ -1307,7 +1307,7 @@ AbrAlgorithm::qualityABR(
             downloadTimeUpdated;
         tailTile->EstDownloadTime = downloadTimeUpdated;
         tailTile->quality = qualityIdx;
-        continue;
+        goto EXIT_L1;
       }
 
       updateArrivalTimeOfSuccessorNodes(tailTile, tileN, potentionalPos,
@@ -1316,6 +1316,7 @@ AbrAlgorithm::qualityABR(
       moveAndUpdateTile(headTile, tailTile, tileN, potentionalPos,
                         downloadTimeUpdated, curTime, qualityIdx, placeAtTail);
 
+    EXIT_L1:
       checkTilesUtility(utilityMatrix, tilesNodeMap, headTile, tailTile,
                         frameIdSt, estimatedBw, curTime);
 
