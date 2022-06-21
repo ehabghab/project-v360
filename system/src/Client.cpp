@@ -52,12 +52,9 @@ Client::Client(std::string tilesPerFrameTracePath,
   if (FLAGS_skipModel) {
     videoPlayerThread = std::thread(VideoPlayer::startVideoWithSkip,
                                     videoPlayer, tilePredictor);
-  } else if (!FLAGS_skipModel && FLAGS_model != "Utility") {
+  } else {
     videoPlayerThread = std::thread(VideoPlayer::startVideoWithRebuffer,
                                     videoPlayer, tilePredictor);
-  } else {
-    LOG(ERROR) << "Utility ABR does not support rebuffering.";
-    return;
   }
 
   std::thread videoPlayerDecoderThread(VideoPlayer::decode, videoPlayer,
