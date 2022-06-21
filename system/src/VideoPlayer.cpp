@@ -83,7 +83,11 @@ void VideoPlayer::addChunk(uint8_t *chunkPointer, uint32_t chunkSize,
   auto pair = chunks_.find(tileChunkIdx);
   if (pair != chunks_.end()) {
     recvChunKMutex_.lock();
-    pair->second.insert(std::make_pair(tileIdx, chunk));
+    if (pair->second.find(tileIdx) != pair->second.end()) {
+      pair->second.find(tileIdx)->second = chunk;
+    } else {
+      pair->second.insert(std::make_pair(tileIdx, chunk));
+    }
     recvChunKMutex_.unlock();
   } else {
     std::map<uint16_t, struct Chunk> tileIdxChunkMap;
@@ -495,7 +499,10 @@ void VideoPlayer::startVideoWithRebuffer(VideoPlayer *videoPlayer,
       LOG(INFO) << "Video Ended!";
       return;
     }
+    LOG(INFO) << Util::getTime() << " : " << frameGap << " --> "
+              << "before\n";
     Util::sleep(renderTime, frameGap);
+    LOG(INFO) << Util::getTime() << " : after\n";
   }
 }
 
