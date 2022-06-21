@@ -453,11 +453,23 @@ void TilePredictor::getUrgetTilesListsTemp(
 void TilePredictor::getBackgroundTiles(
     std::map<float, std::vector<uint16_t>> &bgTiles,
     std::pair<std::pair<float, float>, std::pair<float, float>>
-        displacement /* <left,right> <down,up> */) {
+        displacement /* <left,right> <down,up> */,
+    uint16_t frameGroundTruth) {
   while (frameId_ == 0)
     ;
-
-  auto vpCorr = vpGroundTruth_[frameId_ - 1];
+  if (frameGroundTruth != 0) {
+    while (frameId_ < frameGroundTruth)
+      ;
+    LOG(INFO) << "Ground Truth predictions:";
+    LOG(INFO) << vpGroundTruth_[frameGroundTruth - 1].first << ","
+              << vpGroundTruth_[frameGroundTruth - 1].second;
+    LOG(INFO) << displacement.first.first << " : " << displacement.first.second;
+    LOG(INFO) << displacement.second.first << " : "
+              << displacement.second.second;
+    LOG(INFO) << "=======\n";
+  }
+  auto vpCorr = frameGroundTruth == 0 ? vpGroundTruth_[frameId_ - 1]
+                                      : vpGroundTruth_[frameGroundTruth - 1];
   float leftCorr = vpCorr.first - (displacement.first.first + 50);
   float rightCorr = vpCorr.first + (displacement.first.second + 50);
   float downCorr = vpCorr.second - (displacement.second.first + 50);
@@ -490,6 +502,9 @@ void TilePredictor::getBackgroundTiles(
       displacement.first.first + displacement.first.second + 100;
   float pitchDimension =
       displacement.second.first + displacement.second.second + 100;
+
+  yawDimension = yawDimension > 360 ? 360 : yawDimension;
+  pitchDimension = pitchDimension > 180 ? 180 : pitchDimension;
 
   std::pair<float, float> viewportCenter(yawCenter, pitchCenter);
   std::pair<int, int> viewportDimention(yawDimension, pitchDimension);

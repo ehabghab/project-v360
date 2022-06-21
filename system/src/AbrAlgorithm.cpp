@@ -629,6 +629,7 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
   std::vector<std::vector<std::pair<int, uint16_t>>> backgroundTiles(
       backgroundHorizonInSec);
   std::vector<long> backgroundTilesSizes(backgroundHorizonInSec);
+  std::set<int> groundTruth;
   while (true) {
 
     // retrieve the predicted tiles using linear regression.
@@ -651,15 +652,40 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
         backgroundTiles[idx - chunkId] = {};
         continue;
       }
+
       std::map<float, std::vector<uint16_t>> tempBgTiles;
-      if (frameIdToRender % 25 == 1 || idx != chunkId) {
+      if (idx != chunkId) {
         tilePredictor->getBackgroundTiles(
-            tempBgTiles, abrAlgorithm->backgroundDisplacement_[idx]);
+            tempBgTiles, abrAlgorithm->backgroundDisplacement_[idx], 0);
         abrAlgorithm->updateTilesAndgetTotalSize(
             std::ref(backgroundTilesSizes[idx - chunkId]),
             std::ref(backgroundTiles[idx - chunkId]), tempBgTiles, idx,
             clientNetworkLayer);
-      } else {
+      } else if (idx == chunkId &&
+                 groundTruth.find(chunkId) == groundTruth.end()) {
+        tilePredictor->getBackgroundTiles(
+            tempBgTiles, abrAlgorithm->backgroundDisplacement_[idx],
+            (chunkId * 25) + 1);
+        abrAlgorithm->updateTilesAndgetTotalSize(
+            std::ref(backgroundTilesSizes[idx - chunkId]),
+            std::ref(backgroundTiles[idx - chunkId]), tempBgTiles, idx,
+            clientNetworkLayer);
+        std::string log = "";
+        for (auto v : tempBgTiles) {
+          if (v.first != 1) {
+            for (auto x : v.second) {
+              log += std::to_string(x) + ", ";
+            }
+          }
+        }
+        log.pop_back();
+        LOG(INFO) << "Ground truth for chunk" << idx;
+        LOG(INFO) << log;
+        LOG(INFO) << "=====";
+        groundTruth.insert(chunkId);
+      }
+
+      else {
         abrAlgorithm->updateTilesAndgetTotalSize(
             std::ref(backgroundTilesSizes[idx - chunkId]),
             std::ref(backgroundTiles[idx - chunkId]), clientNetworkLayer);
