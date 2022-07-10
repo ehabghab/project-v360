@@ -283,7 +283,7 @@ void VideoPlayer::startVideoWithSkip(VideoPlayer *videoPlayer,
     // videoPlayer->getVpCorrInRealTime();
     // add current user's coordinate to ground truth.
     tilePredictor->addVpCoordinate(
-        videoPlayer->groundTruthCoordinates_[videoPlayer->frameId_ - 1]);
+        videoPlayer->groundTruthCoordinates_[videoPlayer->frameId_ - 1], true);
 
     // all tiles needed to construct current frame.
     auto tiles = videoPlayer->groundTruth_.find(videoPlayer->frameId_);
@@ -372,7 +372,7 @@ void VideoPlayer::startVideoWithSkip(VideoPlayer *videoPlayer,
             tilesQuality.c_str());
 
     fflush(playLog);
-    videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_);
+    videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_, 0);
     // if (videoPlayer->frameId_ % videoPlayer->FPS_ == 0) {
     //   if (videoPlayer->decodedTileChunks_.find(playSecond) !=
     //       videoPlayer->decodedTileChunks_.end()) {
@@ -420,7 +420,7 @@ void VideoPlayer::startVideoWithRebuffer(VideoPlayer *videoPlayer,
     bool check1 = true;
     bool check2 = true;
     tilePredictor->addVpCoordinate(
-        videoPlayer->groundTruthCoordinates_[videoPlayer->frameId_ - 1]);
+        videoPlayer->groundTruthCoordinates_[videoPlayer->frameId_ - 1], true);
 
     // all tiles to present in the current frame.
     auto tiles = videoPlayer->groundTruth_.find(videoPlayer->frameId_);
@@ -491,7 +491,7 @@ void VideoPlayer::startVideoWithRebuffer(VideoPlayer *videoPlayer,
             std::to_string(renderTime).c_str(), tilesQuality.c_str());
 
     fflush(playLog);
-    videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_);
+    videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_, 0);
     Util::setFramePlayTime(renderTime);
     videoPlayer->frameId_++;
     viewport.clear();
@@ -503,6 +503,175 @@ void VideoPlayer::startVideoWithRebuffer(VideoPlayer *videoPlayer,
               << "before\n";
     Util::sleep(renderTime, frameGap);
     LOG(INFO) << Util::getTime() << " : after\n";
+  }
+}
+
+void VideoPlayer::startVideoLive(VideoPlayer *videoPlayer,
+                                 TilePredictor *tilePredictor) {
+  long renderTime;
+
+  long frameGap = (1000.0 / videoPlayer->FPS_);
+
+  uint32_t playSecond;
+  // tileIndex, raw-tile-frame.
+  std::map<uint16_t, uint8_t *> viewport;
+
+  FILE *playLog;
+  std::string filename = "play_log_" + Util::getLogTimestamp() + ".txt";
+  playLog = fopen(filename.c_str(), "wb");
+  fprintf(playLog, "%-20s %-20s %-20s %-20s %10s\n", "frame id", "deadline",
+          "render time", "skipped tiles", "tiles_quality");
+  // For the first frame in the video, we don't skip any tiles (allow join time)
+  bool firstFrame = true;
+
+  // if the needed tile has not been received, the skip it.
+  bool haveReceivedTile;
+
+  bool playNextFrame = true;
+
+  // this will log all tiles along with their quality (tileIdx_tileQuality),
+  // separated by a comma.
+  std::string tilesQuality;
+
+  // list of all tiles we had to skip for the current frame.
+  std::string skippedTiles;
+  int framePauseCount = 0;
+  int corrCount = 0;
+  while (true) {
+    corrCount++;
+    long frameDeadline = Util::getTime();
+
+    // add current user's coordinate to ground truth.
+    tilePredictor->addVpCoordinate(
+        videoPlayer->groundTruthCoordinates_[corrCount - 1], playNextFrame);
+
+    // all tiles needed to construct current frame.
+    auto tiles = videoPlayer->groundTruth_.find(corrCount);
+    if (tiles == videoPlayer->groundTruth_.end()) {
+      // no more frames;
+      LOG(INFO) << "No more frames to play!";
+      break;
+    }
+
+    playNextFrame = true;
+    tilesQuality = "";
+    skippedTiles = "";
+    while (viewport.size() != tiles->second.size()) {
+      videoPlayer->fillViewportTiles(videoPlayer, tiles->second, viewport,
+                                     tilesQuality);
+      if (!firstFrame) {
+        break;
+      }
+    }
+    std::vector<int16_t> missedTiles;
+    for (auto tileIdx : tiles->second) {
+      if (viewport.find(tileIdx) == viewport.end()) {
+        playNextFrame = false;
+        viewport.insert(std::make_pair(tileIdx, nullptr));
+        skippedTiles += std::to_string(tileIdx) + ",";
+        missedTiles.push_back(tileIdx);
+      }
+    }
+    firstFrame = false;
+
+    renderTime = Util::getTime();
+    fprintf(playLog, "%-20s %-20s %-20s %-20s %10s\n",
+            std::to_string(videoPlayer->frameId_).c_str(),
+            std::to_string(frameDeadline).c_str(),
+            std::to_string(renderTime).c_str(), skippedTiles.c_str(),
+            tilesQuality.c_str());
+
+    fflush(playLog);
+    if (!playNextFrame) {
+      framePauseCount++;
+    } else {
+      framePauseCount = 0;
+    }
+    videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_,
+                                 framePauseCount);
+    Util::setFramePlayTime(renderTime);
+
+    // keep trying to construct the full vp if any tile is missing.
+    if (!playNextFrame) {
+      for (auto tile : missedTiles) {
+        viewport.erase(tile);
+      }
+
+      while (viewport.size() != tiles->second.size() &&
+             frameDeadline + 40 > Util::getTime()) {
+        videoPlayer->fillViewportTiles(videoPlayer, tiles->second, viewport,
+                                       tilesQuality);
+      }
+      // if vp is now fully received, fill blank tiles.
+      if (viewport.size() == tiles->second.size()) {
+        skippedTiles = "";
+        playNextFrame = true;
+        auto newRenderTime = Util::getTime();
+        fprintf(playLog, "%-20s %-20s %-20s %-20s %10s\n",
+                std::to_string(videoPlayer->frameId_).c_str(),
+                std::to_string(frameDeadline).c_str(),
+                std::to_string(newRenderTime).c_str(), skippedTiles.c_str(),
+                tilesQuality.c_str());
+
+        fflush(playLog);
+        framePauseCount++;
+        videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_,
+                                     framePauseCount);
+        framePauseCount = 0;
+      }
+    }
+
+    if (playNextFrame) {
+      videoPlayer->frameId_++;
+    }
+    viewport.clear();
+    if (videoPlayer->frameId_ == 1476) {
+      LOG(INFO) << "Video Ended!";
+      return;
+    }
+    Util::sleep(renderTime, frameGap);
+  }
+}
+
+void VideoPlayer::fillViewportTiles(VideoPlayer *videoPlayer,
+                                    std::vector<uint16_t> &tiles,
+                                    std::map<uint16_t, uint8_t *> &viewport,
+                                    std::string &tilesQuality) {
+  // if the needed tile has not been received, the skip it.
+  bool haveReceivedTile;
+  for (auto tileIdx : tiles) {
+    if (viewport.find(tileIdx) != viewport.end()) {
+      continue;
+    }
+    auto playSecond = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
+    // not a single received.
+    if (videoPlayer->decodedTileChunks_.find(playSecond) ==
+        videoPlayer->decodedTileChunks_.end()) {
+      continue;
+    }
+    // check if this tile has been recieved.
+    // If not, check next tile in the viewport.
+    haveReceivedTile = false;
+    auto &rawTilesChunks =
+        videoPlayer->decodedTileChunks_.find(playSecond)->second;
+    videoPlayer->decodedTileChunksMutex_.lock();
+    if (rawTilesChunks.find(tileIdx) != rawTilesChunks.end()) {
+      haveReceivedTile = true;
+    }
+    videoPlayer->decodedTileChunksMutex_.unlock();
+    if (!haveReceivedTile) {
+      continue;
+    }
+
+    // add tile to viewport
+    auto &framePtrQualityPair = rawTilesChunks.find(tileIdx)->second;
+    auto &frame = framePtrQualityPair
+                      .first[(videoPlayer->frameId_ - 1) % videoPlayer->FPS_];
+    viewport.insert(std::make_pair(tileIdx, frame));
+
+    // log info about the tile.
+    tilesQuality += std::to_string(tileIdx) + "_" +
+                    std::to_string(framePtrQualityPair.second) + ",";
   }
 }
 
@@ -562,7 +731,7 @@ void VideoPlayer::orderTilesToLinkedList(
 
 template <typename T>
 void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
-                                  int frameId) {
+                                  int frameId, int framePauseCount) {
   std::vector<Node<T> *> viewportLinkedList;
   orderTilesToLinkedList(viewport, viewportLinkedList);
   if (viewportLinkedList.size() == 0) {
@@ -616,7 +785,8 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
       // Y-plane
       // The base memory location of the tile Y values.
       // This mainly equals to the number of tiles in all previous rows
-      // [tileInRow * numOfRows * 320 * 160] + number of pixels in the same row
+      // [tileInRow * numOfRows * 320 * 160] + number of pixels in the same
+      // row
       // [tileCountInRow * 320]
       int yBaseTileAddress =
           (tilesInRow * numOfRows * 320 * 160) + (tileCountInRow * 320);
@@ -677,10 +847,11 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
 
   FILE *myfile;
 
-  std::string filename =
-      "yuv_frames_" + Util::getLogTimestamp() + "/" + std::to_string(frameId) +
-      "_" + std::to_string(tilesInRow * 320) + "X" +
-      std::to_string(viewportLinkedList.size() * 160) + ".yuv";
+  std::string filename = "yuv_frames_" + Util::getLogTimestamp() + "/" +
+                         std::to_string(frameId) + "_";
+  filename += framePauseCount == 0 ? "" : std::to_string(framePauseCount) + "_";
+  filename += std::to_string(tilesInRow * 320) + "X" +
+              std::to_string(viewportLinkedList.size() * 160) + ".yuv";
 
   myfile = fopen(filename.c_str(), "wb");
 

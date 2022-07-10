@@ -17,7 +17,7 @@
 
 class TilePredictor {
 public:
-  void addVpCoordinate(std::pair<float, float> coordinate);
+  void addVpCoordinate(std::pair<float, float> coordinate, bool playNextFrame);
 
   // returns frameId --> tile class --> set of tiles.
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
@@ -99,6 +99,7 @@ private:
   std::vector<std::pair<float, float>> vpPredictions_;
   std::vector<std::pair<float, float>> vpGroundTruth_;
   uint16_t frameId_;
+  uint16_t corrCount_;
 
   // TODO: build manifest to fill from.
   std::map<uint16_t, std::pair<float, float>> tileCoordinates_;

@@ -323,7 +323,7 @@ void TilePredictor::getUrgetTilesListsTemp(
     lqTiles.insert(std::make_pair(0, allTiles));
     urgentTiles.insert(std::make_pair("LQ", lqTiles));
 
-    auto &vpCorr = vpGroundTruth_[frameId_ - 1];
+    auto &vpCorr = vpGroundTruth_[corrCount_ - 1];
     std::pair<int, int> vpResolution(100, 100);
     std::map<float, std::vector<uint16_t>> tileRanksByArea;
     sortTileSetByArea(tileRanksByArea, vpCorr, vpResolution);
@@ -468,7 +468,7 @@ void TilePredictor::getBackgroundTiles(
               << displacement.second.second;
     LOG(INFO) << "=======\n";
   }
-  auto vpCorr = frameGroundTruth == 0 ? vpGroundTruth_[frameId_ - 1]
+  auto vpCorr = frameGroundTruth == 0 ? vpGroundTruth_[corrCount_ - 1]
                                       : vpGroundTruth_[frameGroundTruth - 1];
   float leftCorr = vpCorr.first - (displacement.first.first + 50);
   float rightCorr = vpCorr.first + (displacement.first.second + 50);
@@ -526,13 +526,13 @@ TilePredictor::getPredictedTilesFlareLR(
 
   if (FLAGS_predLR) {
     LOG(INFO) << "Linear Regression";
-    if (frameId_ >= 13) {
+    if (corrCount_ >= 13) {
       linearRegressor_->predict(predictedCorr, std::ref(vpGroundTruth_),
-                                frameId_);
+                                corrCount_);
     }
   } else {
     LOG(INFO) << "Perfect predictor";
-    linearRegressor_->predictPerfect(predictedCorr, frameId_);
+    linearRegressor_->predictPerfect(predictedCorr, corrCount_);
   }
   uint16_t frameId = frameId_;
 
@@ -545,7 +545,7 @@ TilePredictor::getPredictedTilesFlareLR(
     std::pair<float, float> viewportCenter;
     // use static predictor.
     if (predictedCorr.size() == 0) {
-      viewportCenter = vpGroundTruth_[frameId_ - 1];
+      viewportCenter = vpGroundTruth_[corrCount_ - 1];
     } else {
       viewportCenter = predictedCorr[idx];
     }
@@ -635,13 +635,13 @@ TilePredictor::getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution,
 
   if (FLAGS_predLR) {
     LOG(INFO) << "Linear Regression";
-    if (frameId_ >= 13) {
+    if (corrCount_ >= 13) {
       linearRegressor_->predict(predictedCorr, std::ref(vpGroundTruth_),
-                                frameId_);
+                                corrCount_);
     }
   } else {
     LOG(INFO) << "Perfect predictor";
-    linearRegressor_->predictPerfect(predictedCorr, frameId_);
+    linearRegressor_->predictPerfect(predictedCorr, corrCount_);
   }
 
   std::map<uint16_t, std::map<float, std::vector<uint16_t>>> tileAreaPerFrame;
@@ -656,7 +656,7 @@ TilePredictor::getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution,
     std::pair<float, float> viewportCenter;
     // use static predictor.
     if (predictedCorr.size() == 0) {
-      viewportCenter = vpGroundTruth_[frameId_ - 1];
+      viewportCenter = vpGroundTruth_[corrCount_ - 1];
     } else {
       viewportCenter = predictedCorr[idx];
     }
@@ -700,7 +700,7 @@ TilePredictor::buildUtilityMatrix(
     std::pair<float, float> viewportCenter;
     // use static predictor.
     if (predictedCorr.size() == 0) {
-      viewportCenter = vpGroundTruth_[frameId_ - 1];
+      viewportCenter = vpGroundTruth_[corrCount_ - 1];
     } else {
       viewportCenter = predictedCorr[idx];
     }
@@ -803,7 +803,7 @@ TilePredictor::getPredictedTilesStatic() {
     }
     std::map<uint8_t, std::vector<uint16_t>> fillingMap;
     tileClassAllFrames.insert(std::make_pair(frameId, fillingMap));
-    auto &viewportCenter = vpGroundTruth_[frameId_ - 1];
+    auto &viewportCenter = vpGroundTruth_[corrCount_ - 1];
     auto &tileClassMap = tileClassAllFrames.find(frameId)->second;
 
     /*
@@ -880,17 +880,22 @@ TilePredictor::getPredictedTilesStatic() {
   return tileClassAllFrames;
 }
 
-void TilePredictor::addVpCoordinate(std::pair<float, float> coordinate) {
-  vpGroundTruth_[frameId_] = coordinate;
-  frameId_++;
+void TilePredictor::addVpCoordinate(std::pair<float, float> coordinate,
+                                    bool playNextFrame) {
+  // vpGroundTruth_[frameId_] = coordinate;
+  vpGroundTruth_.push_back(coordinate);
+  corrCount_++;
+  if (playNextFrame) {
+    frameId_++;
+  }
 }
 
 TilePredictor::TilePredictor(std::string vpCorrPerFrameTracePath,
                              std::string model) {
-  vpGroundTruth_.reserve(2000);
+  // vpGroundTruth_.reserve(2000);
   vpPredictions_.reserve(2000);
   frameId_ = 0;
-
+  corrCount_ = 0;
   linearRegressor_ = new LinearRegression(vpCorrPerFrameTracePath, model);
 
   // fill
@@ -910,8 +915,8 @@ void TilePredictor::getPredictedCorr(
     std::vector<std::pair<float, float>> &predictedCorr) {
   if (FLAGS_predLR) {
     LOG(INFO) << "Linear Regression";
-    if (frameId_ >= 13) {
-      linearRegressor_->predict(predictedCorr, vpGroundTruth_, frameId_);
+    if (corrCount_ >= 13) {
+      linearRegressor_->predict(predictedCorr, vpGroundTruth_, corrCount_);
     }
   } else {
     LOG(INFO) << "Perfect predictor";

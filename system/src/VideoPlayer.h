@@ -57,7 +57,8 @@ class VideoPlayer {
       decodedTileChunks_;
 
   template <typename T>
-  void stitchTileFrame(std::map<uint16_t, T *> &viewport, int frameId);
+  void stitchTileFrame(std::map<uint16_t, T *> &viewport, int frameId,
+                       int framePauseCount);
 
   // This function will take viewport map as input which contains
   // the tiles to construct the viewport frame. And,
@@ -87,6 +88,13 @@ public:
 
   static void startVideoWithSkip(VideoPlayer *videoPlayer,
                                  TilePredictor *tilePredictor);
+
+  static void startVideoLive(VideoPlayer *videoPlayer,
+                             TilePredictor *tilePredictor);
+
+  void fillViewportTiles(VideoPlayer *videoPlayer, std::vector<uint16_t> &tiles,
+                         std::map<uint16_t, uint8_t *> &viewport,
+                         std::string &tilesQuality);
 
   static void decode(VideoPlayer *videoPlayer, Decoder *decoder);
 

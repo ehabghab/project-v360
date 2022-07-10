@@ -63,6 +63,8 @@ private:
   std::vector<std::pair<std::pair<float, float>, std::pair<float, float>>>
       backgroundDisplacement_;
 
+  std::map<int, std::vector<uint16_t>> background_tiles_;
+
   // quality --> group --> chunk
   // quality range starts from 1 (being the lowest) to N (the highest)
   std::map<uint8_t, std::map<uint8_t, std::vector<uint64_t>>>

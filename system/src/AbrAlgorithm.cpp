@@ -85,6 +85,15 @@ AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
     backgroundDisplacement_.push_back({{displacements[0], displacements[1]},
                                        {displacements[2], displacements[3]}});
   }
+
+  // while (std::getline(infile3, line)) {
+  //   std::vector<uint16_t> tiles;
+  //   int chunkId = stoi(line.substr(0, line.find(":")));
+  //   std::string tilesString = line.substr(line.find(":") + 2);
+  //   tilesString.pop_back();
+  //   folly::split(",", tilesString, tiles);
+  //   background_tiles_.insert({chunkId, tiles});
+  // }
 }
 
 void AbrAlgorithm::getTileSetSizePerQuality(
@@ -646,7 +655,7 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
     if (chunkId == 60) {
       break;
     }
-    abrAlgorithm->backgroundDisplacement_[chunkId];
+
     for (auto idx = chunkId; idx < chunkId + backgroundHorizonInSec; idx++) {
       if (idx >= 60) {
         backgroundTiles[idx - chunkId] = {};
@@ -654,6 +663,12 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
       }
 
       std::map<float, std::vector<uint16_t>> tempBgTiles;
+      // tempBgTiles.insert({0, abrAlgorithm->background_tiles_[idx]});
+      // abrAlgorithm->updateTilesAndgetTotalSize(
+      //     std::ref(backgroundTilesSizes[idx - chunkId]),
+      //     std::ref(backgroundTiles[idx - chunkId]), tempBgTiles, idx,
+      //     clientNetworkLayer);
+
       if (idx != chunkId) {
         tilePredictor->getBackgroundTiles(
             tempBgTiles, abrAlgorithm->backgroundDisplacement_[idx], 0);

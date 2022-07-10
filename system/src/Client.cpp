@@ -17,7 +17,7 @@
 #include "Decoder.h"
 #include "VideoPlayer.h"
 DEFINE_string(model, "Utility", "Utility, Pano, Flare");
-DEFINE_bool(skipModel, true, "true : skip model, false : rebuffer model");
+DEFINE_string(bufferModel, "skip", "skip, rebuffer, or live");
 
 Client::Client(std::string tilesPerFrameTracePath,
                std::string vpCorrPerFrameTracePath,
@@ -49,12 +49,15 @@ Client::Client(std::string tilesPerFrameTracePath,
                          videoPlayer, bandwidthPredictor);
 
   std::thread videoPlayerThread;
-  if (FLAGS_skipModel) {
+  if (FLAGS_bufferModel == "skip") {
     videoPlayerThread = std::thread(VideoPlayer::startVideoWithSkip,
                                     videoPlayer, tilePredictor);
-  } else {
+  } else if (FLAGS_bufferModel == "rebuffer") {
     videoPlayerThread = std::thread(VideoPlayer::startVideoWithRebuffer,
                                     videoPlayer, tilePredictor);
+  } else {
+    videoPlayerThread =
+        std::thread(VideoPlayer::startVideoLive, videoPlayer, tilePredictor);
   }
 
   std::thread videoPlayerDecoderThread(VideoPlayer::decode, videoPlayer,
