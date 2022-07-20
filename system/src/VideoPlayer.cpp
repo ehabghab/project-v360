@@ -598,7 +598,7 @@ void VideoPlayer::startVideoLive(VideoPlayer *videoPlayer,
       }
 
       while (viewport.size() != tiles->second.size() &&
-             frameDeadline + 40 > Util::getTime()) {
+             frameDeadline + 38 > Util::getTime()) {
         videoPlayer->fillViewportTiles(videoPlayer, tiles->second, viewport,
                                        tilesQuality);
       }

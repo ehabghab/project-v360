@@ -48,7 +48,7 @@ private:
     tileNode *prevTile;
   };
 
-  const std::map<uint8_t, uint8_t> QUALITYMAP_ = {{50, 1}, {37, 2}, {32, 3},
+  const std::map<uint8_t, uint8_t> QUALITYMAP_ = {{42, 1}, {37, 2}, {32, 3},
                                                   {27, 4}, {22, 5}, {17, 6}};
   // quality --> tiles --> tile chunk sizes.
   std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
