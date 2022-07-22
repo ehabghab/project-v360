@@ -69,21 +69,22 @@ def run_server_and_get_ip(tracefile, videoPath, args):
 
 
 def main():
-
+	
 	user_trace_dir = "/home/ehab/Desktop/Project-V360/analysis/traces_system/"
-	video_dir = "/home/ehab/Desktop/"
+	video_dir = "/home/ehab/Desktop/Videos/"
 	bw_trace_dir = "/home/ehab/Desktop/logs_all/mmlink_traces/"        
 	tile_size ="sizes.txt"
 	quality_name = "psnr_avgs.txt"
 	displacement = "/home/ehab/Desktop/Project-V360/analysis/displacement_across_users_p100.txt"
-	args_client = {"flare_skip":" -utilityAbr=0 -predLR=1 -skipModel=1","flare_rebuffering":" -utilityAbr=0 -predLR=1 -skipModel=0", "utility":" -utilityAbr=1 -predLR=1 -skipModel=1"}
-	args_server = {"flare_skip":" 0", "flare_rebuffering":" 0","utility":" 1"}
-	#videos = ["v1_data","v2_data","v6_data","v17_data","v14_data","v28_data","v12_data","v27_data"]
-	videos = ["v14_data","v28_data","v12_data","v27_data","v1_data","v2_data"]
+	args_client = {"flare_skip":" -model=Flare -predLR=1 -bufferModel=skip","flare_rebuffer":" -model=Flare -predLR=1 -bufferModel=rebuffer", "utility":" -model=Utility -predLR=1 -bufferModel=skip", "pano_skip":" -model=Pano -predLR=1 -bufferModel=skip", "pano_rebuffer":" -model=Pano -predLR=1 -bufferModel=rebuffer"}
+	models = ["pano_skip","pano_rebuffer","flare_skip","utility","flare_rebuffer"]
+	args_server = {"flare_skip":" 0", "flare_rebuffer":" 0","utility":" 1","pano_skip":" 0","pano_rebuffer":" 0"}
+	videos = ["v1_data","v2_data","v7_data","v8_data","v14_data","v27_data","v28_data"]
+	#videos = ["v14_data","v28_data","v12_data","v27_data","v1_data","v2_data"]
 	#labels =  ["low","low","low","low","med","med","high","high"]
-	labels =  ["med","med","med","med","low","low"]
+	labels =  ["low","low","med","med","med","high","high"]
 	bw_traces = ["report_car_0001_subtrace5","report_car_0002_subtrace1","report_bus_0001_subtrace1","report_bus_0002_subtrace1","report_bus_0003_subtrace1","report_car_0004_subtrace5","report_train_0002_subtrace3","report_train_0003_subtrace1","report_tram_0001_subtrace2","report_tram_0002_subtrace3","report_tram_0004_subtrace4","report_bicycle_0001_subtrace4","report_bicycle_0002_subtrace2","report_bus_0006_subtrace2","report_foot_0002_subtrace2"]
-	old_bw = ["report_car_0001_subtrace5","report_car_0002_subtrace1","report_bus_0001_subtrace1","report_bus_0002_subtrace1","report_bus_0003_subtrace1"]
+	#old_bw = ["report_car_0001_subtrace5","report_car_0002_subtrace1","report_bus_0001_subtrace1","report_bus_0002_subtrace1","report_bus_0003_subtrace1"]
 	users = {
 		"v1_data":[3,9,14,18,24,33,44,51,56,62],
 		"v2_data":[2,6,8,12,17,26,37,46,50,57],
@@ -109,11 +110,9 @@ def main():
 		videoSizes = videoPath+"/"  + tile_size
 		displacementPath = videoPath+"/"+"displacement_across_users_p100.txt"
 		for bw_trace in bw_traces:
-			if bw_trace in old_bw:
-				continue
 			bw_trace_path = bw_trace_dir+bw_trace+"_"+label+".txt"
 			for userId in users[video]:
-				for model in ["flare_skip","flare_rebuffering","utility"]:
+				for model in models:
 					user_frame_vp_path = user_trace_dir+ "vid"+str(videoId)+"_uid"+ str(userId)+"_vp_corr_per_frame.txt"
 					user_frame_tiles_path = user_trace_dir+ "vid"+str(videoId)+"_uid"+ str(userId)+"_tiles_per_frame_user.txt"
 
@@ -123,7 +122,10 @@ def main():
 					server_ip = run_server_and_get_ip(bw_trace_path,videoPath,args_server[model])
 					time.sleep(1)
 
-					client_cmd = "./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+videoSizes+" "+videoPsnr+" "+displacementPath+" "+server_ip+" "+args_client[model]
+					client_cmd = "./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+videoSizes+" "+videoPsnr+" "+displacementPath+" "+server_ip+" "
+					if "pano" in model:
+						client_cmd += " /home/ehab/Desktop/Videos/Pano_tiles_grouping/v"+str(videoId)+"_grouping.txt" +" /home/ehab/Desktop/Videos/videos_bitrates/v"+str(videoId)+"_bitrates.txt "
+					client_cmd += args_client[model]
 					print(client_cmd)
 					pid = subprocess.Popen(client_cmd,shell=True)
 					try:	
@@ -142,42 +144,6 @@ def main():
 					kill_procs()
 					time.sleep(5)
 
-	for bw_trace in bw_traces:
-		for user_tile_trace in user_tile_per_frame_traces:
-			for model in ["flare_skip","flare_rebuffering","utility"]:
-				user_id = user_tile_trace.split("_")[4].split(".")[0]
-				vp_corr_trace = "vp_corr_per_frame_user_"+user_id+".txt"
-				bw_val = bw_trace.split("_")[2].split(".")[0]
-				kill_procs()
-				for delay in delays:
-					out_dir = "user"+str(user_id)+"_"+str(delay)+"ms_"+bw_val+"mbps_"+model
-					os.system("mkdir "+out_dir)
-					out_file.write(bw_trace+"\n"+str(delay)+"\n"+user_tile_trace+"\n=========\n")
-					server_ip = run_server_and_get_ip(bw_trace_dir+bw_trace)
-					time.sleep(2)
-					user_frame_tiles_path = user_trace_dir+user_tile_trace
-					user_frame_vp_path = user_trace_dir+vp_corr_trace
-					size_path = video_dir+tile_size
-					psnr_path = video_dir+quality_name
-
-					client_cmd = "mm-delay "+str(delay)+" ./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+size_path+" "+psnr_path+" "+displacement+" "+server_ip+" "+args[model]
-					print(client_cmd)
-					pid = subprocess.Popen(client_cmd,shell=True)
-					try:	
-						signal.alarm(15*60)
-						out,err = pid.communicate()
-						print(err)
-						print(out)
-					except :
-						print("TIME out")
-					os.system("mv client* "+out_dir)
-					os.system("mv play* "+out_dir)
-					os.system("mv pred* "+out_dir)
-					os.system("mv recv* "+out_dir)
-					os.system("mv server* "+out_dir)
-					os.system("rm -r yuv* ")
-					kill_procs()
-					time.sleep(5)
 
 
 if __name__ == "__main__":
