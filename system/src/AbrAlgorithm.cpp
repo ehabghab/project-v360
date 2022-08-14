@@ -59,7 +59,7 @@ AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
       folly::split("-", line.substr(0, pos), TileIdQualityPair);
       folly::split(",", line.substr(pos + 2), tileChunkQuality);
       uint8_t qualityIdx = QUALITYMAP_.find(TileIdQualityPair[1])->second;
-      if (TileIdQualityPair[1] == 42 || TileIdQualityPair[1] == 17) {
+      if (TileIdQualityPair[1] == 50 || TileIdQualityPair[1] == 17) {
         continue;
       }
       if (tileChunkPSNRPerQuality_.find(qualityIdx) ==
