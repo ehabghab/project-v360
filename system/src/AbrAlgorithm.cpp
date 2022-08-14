@@ -59,7 +59,7 @@ AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
       folly::split("-", line.substr(0, pos), TileIdQualityPair);
       folly::split(",", line.substr(pos + 2), tileChunkQuality);
       uint8_t qualityIdx = QUALITYMAP_.find(TileIdQualityPair[1])->second;
-      if (TileIdQualityPair[1] == 42 || TileIdQualityPair[1] == 17) {
+      if (TileIdQualityPair[1] == 50 || TileIdQualityPair[1] == 17) {
         continue;
       }
       if (tileChunkPSNRPerQuality_.find(qualityIdx) ==
@@ -1262,12 +1262,17 @@ AbrAlgorithm::qualityABR(
                    estimatedBw);
         tileNode *tileN =
             new tileNode{tile, 0, estDownloadTime, 1, nullptr, nullptr};
+        if (clientNetworkLayer->isReceived(tile.first + 1, tile.second) == -1) {
+          tileN->quality = 0;
+        }
         tilesNodeMap.insert({tile, tileN});
       }
       auto tileN = tilesNodeMap[tile];
       auto &tileUtilityVec = utilityMatrix[tile];
       auto tileOldPsnr =
-          tileChunkPSNRPerQuality_[tileN->quality][tile.second][tile.first];
+          tileN->quality == 0 ? 0 : tileChunkPSNRPerQuality_[tileN->quality]
+                                                            [tile.second]
+                                                            [tile.first];
 
       auto tileNewPsnr =
           tileChunkPSNRPerQuality_[qualityIdx][tile.second][tile.first];
