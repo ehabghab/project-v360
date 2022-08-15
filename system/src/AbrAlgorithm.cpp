@@ -1174,7 +1174,7 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
 
 std::vector<std::pair<int, uint16_t>>
 AbrAlgorithm::sortTilesByUtilityAndQuality(
-    uint8_t quality,
+    ClientNetworkLayer *clientNetworkLayer, uint8_t quality,
     std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
     tileNode *headRequest) {
   // quality * utility, <chunkid,tileid>
@@ -1184,20 +1184,31 @@ AbrAlgorithm::sortTilesByUtilityAndQuality(
   if (headRequest == nullptr) {
     for (auto &tileUtilityPair : utilityMatrix) {
       auto &tile = tileUtilityPair.first;
+      float prevQaulity = 0;
+
+      if (clientNetworkLayer->isReceived(tile.first + 1, tile.second) != -1) {
+        prevQaulity = tileChunkPSNRPerQuality_[1][tile.second][tile.first];
+      }
       float tileValueDiff =
           utilityMatrix[tile][24] *
           (tileChunkPSNRPerQuality_[quality][tile.second][tile.first] -
-           tileChunkPSNRPerQuality_[1][tile.second][tile.first]);
+           prevQaulity);
       tilesUtilitySum.insert({tileValueDiff, tile});
     }
   } else {
     tileNode *trace = headRequest;
     while (trace != nullptr) {
       auto &tile = trace->tile;
+      float prevQaulity = 0;
+      if (trace->quality != 0) {
+        prevQaulity =
+            tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first];
+      }
+
       float tileValueDiff =
           utilityMatrix[tile][24] *
           (tileChunkPSNRPerQuality_[quality][tile.second][tile.first] -
-           tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first]);
+           prevQaulity);
       tilesUtilitySum.insert({tileValueDiff, tile});
       trace = trace->nextTile;
     }
@@ -1240,8 +1251,8 @@ AbrAlgorithm::qualityABR(
   utilityMatrix.erase({-1, -1});
   tileNode *trace;
   for (int qualityIdx = 2; qualityIdx <= numberOfQualities_; qualityIdx++) {
-    auto sortedTiles =
-        sortTilesByUtilityAndQuality(qualityIdx, utilityMatrix, headTile);
+    auto sortedTiles = sortTilesByUtilityAndQuality(
+        clientNetworkLayer, qualityIdx, utilityMatrix, headTile);
     for (auto &tile : sortedTiles) {
       if (clientNetworkLayer->isReceived(tile.first + 1, tile.second) > 1) {
         if (tilesNodeMap.find(tile) != tilesNodeMap.end()) {
@@ -1374,8 +1385,10 @@ AbrAlgorithm::qualityABR(
         tilesNodeMap.insert({trace->tile, trace});
         auto tile = trace->tile;
         auto tileUtilityVec = utilityMatrix[tile];
-        auto tilePsnr =
-            tileChunkPSNRPerQuality_[trace->quality][tile.second][tile.first];
+        auto tilePsnr = trace->quality == 0
+                            ? 0
+                            : tileChunkPSNRPerQuality_[trace->quality]
+                                                      [tile.second][tile.first];
         auto tileUtility =
             tileUtilityVec[24] -
             tileUtilityVec[int(trace->EstArrivalTime / 40) - frameIdSt];
@@ -1484,8 +1497,9 @@ AbrAlgorithm::tileNode *AbrAlgorithm::returnBestPosition(
     int toSwitchTileArrvFrameIdUpdated =
         int(toSwitchTileArrvTimeUpdated / 40) - frameIdSt;
     auto toSwitchTilePsnr =
-        tileChunkPSNRPerQuality_[trace->quality][trace->tile.second]
-                                [trace->tile.first];
+        trace->quality == 0 ? 0 : tileChunkPSNRPerQuality_[trace->quality]
+                                                          [trace->tile.second]
+                                                          [trace->tile.first];
 
     float utilityLoss = toSwitchTilePsnr;
     // it the estimated new arrival frame Id is beyond 1 sec;

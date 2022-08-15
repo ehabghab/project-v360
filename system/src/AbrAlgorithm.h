@@ -48,7 +48,7 @@ private:
     tileNode *prevTile;
   };
 
-  const std::map<uint8_t, uint8_t> QUALITYMAP_ = {{42 , 1}, {37, 2}, {32, 3},
+  const std::map<uint8_t, uint8_t> QUALITYMAP_ = {{42, 1}, {37, 2}, {32, 3},
                                                   {27, 4}, {22, 5}, {17, 6}};
   // quality --> tiles --> tile chunk sizes.
   std::map<uint8_t, std::map<uint16_t, std::vector<uint64_t>>>
@@ -328,7 +328,7 @@ private:
   void fillGroupQualityInfo(uint8_t tilesGroups[], int numOfTiles);
 
   std::vector<std::pair<int, uint16_t>> sortTilesByUtilityAndQuality(
-      uint8_t quality,
+      ClientNetworkLayer *clientNetworkLayer, uint8_t quality,
       std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
       tileNode *headRequest);
 };
