@@ -43,6 +43,8 @@ class VideoPlayer {
 
   std::map<uint32_t, std::map<uint16_t, struct Chunk>> chunks_;
 
+  std::map<int, struct Chunk> chunksBg_;
+
   // key: frameId, value: set of all tiles to skip.
   std::map<uint32_t, std::unordered_set<uint16_t>> tilesInFrameToSkip;
 
@@ -68,7 +70,7 @@ class VideoPlayer {
   void orderTilesToLinkedList(std::map<uint16_t, T *> &viewport,
                               std::vector<Node<T> *> &viewportLinkedList);
   std::mutex recvChunKMutex_;
-
+  std::mutex recvBgChunKMutex_;
   std::mutex skipTileMutex_;
 
   bool skipThisTile(uint16_t tileId);
@@ -86,6 +88,8 @@ public:
   static void startVideoWithRebuffer(VideoPlayer *videoPlayer,
                                      TilePredictor *tilePredictor);
 
+  static void startVideoWithRebufferJournal(VideoPlayer *videoPlayer,
+                                            TilePredictor *tilePredictor);
   static void startVideoWithSkip(VideoPlayer *videoPlayer,
                                  TilePredictor *tilePredictor);
 
@@ -96,7 +100,8 @@ public:
                          std::map<uint16_t, uint8_t *> &viewport,
                          std::string &tilesQuality);
 
-  static void decode(VideoPlayer *videoPlayer, Decoder *decoder);
+  static void decode(VideoPlayer *videoPlayer, Decoder *decoderEL,
+                     Decoder *decoderBG);
 
   VideoPlayer(std::string tilesPerFrameTracePath,
               std::string vpCorrPerFrameTracePath);

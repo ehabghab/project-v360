@@ -17,7 +17,8 @@ public:
          std::string vpCorrPerFrameTracePath, std::string tileChunkSizesPath,
          std::string tileChunksQaulityPath,
          std::string backgroundDisplacementPath, std::string serverIp,
-         std::string panoTilesGroupsPath, std::string panoVideoBitrate);
+         std::string panoTilesGroupsPath, std::string panoVideoBitrate,
+         std::string fullVideoChunkSizePath);
   virtual ~Client();
 };
 

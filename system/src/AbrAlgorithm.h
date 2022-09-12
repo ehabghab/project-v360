@@ -17,11 +17,18 @@ class AbrAlgorithm {
 public:
   AbrAlgorithm(std::string tileChunkSizesPath,
                std::string tileChunksQaulityPath,
-               std::string backgroundDisplacementPath);
+               std::string backgroundDisplacementPath,
+               std::string fullVideoChunkSizePath);
   static void flareAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
                        BandwidthPredictor *bandwidthPredictor,
                        ClientNetworkLayer *clientNetworkLayer,
                        VideoPlayer *videoPlayer);
+
+  static void journalAbr(AbrAlgorithm *abrAlgorithm,
+                         TilePredictor *tilePredictor,
+                         BandwidthPredictor *bandwidthPredictor,
+                         ClientNetworkLayer *clientNetworkLayer,
+                         VideoPlayer *videoPlayer);
 
   static void utilityAbr(AbrAlgorithm *abrAlgorithm,
                          TilePredictor *tilePredictor,
@@ -56,6 +63,8 @@ private:
 
   std::map<uint8_t, std::map<uint16_t, std::vector<float>>>
       tileChunkPSNRPerQuality_;
+
+  std::vector<uint64_t> fullVideoChunksSizes_;
 
   uint8_t numberOfQualities_;
 
@@ -190,6 +199,15 @@ private:
       TilePredictor *tilePredictor, ClientNetworkLayer *clientNetworkLayer,
       uint32_t frameIdToRender, uint8_t numOfQualities, uint8_t &numOfClasses);
 
+  void getTileSetSizePerQualityJournal(
+      std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
+          &frameIdSetQualitySizeSumToReturn,
+      std::map<uint8_t, std::vector<std::pair<int, uint16_t>>>
+          &tilesRequestToReturn,
+      TilePredictor *tilePredictor, ClientNetworkLayer *clientNetworkLayer,
+      uint32_t frameIdToRender, uint8_t numOfQualities, uint8_t &numOfClasses,
+      int stChunk);
+
   /**
    * @brief finds the highest quality assignment per tile class where deadline
    * is met.
@@ -207,7 +225,7 @@ private:
                     &frameIdSetQualitySizeSum,
                 std::vector<std::string> qualitiesAssignments,
                 uint32_t frameIdToRender, uint8_t numOfQualities,
-                float predictedBw, float baseTime);
+                float predictedBw, float baseTime, std::string model);
 
   /**
    * @brief Given tiles, and quality return their total size

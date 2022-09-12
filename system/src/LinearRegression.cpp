@@ -180,5 +180,5 @@ void LinearRegression::initPerfect() {
 LinearRegression::LinearRegression(std::string vpCorrPerFrameTracePath,
                                    std::string model) {
   vpCorrPerFrameTracePath_ = vpCorrPerFrameTracePath;
-  pw_ = model == "Pano" ? 75 : 25;
+  pw_ = (model == "Pano" || model == "Journal") ? 75 : 25;
 }

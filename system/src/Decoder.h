@@ -41,7 +41,7 @@ public:
   AVIOContext *avioContext;
   struct BufferReader bufferReader;
 
-  Decoder();
+  Decoder(int width, int height);
 
   virtual ~Decoder();
 
@@ -55,7 +55,7 @@ public:
            std::vector<uint8_t *> &decodedTileFrames);
 
 private:
-  void initAVCodec();
+  void initAVCodec(int width, int height);
 
   void initCustomFormatContext();
 };

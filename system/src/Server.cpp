@@ -264,14 +264,18 @@ void Server::sender(Server *server, uint8_t socket) {
     }
     // advance tile Index to next tile in the list.
     tileIdx++;
-
-    std::string qualityIdx = std::to_string(
-        server->QUALITYMAP_.find(std::stoi(tileInfo[2]))->second);
-    // quality/tileId/chunkId
-    std::string tilePath = server->videoRootDir_ + "/QP" + qualityIdx + "/" +
-                           tileInfo[1] + "/" + std::to_string(chunkId) +
-                           ".h264";
-
+    int quality = std::stoi(tileInfo[2]);
+    std::string tilePath = "";
+    if (quality != 0) {
+      std::string qualityIdx = std::to_string(
+          server->QUALITYMAP_.find(std::stoi(tileInfo[2]))->second);
+      // quality/tileId/chunkId
+      tilePath = server->videoRootDir_ + "/QP" + qualityIdx + "/" +
+                 tileInfo[1] + "/" + std::to_string(chunkId) + ".h264";
+    } else {
+      tilePath =
+          server->videoRootDir_ + "/QP00/" + std::to_string(chunkId) + ".h264";
+    }
     LOG(INFO) << "tile Sent:" << std::to_string(chunkId - 1) << "_"
               << tileInfo[1] << "_" << tileInfo[2] << "\n";
     char *filePath = new char[tilePath.length() + 1];

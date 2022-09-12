@@ -22,7 +22,8 @@
 
 AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
                            std::string tileChunksQaulityPath,
-                           std::string backgroundDisplacementPath) {
+                           std::string backgroundDisplacementPath,
+                           std::string fullVideoChunkSizePath) {
   std::ifstream infile1(tileChunkSizesPath);
   std::string line;
   uint8_t quality = -1;
@@ -94,6 +95,13 @@ AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
   //   folly::split(",", tilesString, tiles);
   //   background_tiles_.insert({chunkId, tiles});
   // }
+
+  fullVideoChunksSizes_;
+  std::ifstream infile4(fullVideoChunkSizePath);
+  while (std::getline(infile4, line)) {
+    line.pop_back();
+    folly::split(",", line.substr(1), fullVideoChunksSizes_);
+  }
 }
 
 void AbrAlgorithm::getTileSetSizePerQuality(
@@ -214,7 +222,8 @@ std::map<int, int> AbrAlgorithm::getQualityIdx(
     std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
         &frameIdSetQualitySizeSum,
     std::vector<std::string> qualitiesAssignments, uint32_t frameIdToRender,
-    uint8_t numOfQualities, float predictedBw, float baseTime) {
+    uint8_t numOfQualities, float predictedBw, float baseTime,
+    std::string model) {
   // find the quality that we can get all tiles within each frame before
   // frame deadline (avoid rebuffering at all costs).
 
@@ -323,15 +332,253 @@ std::map<int, int> AbrAlgorithm::getQualityIdx(
       currChunk = int((sortedFrameIds[frameIdx] - 1) / 25);
     }
   }
-
-  for (auto &chunkQassignment : chunkQualityAssignment) {
-    maxQ = std::max(maxQ, chunkQassignment.second);
-  }
-  for (auto &chunkQassignment : chunkQualityAssignment) {
-    chunkQualityAssignment[chunkQassignment.first] = maxQ;
+  if ("Flare" == model) {
+    for (auto &chunkQassignment : chunkQualityAssignment) {
+      maxQ = std::max(maxQ, chunkQassignment.second);
+    }
+    for (auto &chunkQassignment : chunkQualityAssignment) {
+      chunkQualityAssignment[chunkQassignment.first] = maxQ;
+    }
   }
 
   return chunkQualityAssignment;
+}
+
+void AbrAlgorithm::getTileSetSizePerQualityJournal(
+    std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
+        &frameIdSetQualitySizeSumToReturn,
+    std::map<uint8_t, std::vector<std::pair<int, uint16_t>>>
+        &tilesRequestToReturn,
+    TilePredictor *tilePredictor, ClientNetworkLayer *clientNetworkLayer,
+    uint32_t frameIdToRender, uint8_t numOfQualities, uint8_t &numOfClasses,
+    int stChunk) {
+  std::set<std::string> tilesInPrevSets;
+
+  // get all tiles need per frame in each class.
+  // frame[i] needs M tiles for Class C1, and N tiles for Class C2
+  // note that M ∩ N = Φ, tiles in class M cannot be in N (not duplicate tiles)
+  auto tileClassesOfFutureFrames =
+      tilePredictor->getPredictedTilesFlareLR({{100, 100}}, 75);
+  if (tileClassesOfFutureFrames.size() == 0) {
+    return;
+  }
+
+  for (auto const &tileClassesSingleFrame :
+       tileClassesOfFutureFrames) { // A- per frame
+    auto frameId = tileClassesSingleFrame.first;
+    if (frameId < frameIdToRender) {
+      continue;
+    }
+    auto chunkId = ((frameId - 1) / 25);
+    if (chunkId < stChunk) {
+      continue;
+    }
+    if (frameIdSetQualitySizeSumToReturn.find(frameId) ==
+        frameIdSetQualitySizeSumToReturn.end()) {
+      std::map<uint8_t, std::vector<uint64_t>> setQualitySizeSum;
+      frameIdSetQualitySizeSumToReturn.insert(
+          std::make_pair(frameId, setQualitySizeSum));
+    }
+    bool frameHasTiles = false;
+
+    auto &classQualitySizeSum =
+        frameIdSetQualitySizeSumToReturn.find(frameId)->second;
+    for (auto const &SetOftilesInClass :
+         tileClassesSingleFrame.second) { // B- tiles per class
+
+      auto classRank = SetOftilesInClass.first;
+
+      //============================================
+      // This line to determine how many classes to go over next.
+      numOfClasses = numOfClasses < classRank ? classRank : numOfClasses;
+      //============================================
+
+      std::string tiles =
+          std::to_string(frameId) + ":" + std::to_string(classRank) + ":";
+      bool classHasTiles = false;
+      // first tile in set.
+      // We have viewport set, and multiple out of sight sets.
+      if (classQualitySizeSum.find(classRank) == classQualitySizeSum.end()) {
+        std::vector<uint64_t> qualitySizeSumVec(numOfQualities);
+        classQualitySizeSum.insert(
+            std::make_pair(classRank, qualitySizeSumVec));
+      }
+      std::unordered_set<std::string> tilesInSet;
+      auto &qualitySizeSumVec = classQualitySizeSum.find(classRank)->second;
+      for (uint8_t qualityIdx = 1; qualityIdx < numOfQualities;
+           qualityIdx++) { // C- per quality
+
+        for (auto const &tile : SetOftilesInClass.second) { // D- per tile
+          // if tile chunk is recevied then do not count it.
+          std::string tileKey =
+              std::to_string(chunkId) + "_" + std::to_string(tile);
+          // if the tile already included in earlier frame of higher rank
+          // class, then skip (no duplicates)
+          if (tilesInPrevSets.find(tileKey) != tilesInPrevSets.end()) {
+            continue;
+          }
+          tilesInSet.insert(tileKey);
+          if (clientNetworkLayer->isReceived(chunkId + 1, tile) ==
+              -1) {                // tile is not received.
+            if (qualityIdx == 1) { // do some initializations
+              if (tilesRequestToReturn.find(classRank) ==
+                  tilesRequestToReturn.end()) {
+                tilesRequestToReturn.insert({classRank, {}});
+              }
+              tilesRequestToReturn.find(classRank)->second.push_back(
+                  {chunkId, tile});
+              tiles += std::to_string(tile) + ",";
+              classHasTiles = true;
+              frameHasTiles = true;
+            }
+
+            qualitySizeSumVec[qualityIdx] +=
+                tileChunkSizePerQuality_.find(qualityIdx + 1)
+                    ->second.find(tile)
+                    ->second[chunkId];
+          }
+        }
+      }
+      if (classHasTiles) {
+        // if this class has tiles, then add tiles to request
+        tiles.pop_back();
+        // tilesRequestToReturn.push_back(tiles);
+        for (auto tile : tilesInSet) {
+          tilesInPrevSets.insert(tile);
+        }
+
+        if (VLOG_IS_ON(1)) {
+          VLOG(1) << "FrameId[" << static_cast<int>(frameId) << "] - "
+                  << "set[" << static_cast<int>(classRank) << "] : " << tiles
+                  << std::endl;
+        }
+      } else {
+        classQualitySizeSum.erase(classRank);
+      }
+    }
+    if (!frameHasTiles) {
+      frameIdSetQualitySizeSumToReturn.erase(frameId);
+    }
+  }
+}
+
+void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
+                              TilePredictor *tilePredictor,
+                              BandwidthPredictor *bandwidthPredictor,
+                              ClientNetworkLayer *clientNetworkLayer,
+                              VideoPlayer *videoPlayer) {
+  // every 100ms, update tile list.
+  long stime = Util::getTime();
+  float videoTime = 0;
+
+  uint8_t numOfQualities = abrAlgorithm->getNumberOfQualities();
+  uint8_t numOfClasses = 0;
+  // This set will contain all tiles in prev sets (to contain duplicates)
+  // tilechunk_tileIdx
+
+  std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
+      frameIdSetQualitySizeSum;
+  std::map<uint8_t, std::vector<std::pair<int, uint16_t>>> tilesRequest;
+  int missBgSt, missBgEn;
+  std::pair<int, uint16_t> chunkTileAwaited(-1, 0);
+  while (true) {
+    // get the predicted tiles every ABR_FREQ(100ms).
+    // we will have mutliple sets (e.g. viewport tiles, viewport edge tiles ,
+    // further tiles, rest of tiles)
+
+    // all frameId must be >= frameIdToRender, to ensure we don't request data
+    // for old frames.
+    auto frameIdToRender = videoPlayer->getFrameToRenderId();
+    int chunkId = (frameIdToRender - 1) / 25;
+
+    // if the chunk has not finished downloading or buffer is full (3sec)
+    if ((chunkTileAwaited.first != -1 &&
+         clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
+                                        chunkTileAwaited.second) == -1) ||
+        (chunkTileAwaited.first - chunkId) > 3) {
+      std::cout << "x Awaiting " << chunkTileAwaited.first << ","
+                << chunkTileAwaited.second << "\n";
+      std::cout << "x Awaiting vs current " << chunkTileAwaited.first << ","
+                << chunkId << "\n=====\n";
+
+      Util::sleep(stime, ABR_FREQ);
+      videoTime += (Util::getTime() - stime);
+      stime += 100;
+      continue;
+    }
+
+    missBgSt = chunkId;
+    missBgEn = chunkId + 5; // buffer size is 5
+    // next chunk Id to fetch.
+    auto stChunk =
+        chunkTileAwaited.first == -1 ? 0 : chunkTileAwaited.first + 1;
+    // this will return the size per class per frame.
+    // along with number of class = max(class rank),
+    numOfClasses = 0;
+    abrAlgorithm->getTileSetSizePerQualityJournal(
+        frameIdSetQualitySizeSum, tilesRequest, tilePredictor,
+        clientNetworkLayer, frameIdToRender, numOfQualities, numOfClasses,
+        stChunk);
+    numOfClasses++;
+    float predictedBw =
+        (bandwidthPredictor->getMpcBandwidthPrediction()); // Bytes Per Second
+    std::string bgTiles = "";
+    float bgDownloadTime = 0;
+    for (auto idx = missBgSt; idx < missBgEn; idx++) {
+      if (clientNetworkLayer->isReceived(idx + 1, 0) == -1) {
+        bgTiles += std::to_string(idx) +
+                   "_0_0,"; // tile id is zero, and quality as well.s
+        bgDownloadTime +=
+            abrAlgorithm->fullVideoChunksSizes_[idx] / predictedBw;
+      }
+    }
+
+    float baseTime = bgDownloadTime; // change this based on the BG buffer size.
+
+    auto qualityAssignments = abrAlgorithm->getPossibleQualityAssignment(
+        numOfQualities, numOfClasses);
+
+    std::vector<std::string> qualityAssignmentsVec;
+    for (int quality = numOfQualities; quality > 1; quality--) {
+      // for all possible solutions
+      for (auto const &solution : qualityAssignments.find(quality)->second) {
+        qualityAssignmentsVec.push_back(solution);
+      }
+    }
+
+    auto qualityMap = abrAlgorithm->getQualityIdx(
+        frameIdSetQualitySizeSum, qualityAssignmentsVec, frameIdToRender,
+        numOfQualities, predictedBw, baseTime, "");
+
+    std::string req = "Tiles\n" + bgTiles;
+
+    for (auto &classTilesPair : tilesRequest) {
+      auto &classRank = classTilesPair.first;
+      auto &tilesInClass = classTilesPair.second;
+      for (auto &tilePair : tilesInClass) {
+        auto &solution = qualityAssignmentsVec[qualityMap[tilePair.first]];
+        int quality = int(solution[classRank * 2]) - 48;
+        req += std::to_string(tilePair.first) + "_" +
+               std::to_string(tilePair.second) + "_" + std::to_string(quality) +
+               ",";
+        if (tilePair.first == stChunk) {
+          chunkTileAwaited.first = stChunk;
+          chunkTileAwaited.second = tilePair.second;
+        }
+      }
+    }
+    req.pop_back();
+    std::cout << "Awaiting " << chunkTileAwaited.first << ","
+              << chunkTileAwaited.second << "\n";
+    req += "\nQuality\n" + std::to_string(0);
+    std::cout << req << std::endl;
+    clientNetworkLayer->setRequest(req);
+    tilesRequest.clear();
+    frameIdSetQualitySizeSum.clear();
+    Util::sleep(stime, ABR_FREQ);
+    videoTime += (Util::getTime() - stime);
+    stime += 100;
+  }
 }
 
 // ToDo fix how flare send tiles, it now needs to be chunkidx_tileidx_quality
@@ -411,7 +658,7 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
     }
     auto qualityMap = abrAlgorithm->getQualityIdx(
         frameIdSetQualitySizeSum, qualityAssignmentsVec, frameIdToRender,
-        numOfQualities, predictedBw, baseTime);
+        numOfQualities, predictedBw, baseTime, "Flare");
 
     std::string req = "Tiles\n"; //+ urgentTileRequestAndSize.first;
     // class rank --> tiles <chunkId, tileId>

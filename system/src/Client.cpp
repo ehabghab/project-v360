@@ -16,7 +16,7 @@
 #include "ClientNetworkLayer.h"
 #include "Decoder.h"
 #include "VideoPlayer.h"
-DEFINE_string(model, "Utility", "Utility, Pano, Flare");
+DEFINE_string(model, "Utility", "Utility, Pano, Flare, Journal");
 DEFINE_string(bufferModel, "skip", "skip, rebuffer, or live");
 
 Client::Client(std::string tilesPerFrameTracePath,
@@ -24,7 +24,8 @@ Client::Client(std::string tilesPerFrameTracePath,
                std::string tileChunkSizesPath,
                std::string tileChunksQaulityPath,
                std::string backgroundDisplacementPath, std::string serverIp,
-               std::string panoTilesGroupsPath, std::string panoVideoBitrate) {
+               std::string panoTilesGroupsPath, std::string panoVideoBitrate,
+               std::string fullVideoChunkSizePath) {
   // Initiate all instances to create threads.
   // 1- Network layer (sender and receiver).
   // 2- Video player along with the decoder.
@@ -32,9 +33,11 @@ Client::Client(std::string tilesPerFrameTracePath,
   ClientNetworkLayer *clientNetworkLayer = new ClientNetworkLayer(serverIp);
   VideoPlayer *videoPlayer =
       new VideoPlayer(tilesPerFrameTracePath, vpCorrPerFrameTracePath);
-  Decoder *decoder = new Decoder();
-  AbrAlgorithm *abr = new AbrAlgorithm(
-      tileChunkSizesPath, tileChunksQaulityPath, backgroundDisplacementPath);
+  Decoder *decoderEL = new Decoder(320, 160);
+  Decoder *decoderBG = new Decoder(3840, 1920);
+  AbrAlgorithm *abr =
+      new AbrAlgorithm(tileChunkSizesPath, tileChunksQaulityPath,
+                       backgroundDisplacementPath, fullVideoChunkSizePath);
   TilePredictor *tilePredictor =
       new TilePredictor(vpCorrPerFrameTracePath, FLAGS_model);
   BandwidthPredictor *bandwidthPredictor = new BandwidthPredictor();
@@ -55,13 +58,16 @@ Client::Client(std::string tilesPerFrameTracePath,
   } else if (FLAGS_bufferModel == "rebuffer") {
     videoPlayerThread = std::thread(VideoPlayer::startVideoWithRebuffer,
                                     videoPlayer, tilePredictor);
+  } else if (FLAGS_bufferModel == "journalRebuffer") {
+    videoPlayerThread = std::thread(VideoPlayer::startVideoWithRebufferJournal,
+                                    videoPlayer, tilePredictor);
   } else {
     videoPlayerThread =
         std::thread(VideoPlayer::startVideoLive, videoPlayer, tilePredictor);
   }
 
   std::thread videoPlayerDecoderThread(VideoPlayer::decode, videoPlayer,
-                                       decoder);
+                                       decoderEL, decoderBG);
 
   std::thread senderThread(ClientNetworkLayer::sender, clientNetworkLayer);
   std::thread abrThread;
@@ -75,11 +81,16 @@ Client::Client(std::string tilesPerFrameTracePath,
         std::thread(AbrAlgorithm::flareAbr, abr, tilePredictor,
                     bandwidthPredictor, clientNetworkLayer, videoPlayer);
     LOG(INFO) << "Flare";
-  } else {
+  } else if (FLAGS_model == "Pano") {
     abrThread = std::thread(AbrAlgorithm::panoAbr, abr, tilePredictor,
                             bandwidthPredictor, clientNetworkLayer, videoPlayer,
                             panoTilesGroupsPath, panoVideoBitrate);
     LOG(INFO) << "Pano";
+  } else {
+    abrThread =
+        std::thread(AbrAlgorithm::journalAbr, abr, tilePredictor,
+                    bandwidthPredictor, clientNetworkLayer, videoPlayer);
+    LOG(INFO) << "Journal";
   }
 
   videoPlayerThread.join();
@@ -122,10 +133,14 @@ int main(int argc, char **argv) {
   Client *client = nullptr;
   if (FLAGS_model == "Pano") {
     client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
-                        argv[7], argv[8]);
+                        argv[7], argv[8], "");
+  } else if (FLAGS_model == "Journal") {
+    client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
+                        "", "", argv[7]);
+
   } else {
     client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
-                        "", "");
+                        "", "", "");
   }
 
   // to suppress warning

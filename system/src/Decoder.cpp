@@ -21,11 +21,11 @@ int read_packet(void *opaque, uint8_t *buffer, int bufferSize) {
   return bufferSize;
 }
 
-void Decoder::initAVCodec() {
+void Decoder::initAVCodec(int width, int height) {
   avCodec = avcodec_find_decoder(AV_CODEC_ID_H264);
   avCodecContext = avcodec_alloc_context3(avCodec);
-  avCodecContext->width = 320;
-  avCodecContext->height = 160;
+  avCodecContext->width = width;
+  avCodecContext->height = height;
   avCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
   avCodecContext->thread_count = 1;
   avCodecContext->thread_type = FF_THREAD_FRAME;
@@ -42,8 +42,8 @@ void Decoder::initCustomFormatContext() {
   formatContext->pb = avioContext;
 }
 
-Decoder::Decoder() {
-  initAVCodec();
+Decoder::Decoder(int width, int height) {
+  initAVCodec(width, height);
   initCustomFormatContext();
 }
 
