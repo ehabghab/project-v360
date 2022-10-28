@@ -67,50 +67,45 @@ def run_server_and_get_ip(tracefile, videoPath, args):
 	return ip.decode(encoding)
 
 
-
 def main():
 	
 	user_trace_dir = "/home/ehab/Desktop/Project-V360/analysis/traces_system/"
 	video_dir = "/home/ehab/Desktop/Videos/"
-	bw_trace_dir = "/home/ehab/Desktop/logs_all/mmlink_traces/"        
+	bw_trace_dir ="/home/ehab/Desktop/mmlink_traces_raw_to_use/"## "/home/ehab/Desktop/mmlink_traces_raw_to_use/"#    
 	tile_size ="sizes.txt"
 	quality_name = "psnr_avgs.txt"
-	displacement = "/home/ehab/Desktop/Project-V360/analysis/displacement_across_users_p100.txt"
-	args_client = {"flare_skip":" -model=Flare -predLR=1 -bufferModel=skip","flare_rebuffer":" -model=Flare -predLR=1 -bufferModel=rebuffer", "utility":" -model=Utility -predLR=1 -bufferModel=skip", "pano_skip":" -model=Pano -predLR=1 -bufferModel=skip", "pano_rebuffer":" -model=Pano -predLR=1 -bufferModel=rebuffer"}
-	models = ["pano_skip","pano_rebuffer","flare_skip","utility","flare_rebuffer"]
-	args_server = {"flare_skip":" 0", "flare_rebuffer":" 0","utility":" 1","pano_skip":" 0","pano_rebuffer":" 0"}
-	videos = ["v1_data","v2_data","v7_data","v8_data","v14_data","v27_data","v28_data"]
-	#videos = ["v14_data","v28_data","v12_data","v27_data","v1_data","v2_data"]
-	#labels =  ["low","low","low","low","med","med","high","high"]
-	labels =  ["low","low","med","med","med","high","high"]
-	bw_traces = ["report_car_0001_subtrace5","report_car_0002_subtrace1","report_bus_0001_subtrace1","report_bus_0002_subtrace1","report_bus_0003_subtrace1","report_car_0004_subtrace5","report_train_0002_subtrace3","report_train_0003_subtrace1","report_tram_0001_subtrace2","report_tram_0002_subtrace3","report_tram_0004_subtrace4","report_bicycle_0001_subtrace4","report_bicycle_0002_subtrace2","report_bus_0006_subtrace2","report_foot_0002_subtrace2"]
-	#old_bw = ["report_car_0001_subtrace5","report_car_0002_subtrace1","report_bus_0001_subtrace1","report_bus_0002_subtrace1","report_bus_0003_subtrace1"]
+	args_client = {"journal":" -model=Journal -predLR=1 -bufferModel=journalRebuffer ","flare_skip":" -model=Flare -predLR=1 -bufferModel=skip","flare_rebuffer":" -model=Flare -predLR=1 -bufferModel=rebuffer", "utility":" -model=Utility -predLR=1 -bufferModel=skip", "pano_skip":" -model=Pano -predLR=1 -bufferModel=skip", "pano_rebuffer":" -model=Pano -predLR=1 -bufferModel=rebuffer"}
+	models = ["pano_rebuffer"]#,"journal"]#,["pano_skip","pano_rebuffer","flare_skip","utility","flare_rebuffer"]
+	args_server = {"journal":" 0 ","flare_skip":" 0", "flare_rebuffer":" 0","utility":" 1","pano_skip":" 0","pano_rebuffer":" 0"}
+	videos = ["v1_data","v2_data","v7_data","v8_data","v14_data","v27_data","v28_data"] #"v1_data","v2_data","v7_data","v8_data","v14_data","v27_data",
+	#labels =  ["low","low","med","med","med","high","high"]
+	bw_traces_raw_exp1_exp2 = ["report_bus_0003_subtrace1","report_car_0004_subtrace2","report_foot_0004_subtrace1","report_train_0003_subtrace1","report_bus_0003_subtrace2","report_foot_0006_subtrace1","report_foot_0004_subtrace2","report_car_0002_subtrace1","report_foot_0002_subtrace1","report_car_0004_subtrace1","report_car_0004_subtrace3"]
+	bw_traces_raw_exp3 = ["10_B_2020.02.13_13.57.29_subtrace44","4_B_2020.02.13_13.57.29_subtrace2","8_B_2020.02.13_13.57.29_subtrace26","1_B_2019.12.16_13.40.04_subtrace14","5_B_2020.02.13_13.57.29_subtrace10","9_B_2020.02.13_13.57.29_subtrace33","2_B_2020.01.16_10.43.34_subtrace2","6_B_2020.02.13_13.57.29_subtrace11","3_B_2020.01.16_10.43.34_subtrace7","7_B_2020.02.13_13.57.29_subtrace18"]#"10_B_2020.02.13_13.57.29_subtrace44","4_B_2020.02.13_13.57.29_subtrace2"
 	users = {
 		"v1_data":[3,9,14,18,24,33,44,51,56,62],
 		"v2_data":[2,6,8,12,17,26,37,46,50,57],
-		"v6_data":[1,5,12,16,22,27,34,42,51,57],
-		"v17_data":[13,16,26,32,38,45,50,55,59,62],
-		"v14_data":[6,9,15,24,33,37,45,47,55,60],
-		"v28_data":[2,3,14,19,22,26,36,48,50,55],
 		"v7_data":[2,7,15,22,28,33,38,41,51,59],
 		"v8_data":[4,8,12,16,23,32,36,40,55,62],
-		"v12_data":[1,8,14,19,23,30,39,45,52,59],
-		"v27_data":[1,7,11,28,31,35,41,42,51,52]
+		"v14_data":[6,9,15,24,33,37,45,47,55,60],
+		"v27_data":[1,7,11,28,31,35,41,42,51,52],
+		"v28_data":[2,3,14,19,22,26,36,48,50,55],
 		}
 
 	idx = 0
 	os.system("mkdir results")
 	for video in videos:
 		os.system("mkdir results/"+video)
-		label = labels[idx]
 		idx+=1
 		videoId = int(video.split("_")[0].replace("v",""))
 		videoPath = video_dir + video
 		videoPsnr = videoPath+"/" + quality_name
+		videoSPSNR = video_dir+"/pano-static-pspnr/static_pspnr_"+"%03d"%(videoId)+".txt"
 		videoSizes = videoPath+"/"  + tile_size
 		displacementPath = videoPath+"/"+"displacement_across_users_p100.txt"
-		for bw_trace in bw_traces:
-			bw_trace_path = bw_trace_dir+bw_trace+"_"+label+".txt"
+		displacementTrainingPath = video_dir+"various_displacements/v"+str(videoId)+"_displacement_across_users_p100_all.txt"
+		baseLayerSize = videoPath+"/QP00/sizes_b.txt "
+		for bw_trace in bw_traces_raw_exp1_exp2:
+			bw_trace_path = bw_trace_dir+bw_trace+".txt"
 			for userId in users[video]:
 				for model in models:
 					user_frame_vp_path = user_trace_dir+ "vid"+str(videoId)+"_uid"+ str(userId)+"_vp_corr_per_frame.txt"
@@ -122,9 +117,15 @@ def main():
 					server_ip = run_server_and_get_ip(bw_trace_path,videoPath,args_server[model])
 					time.sleep(1)
 
-					client_cmd = "./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+videoSizes+" "+videoPsnr+" "+displacementPath+" "+server_ip+" "
+					client_cmd = "./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+videoSizes+" "+videoPsnr+" "+displacementTrainingPath+" "+server_ip+" "
+					#client_cmd = "./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+videoSizes+" "+videoSPSNR+" "+displacementTrainingPath+" "+server_ip+" "
+					
 					if "pano" in model:
+						#client_cmd += " /home/ehab/Desktop/Videos/fine_grain_groups.txt" +" /home/ehab/Desktop/Videos/videos_bitrates/v"+str(videoId)+"_bitrates.txt "
 						client_cmd += " /home/ehab/Desktop/Videos/Pano_tiles_grouping/v"+str(videoId)+"_grouping.txt" +" /home/ehab/Desktop/Videos/videos_bitrates/v"+str(videoId)+"_bitrates.txt "
+						#client_cmd += " /home/ehab/Desktop/Videos/pano-static-pspnr/v"+str(videoId)+"_grouping_spspnr.txt" +" /home/ehab/Desktop/Videos/videos_bitrates/v"+str(videoId)+"_bitrates.txt "
+					if "journal" in model:
+						client_cmd += baseLayerSize
 					client_cmd += args_client[model]
 					print(client_cmd)
 					pid = subprocess.Popen(client_cmd,shell=True)
@@ -146,7 +147,74 @@ def main():
 
 
 
+def main_study():
+	
+	video_dir = "/home/ehab/Desktop/Videos/"
+	bw_trace_dir = "/home/ehab/Desktop/mmlink_traces_raw_to_use/"#"/home/ehab/Desktop/logs_all/mmlink_traces_raw_to_use/"        
+	tile_size ="sizes.txt"
+	quality_name = "psnr_avgs.txt"
+	displacement = "/home/ehab/Desktop/Project-V360/analysis/displacement_across_users_p100.txt"
+	args_client = {"Flare":" -model=Flare -predLR=1 -bufferModel=live", "Dragonfly":" -model=Utility -predLR=1 -bufferModel=skip", "Pano":" -model=Pano -predLR=1 -bufferModel=live"}
+	args_server = {"Flare":" 0", "Dragonfly":" 1","Pano":" 0"}
+	models ={"Pano":"pano"}
+	main_dir = "/home/ehab/Desktop/aug_15_ehab_study"
+	files = os.listdir(main_dir)
+	users_corr_files = []
+	for f_corr in files:	
+		if "corr" in f_corr:
+			users_corr_files.append(f_corr)
+
+	os.system("mkdir results_study")
+	for f_corr in users_corr_files:
+		data = f_corr.split("_")
+		user_id = data[0].replace("u","")
+		video_id = int(data[1].replace("v",""))
+		model = data[2]
+		trace_id = f_corr.split("trace_")[1].split("_corr")[0]
+		videoPath = video_dir +"v" +str(video_id)+"_data"
+		videoPsnr = videoPath+"/" + quality_name
+		videoSizes = videoPath+"/"  + tile_size
+		displacementPath = videoPath+"/"+"displacement_across_users_p100.txt"
+		for bw_trace in [trace_id]:
+			bw_trace_path = bw_trace_dir+bw_trace+".txt"
+			for model in [model]:
+				user_frame_vp_path = main_dir+"/"+f_corr
+				user_frame_tiles_path = main_dir+"/"+f_corr.replace("corr","tiles_per_frame")
+
+				kill_procs()
+				out_dir = "results_study/u"+str(user_id)+"_v"+str(video_id)+"_"+model+"/"
+				os.system("mkdir "+out_dir)
+				server_ip = run_server_and_get_ip(bw_trace_path,videoPath,args_server[model])
+				time.sleep(1)
+
+				client_cmd = "./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+videoSizes+" "+videoPsnr+" "+displacementPath+" "+server_ip+" "
+				if "Pano" in model:
+					client_cmd += " /home/ehab/Desktop/Videos/Pano_tiles_grouping/v"+str(video_id)+"_grouping.txt" +" /home/ehab/Desktop/Videos/videos_bitrates/v"+str(video_id)+"_bitrates.txt "
+
+				client_cmd += args_client[model]
+				print(client_cmd)
+				pid = subprocess.Popen(client_cmd,shell=True)
+				try:	
+					signal.alarm(15*60)
+					out,err = pid.communicate()
+					print(err)
+					print(out)
+				except :
+					print("TIME out")
+				os.system("mv client* "+out_dir)
+				os.system("mv play* "+out_dir)
+				os.system("mv pred* "+out_dir)
+				os.system("mv recv* "+out_dir)
+				os.system("mv server* "+out_dir)
+				os.system("rm -r yuv* ")
+				kill_procs()
+				time.sleep(5)
+
+
 if __name__ == "__main__":
+	print("AUTOMATION MAIN_STUDY() BE CAREFUL!!!!")
+	print("AUTOMATION MAIN_STUDY() BE CAREFUL!!!!")
+	print("AUTOMATION MAIN_STUDY() BE CAREFUL!!!!")
 	main()
 
 
