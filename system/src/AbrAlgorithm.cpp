@@ -370,7 +370,7 @@ void AbrAlgorithm::getTileSetSizePerQualityJournal(
       continue;
     }
     auto chunkId = ((frameId - 1) / 25);
-    if (chunkId < stChunk) {
+    if (chunkId != stChunk) {
       continue;
     }
     if (frameIdSetQualitySizeSumToReturn.find(frameId) ==
@@ -495,20 +495,31 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
     if ((chunkTileAwaited.first != -1 &&
          clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
                                         chunkTileAwaited.second) == -1) ||
-        (chunkTileAwaited.first - chunkId) > 3) {
-      std::cout << "x Awaiting " << chunkTileAwaited.first << ","
-                << chunkTileAwaited.second << "\n";
-      std::cout << "x Awaiting vs current " << chunkTileAwaited.first << ","
-                << chunkId << "\n=====\n";
-
-      Util::sleep(stime, ABR_FREQ);
+        (chunkTileAwaited.first - chunkId) > 0) {
+      // std::cout << "in Chunk Awaiting " << chunkTileAwaited.first << ","
+      //           << chunkTileAwaited.second << " has "
+      //           << clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
+      //                                             chunkTileAwaited.second)
+      //           << " Rec!\n";
+      // std::cout << chunkId << "\n";
+      // std::cout << "in Buffer size " << chunkTileAwaited.first - chunkId
+      //           << "\n=====\n";
+      Util::sleep(stime, 10);
       videoTime += (Util::getTime() - stime);
-      stime += 100;
+      stime += 10;
       continue;
     }
+    // std::cout << "out Chunk Awaiting " << chunkTileAwaited.first << ","
+    //           << chunkTileAwaited.second << " has "
+    //           << clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
+    //                                             chunkTileAwaited.second)
+    //           << " Rec!\n";
+    // std::cout << chunkId << "\n";
+    // std::cout << "out Buffer size " << chunkTileAwaited.first - chunkId <<
+    // "\n";
 
     missBgSt = chunkId;
-    missBgEn = chunkId + 5; // buffer size is 5
+    missBgEn = chunkId + 3; // buffer size is 5
     // next chunk Id to fetch.
     auto stChunk =
         chunkTileAwaited.first == -1 ? 0 : chunkTileAwaited.first + 1;
@@ -568,11 +579,9 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
       }
     }
     req.pop_back();
-    std::cout << "Awaiting " << chunkTileAwaited.first << ","
-              << chunkTileAwaited.second << "\n";
     req += "\nQuality\n" + std::to_string(0);
-    std::cout << req << std::endl;
     clientNetworkLayer->setRequest(req);
+    // std::cout << "req :" << req << "\n====\n";
     tilesRequest.clear();
     frameIdSetQualitySizeSum.clear();
     Util::sleep(stime, ABR_FREQ);

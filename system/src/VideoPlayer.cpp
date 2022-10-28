@@ -195,7 +195,6 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoderEL,
         videoPlayer->chunksBg_.erase(idx);
         videoPlayer->recvBgChunKMutex_.unlock();
         decode_frame = true;
-        std::cout << "Chunk " << idx << " Decoded!\n";
       }
       // end BG ============
       if (decode_frame) {
@@ -1044,7 +1043,6 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
   myfile = fopen(filename.c_str(), "wb");
 
   fwrite(rawViewPort, sizeof(uint8_t), numberOfTiles * tileSize, myfile);
-
   fclose(myfile);
 }
 
