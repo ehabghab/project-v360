@@ -1043,6 +1043,7 @@ void VideoPlayer::stitchTileFrame(std::map<uint16_t, T *> &viewport,
   myfile = fopen(filename.c_str(), "wb");
 
   fwrite(rawViewPort, sizeof(uint8_t), numberOfTiles * tileSize, myfile);
+  free(rawViewPort);
   fclose(myfile);
 }
 
