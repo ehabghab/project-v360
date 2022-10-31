@@ -96,6 +96,9 @@ public:
   static void startVideoLive(VideoPlayer *videoPlayer,
                              TilePredictor *tilePredictor);
 
+  // this frees the raw tiles of the past chunks (chunkIdx-2 and chunkIdx-1)
+  void freePastChunks(uint16_t chunkIdx);
+
   void fillViewportTiles(VideoPlayer *videoPlayer, std::vector<uint16_t> &tiles,
                          std::map<uint16_t, uint8_t *> &viewport,
                          std::string &tilesQuality);

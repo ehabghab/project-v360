@@ -112,12 +112,32 @@ void VideoPlayer::addChunk(uint8_t *chunkPointer, uint32_t chunkSize,
   }*/
 }
 
+void VideoPlayer::freePastChunks(uint16_t chunkIdx) {
+  for (auto freeIdx = chunkIdx - 2; freeIdx < chunkIdx; freeIdx++) {
+    if (decodedTileChunks_.find(freeIdx) == decodedTileChunks_.end()) {
+      continue;
+    }
+    auto &decodedChunk = decodedTileChunks_[freeIdx];
+
+    for (auto &tile : decodedChunk) {
+
+      if (tile.second.first.size() == 0 || tile.first == 0) {
+        continue;
+      }
+      for (auto &ptr : tile.second.first) {
+        free(std::ref(ptr));
+      }
+      tile.second.first.clear();
+    }
+  }
+}
+
 void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoderEL,
                          Decoder *decoderBG) {
-  // TODO clear chunks of previous second from map.
+
   // TODO decode based on priority
   // TODO use list/set instead of map. Not sure!
-  uint32_t startChunk;
+  uint16_t startChunk;
   std::vector<std::string> chunksDecoded;
   bool first = true;
   std::unordered_set<int> freedChunk;
@@ -125,25 +145,7 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoderEL,
     bool decode_frame = false;
     startChunk = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
 
-    // free raw frames from previous chunks.
-    for (auto freeIdx = startChunk - 2; freeIdx < startChunk; freeIdx++) {
-      if (videoPlayer->decodedTileChunks_.find(freeIdx) ==
-          videoPlayer->decodedTileChunks_.end()) {
-        continue;
-      }
-      auto &decodedChunk = videoPlayer->decodedTileChunks_[freeIdx];
-
-      for (auto &tile : decodedChunk) {
-
-        if (tile.second.first.size() == 0 || tile.first == 0) {
-          continue;
-        }
-        for (auto &ptr : tile.second.first) {
-          free(std::ref(ptr));
-        }
-        tile.second.first.clear();
-      }
-    }
+    videoPlayer->freePastChunks(startChunk);
 
     for (uint32_t idx = startChunk; idx < startChunk + 2; idx++) {
       // chunks have presentation time first, and map<tile index, encoded tile
