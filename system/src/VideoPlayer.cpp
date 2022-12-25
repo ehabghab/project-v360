@@ -587,12 +587,11 @@ void VideoPlayer::startVideoWithRebufferJournal(VideoPlayer *videoPlayer,
   std::string tilesQuality;
   bool bgChunkRecv;
   while (true) {
-    bgChunkRecv = false;
     long frameDeadline = Util::getTime();
     tilesQuality = "";
     // LOG(INFO) << "Playing Frame#" << videoPlayer->frameId_;
-    bool check1 = true;
-    bool check2 = true;
+    bool chunksInSecond = true;
+    bool TileInChunk = true;
     tilePredictor->addVpCoordinate(
         videoPlayer->groundTruthCoordinates_[videoPlayer->frameId_ - 1], true);
 
@@ -606,91 +605,88 @@ void VideoPlayer::startVideoWithRebufferJournal(VideoPlayer *videoPlayer,
 
     playSecond = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
 
-    // if bg chunk is not received then rebuffer.
-    while (!bgChunkRecv) {
-      while (check1) {
+    // check if background chunk is available for this second.
+    while (chunksInSecond) {
+      videoPlayer->decodedTileChunksMutex_.lock();
+      if (videoPlayer->decodedTileChunks_.find(playSecond) !=
+          videoPlayer->decodedTileChunks_.end()) {
+        chunksInSecond = false;
+      }
+      videoPlayer->decodedTileChunksMutex_.unlock();
+    }
+    if (videoPlayer->decodedTileChunks_.find(playSecond) !=
+        videoPlayer->decodedTileChunks_.end()) {
+      auto &rawTilesChunks =
+          videoPlayer->decodedTileChunks_.find(playSecond)->second;
+
+      // get all frames of chunk.
+      while (TileInChunk) {
         videoPlayer->decodedTileChunksMutex_.lock();
-        if (videoPlayer->decodedTileChunks_.find(playSecond) !=
-            videoPlayer->decodedTileChunks_.end()) {
-          check1 = false;
+        if (rawTilesChunks.find(0) != rawTilesChunks.end()) {
+          TileInChunk = false;
         }
         videoPlayer->decodedTileChunksMutex_.unlock();
       }
-      check1 = true;
+    } // end bgchunk received loop
+
+    // loop over received foreground tiles.
+    // for each tile, find if quality got updated.
+    for (auto tileIdx : tiles->second) {
+
+      // decoded chunks with frames belong to current presentation time.
+      // this gets all the raw chunks for all tiles at chunk = play-second.
+
       if (videoPlayer->decodedTileChunks_.find(playSecond) !=
           videoPlayer->decodedTileChunks_.end()) {
         auto &rawTilesChunks =
             videoPlayer->decodedTileChunks_.find(playSecond)->second;
 
-        // get all frames of chunk.
-        while (check2) {
-          videoPlayer->decodedTileChunksMutex_.lock();
-          if (rawTilesChunks.find(0) != rawTilesChunks.end()) {
-            check2 = false;
-          }
-          videoPlayer->decodedTileChunksMutex_.unlock();
-        }
-        check2 = true;
-        bgChunkRecv = true;
-      } // end bgchunk received loop
+        if (rawTilesChunks.find(tileIdx) != rawTilesChunks.end()) {
+          auto &framePtrQualityPair = rawTilesChunks.find(tileIdx)->second;
+          auto &frame =
+              framePtrQualityPair
+                  .first[(videoPlayer->frameId_ - 1) % videoPlayer->FPS_];
 
-      // for each tile, find if quality got updated.
-      for (auto tileIdx : tiles->second) {
+          viewport.insert(std::make_pair(tileIdx, frame));
 
-        // decoded chunks with frames belong to current presentation time.
-        // this gets all the raw chunks for all tiles at chunk = play-second.
+          tilesQuality += std::to_string(tileIdx) + "_" +
+                          std::to_string(framePtrQualityPair.second) + ",";
 
-        if (videoPlayer->decodedTileChunks_.find(playSecond) !=
-            videoPlayer->decodedTileChunks_.end()) {
-          auto &rawTilesChunks =
-              videoPlayer->decodedTileChunks_.find(playSecond)->second;
-
-          if (rawTilesChunks.find(tileIdx) != rawTilesChunks.end()) {
-            auto &framePtrQualityPair = rawTilesChunks.find(tileIdx)->second;
-            auto &frame =
-                framePtrQualityPair
-                    .first[(videoPlayer->frameId_ - 1) % videoPlayer->FPS_];
-
-            viewport.insert(std::make_pair(tileIdx, frame));
-
-            tilesQuality += std::to_string(tileIdx) + "_" +
-                            std::to_string(framePtrQualityPair.second) + ",";
-
-          } else {
-            viewport.insert(std::make_pair(tileIdx, nullptr));
-
-            tilesQuality +=
-                std::to_string(tileIdx) + "_" + std::to_string(0) + ",";
-          }
         } else {
-          // schedule urgent request.
-          // all tiles are needed.
+          viewport.insert(std::make_pair(tileIdx, nullptr));
+
+          tilesQuality +=
+              std::to_string(tileIdx) + "_" + std::to_string(0) + ",";
         }
+      } else {
+        // schedule urgent request.
+        // all tiles are needed.
       }
-      LOG(INFO) << "Stitching F#" << videoPlayer->frameId_ << "\n====";
+    } // foreground tiles loop end.
 
-      // stichFrames.
-      tilesQuality.pop_back();
-      renderTime = Util::getTime();
-      fprintf(playLog, "%-20s %-20s %-20s %-20s\n",
-              std::to_string(videoPlayer->frameId_).c_str(),
-              std::to_string(frameDeadline).c_str(),
-              std::to_string(renderTime).c_str(), tilesQuality.c_str());
+    LOG(INFO) << "Stitching F#" << videoPlayer->frameId_ << "\n====";
 
-      fflush(playLog);
-      videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_, 0);
-      Util::setFramePlayTime(renderTime);
-      videoPlayer->frameId_++;
-      viewport.clear();
-      if (videoPlayer->frameId_ == 1476) {
-        LOG(INFO) << "Video Ended!";
-        return;
-      }
-      LOG(INFO) << Util::getTime() << " : " << frameGap << " --> "
-                << "before\n";
-      Util::sleep(renderTime, frameGap);
-      LOG(INFO) << Util::getTime() << " : after\n";
+    // stichFrames.
+    tilesQuality.pop_back();
+    renderTime = Util::getTime();
+    fprintf(playLog, "%-20s %-20s %-20s %-20s\n",
+            std::to_string(videoPlayer->frameId_).c_str(),
+            std::to_string(frameDeadline).c_str(),
+            std::to_string(renderTime).c_str(), tilesQuality.c_str());
+
+    fflush(playLog);
+    videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_, 0);
+    Util::setFramePlayTime(renderTime);
+    videoPlayer->frameId_++;
+    viewport.clear();
+    if (videoPlayer->frameId_ == 1476) {
+      LOG(INFO) << "Video Ended!";
+      return;
     }
+    LOG(INFO) << Util::getTime() << " : " << frameGap << " --> "
+              << "before\n";
+    Util::sleep(renderTime, frameGap);
+    LOG(INFO) << Util::getTime() << " : after\n";
   }
 }
 
