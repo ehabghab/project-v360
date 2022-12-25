@@ -470,7 +470,10 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
   // every 100ms, update tile list.
   long stime = Util::getTime();
   float videoTime = 0;
-
+  int backgroundBufferSize = 3;
+  int foregroundBufferSize = 1; // 0 live.
+  int missBgSt, missBgEn;
+  int lastForegroundChunkRecieved = -1;
   uint8_t numOfQualities = abrAlgorithm->getNumberOfQualities();
   uint8_t numOfClasses = 0;
   // This set will contain all tiles in prev sets (to contain duplicates)
@@ -479,47 +482,37 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
   std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
       frameIdSetQualitySizeSum;
   std::map<uint8_t, std::vector<std::pair<int, uint16_t>>> tilesRequest;
-  int missBgSt, missBgEn;
+
   std::pair<int, uint16_t> chunkTileAwaited(-1, 0);
+
+  uint16_t chunkId;
+  int frameIdToRender;
   while (true) {
-    // get the predicted tiles every ABR_FREQ(100ms).
-    // we will have mutliple sets (e.g. viewport tiles, viewport edge tiles ,
-    // further tiles, rest of tiles)
 
-    // all frameId must be >= frameIdToRender, to ensure we don't request data
-    // for old frames.
-    auto frameIdToRender = videoPlayer->getFrameToRenderId();
-    int chunkId = (frameIdToRender - 1) / 25;
+    // if foreground chunk is not fully received.
+    // or if the foreground buffer is full. Then pause ABR.
+    while (true) {
+      frameIdToRender = videoPlayer->getFrameToRenderId();
+      chunkId = (frameIdToRender - 1) / 25;
 
-    // if the chunk has not finished downloading or buffer is full (3sec)
-    if ((chunkTileAwaited.first != -1 &&
-         clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
-                                        chunkTileAwaited.second) == -1) ||
-        (chunkTileAwaited.first - chunkId) > 0) {
-      // std::cout << "in Chunk Awaiting " << chunkTileAwaited.first << ","
-      //           << chunkTileAwaited.second << " has "
-      //           << clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
-      //                                             chunkTileAwaited.second)
-      //           << " Rec!\n";
-      // std::cout << chunkId << "\n";
-      // std::cout << "in Buffer size " << chunkTileAwaited.first - chunkId
-      //           << "\n=====\n";
+      if (chunkTileAwaited.first == -1) {
+        break;
+      }
+      if (clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
+                                         chunkTileAwaited.second) != -1) {
+        lastForegroundChunkRecieved = chunkTileAwaited.first;
+        if (lastForegroundChunkRecieved - chunkId < foregroundBufferSize) {
+          break;
+        }
+      }
+
       Util::sleep(stime, 10);
       videoTime += (Util::getTime() - stime);
       stime += 10;
-      continue;
     }
-    // std::cout << "out Chunk Awaiting " << chunkTileAwaited.first << ","
-    //           << chunkTileAwaited.second << " has "
-    //           << clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
-    //                                             chunkTileAwaited.second)
-    //           << " Rec!\n";
-    // std::cout << chunkId << "\n";
-    // std::cout << "out Buffer size " << chunkTileAwaited.first - chunkId <<
-    // "\n";
 
     missBgSt = chunkId;
-    missBgEn = chunkId + 3; // buffer size is 5
+    missBgEn = chunkId + backgroundBufferSize;
     // next chunk Id to fetch.
     auto stChunk =
         chunkTileAwaited.first == -1 ? 0 : chunkTileAwaited.first + 1;
@@ -581,7 +574,6 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
     req.pop_back();
     req += "\nQuality\n" + std::to_string(0);
     clientNetworkLayer->setRequest(req);
-    // std::cout << "req :" << req << "\n====\n";
     tilesRequest.clear();
     frameIdSetQualitySizeSum.clear();
     Util::sleep(stime, ABR_FREQ);
