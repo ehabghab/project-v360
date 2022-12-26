@@ -20,6 +20,8 @@
 
 #define ABR_FREQ 100
 
+DEFINE_bool(JournalCoraseABR, true, "corase or fine");
+
 AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
                            std::string tileChunksQaulityPath,
                            std::string backgroundDisplacementPath,
@@ -370,7 +372,9 @@ void AbrAlgorithm::getTileSetSizePerQualityJournal(
       continue;
     }
     auto chunkId = ((frameId - 1) / 25);
-    if (chunkId != stChunk) {
+
+    // stChunk == -1 if fine-grained abr call is made.
+    if (chunkId != stChunk && stChunk != -1) {
       continue;
     }
     if (frameIdSetQualitySizeSumToReturn.find(frameId) ==
@@ -469,7 +473,6 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
                               VideoPlayer *videoPlayer) {
   // every 100ms, update tile list.
   long stime = Util::getTime();
-  float videoTime = 0;
   int backgroundBufferSize = 3;
   int foregroundBufferSize = 1; // 0 live.
   int missBgSt, missBgEn;
@@ -491,31 +494,36 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
 
     // if foreground chunk is not fully received.
     // or if the foreground buffer is full. Then pause ABR.
-    while (true) {
-      frameIdToRender = videoPlayer->getFrameToRenderId();
-      chunkId = (frameIdToRender - 1) / 25;
+    if (FLAGS_JournalCoraseABR) {
+      while (true) {
+        frameIdToRender = videoPlayer->getFrameToRenderId();
+        chunkId = (frameIdToRender - 1) / 25;
 
-      if (chunkTileAwaited.first == -1) {
-        break;
-      }
-      if (clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
-                                         chunkTileAwaited.second) != -1) {
-        lastForegroundChunkRecieved = chunkTileAwaited.first;
-        if (lastForegroundChunkRecieved - chunkId < foregroundBufferSize) {
+        if (chunkTileAwaited.first == -1) {
           break;
         }
+        if (clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
+                                           chunkTileAwaited.second) != -1) {
+          lastForegroundChunkRecieved = chunkTileAwaited.first;
+          if (lastForegroundChunkRecieved - chunkId < foregroundBufferSize) {
+            break;
+          }
+        }
+        Util::sleep(stime, 10);
+        stime += 10;
       }
-
-      Util::sleep(stime, 10);
-      videoTime += (Util::getTime() - stime);
-      stime += 10;
+    } else {
+      frameIdToRender = videoPlayer->getFrameToRenderId();
+      chunkId = (frameIdToRender - 1) / 25;
     }
 
+    // std::cout << "Frame to render: " << frameIdToRender << "\n";
     missBgSt = chunkId;
     missBgEn = chunkId + backgroundBufferSize;
+
     // next chunk Id to fetch.
-    auto stChunk =
-        chunkTileAwaited.first == -1 ? 0 : chunkTileAwaited.first + 1;
+    int stChunk = chunkTileAwaited.first == -1 ? 0 : chunkTileAwaited.first + 1;
+    stChunk = FLAGS_JournalCoraseABR ? stChunk : -1;
     // this will return the size per class per frame.
     // along with number of class = max(class rank),
     numOfClasses = 0;
@@ -572,12 +580,12 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
       }
     }
     req.pop_back();
+    // std::cout << stime << ":" << req << "\n";
     req += "\nQuality\n" + std::to_string(0);
     clientNetworkLayer->setRequest(req);
     tilesRequest.clear();
     frameIdSetQualitySizeSum.clear();
     Util::sleep(stime, ABR_FREQ);
-    videoTime += (Util::getTime() - stime);
     stime += 100;
   }
 }
