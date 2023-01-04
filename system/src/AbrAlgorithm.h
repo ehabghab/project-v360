@@ -18,7 +18,9 @@ public:
   AbrAlgorithm(std::string tileChunkSizesPath,
                std::string tileChunksQaulityPath,
                std::string backgroundDisplacementPath,
-               std::string fullVideoChunkSizePath);
+               std::string fullVideoChunkSizePath,
+               std::string fullVideoChunkPSNRPath);
+
   static void flareAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
                        BandwidthPredictor *bandwidthPredictor,
                        ClientNetworkLayer *clientNetworkLayer,
@@ -65,6 +67,8 @@ private:
       tileChunkPSNRPerQuality_;
 
   std::vector<uint64_t> fullVideoChunksSizes_;
+
+  std::vector<float> fullVideoChunksPSNR_;
 
   uint8_t numberOfQualities_;
 

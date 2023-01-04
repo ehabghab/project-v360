@@ -568,8 +568,9 @@ void VideoPlayer::startVideoWithRebuffer(VideoPlayer *videoPlayer,
   }
 }
 
-void VideoPlayer::startVideoWithRebufferJournal(VideoPlayer *videoPlayer,
-                                                TilePredictor *tilePredictor) {
+void VideoPlayer::startVideoJournal(VideoPlayer *videoPlayer,
+                                    TilePredictor *tilePredictor,
+                                    bool rebuffer) {
   long renderTime;
 
   long frameGap = (1000.0 / videoPlayer->FPS_);
@@ -581,14 +582,22 @@ void VideoPlayer::startVideoWithRebufferJournal(VideoPlayer *videoPlayer,
   FILE *playLog;
   std::string filename = "play_log_" + Util::getLogTimestamp() + ".txt";
   playLog = fopen(filename.c_str(), "wb");
-  fprintf(playLog, "%-20s %-20s %-20s %-20s\n", "frame id", "deadline",
-          "render time", "tiles_quality");
+  if (rebuffer) {
+    fprintf(playLog, "%-20s %-20s %-20s %-20s\n", "frame id", "deadline",
+            "render time", "tiles_quality");
+  } else {
+    fprintf(playLog, "%-20s %-20s %-20s %-20s %10s\n", "frame id", "deadline",
+            "render time", "skipped tiles", "tiles_quality");
+  }
+  // list of all tiles we had to skip for the current frame.
+  std::string skippedTiles;
 
   std::string tilesQuality;
   bool bgChunkRecv;
   while (true) {
     long frameDeadline = Util::getTime();
     tilesQuality = "";
+    skippedTiles = "";
     // LOG(INFO) << "Playing Frame#" << videoPlayer->frameId_;
     bool chunksInSecond = true;
     bool TileInChunk = true;
@@ -613,6 +622,9 @@ void VideoPlayer::startVideoWithRebufferJournal(VideoPlayer *videoPlayer,
         chunksInSecond = false;
       }
       videoPlayer->decodedTileChunksMutex_.unlock();
+      if (!rebuffer && playSecond != 1) {
+        break;
+      }
     }
     if (videoPlayer->decodedTileChunks_.find(playSecond) !=
         videoPlayer->decodedTileChunks_.end()) {
@@ -626,6 +638,12 @@ void VideoPlayer::startVideoWithRebufferJournal(VideoPlayer *videoPlayer,
           TileInChunk = false;
         }
         videoPlayer->decodedTileChunksMutex_.unlock();
+        if (!rebuffer && !TileInChunk) {
+          tilesQuality += "0_0,";
+        }
+        if (!rebuffer && playSecond != 1) {
+          break;
+        }
       }
     } // end bgchunk received loop
 
@@ -655,12 +673,15 @@ void VideoPlayer::startVideoWithRebufferJournal(VideoPlayer *videoPlayer,
         } else {
           viewport.insert(std::make_pair(tileIdx, nullptr));
 
-          tilesQuality +=
-              std::to_string(tileIdx) + "_" + std::to_string(0) + ",";
+          if (rebuffer) {
+            tilesQuality +=
+                std::to_string(tileIdx) + "_" + std::to_string(0) + ",";
+          } else {
+            skippedTiles += std::to_string(tileIdx) + ",";
+          }
         }
       } else {
-        // schedule urgent request.
-        // all tiles are needed.
+        skippedTiles += std::to_string(tileIdx) + ",";
       }
     } // foreground tiles loop end.
 
@@ -669,11 +690,19 @@ void VideoPlayer::startVideoWithRebufferJournal(VideoPlayer *videoPlayer,
     // stichFrames.
     tilesQuality.pop_back();
     renderTime = Util::getTime();
-    fprintf(playLog, "%-20s %-20s %-20s %-20s\n",
-            std::to_string(videoPlayer->frameId_).c_str(),
-            std::to_string(frameDeadline).c_str(),
-            std::to_string(renderTime).c_str(), tilesQuality.c_str());
-
+    if (rebuffer) {
+      fprintf(playLog, "%-20s %-20s %-20s %-20s\n",
+              std::to_string(videoPlayer->frameId_).c_str(),
+              std::to_string(frameDeadline).c_str(),
+              std::to_string(renderTime).c_str(), tilesQuality.c_str());
+    } else {
+      skippedTiles.pop_back();
+      fprintf(playLog, "%-20s %-20s %-20s %-20s %10s\n",
+              std::to_string(videoPlayer->frameId_).c_str(),
+              std::to_string(frameDeadline).c_str(),
+              std::to_string(renderTime).c_str(), skippedTiles.c_str(),
+              tilesQuality.c_str());
+    }
     fflush(playLog);
     videoPlayer->stitchTileFrame(viewport, videoPlayer->frameId_, 0);
     Util::setFramePlayTime(renderTime);

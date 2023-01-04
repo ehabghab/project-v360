@@ -88,8 +88,9 @@ public:
   static void startVideoWithRebuffer(VideoPlayer *videoPlayer,
                                      TilePredictor *tilePredictor);
 
-  static void startVideoWithRebufferJournal(VideoPlayer *videoPlayer,
-                                            TilePredictor *tilePredictor);
+  static void startVideoJournal(VideoPlayer *videoPlayer,
+                                TilePredictor *tilePredictor, bool rebuffer);
+
   static void startVideoWithSkip(VideoPlayer *videoPlayer,
                                  TilePredictor *tilePredictor);
 

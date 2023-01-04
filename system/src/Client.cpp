@@ -25,7 +25,8 @@ Client::Client(std::string tilesPerFrameTracePath,
                std::string tileChunksQaulityPath,
                std::string backgroundDisplacementPath, std::string serverIp,
                std::string panoTilesGroupsPath, std::string panoVideoBitrate,
-               std::string fullVideoChunkSizePath) {
+               std::string fullVideoChunkSizePath,
+               std::string fullVideoChunkPSNRPath) {
   // Initiate all instances to create threads.
   // 1- Network layer (sender and receiver).
   // 2- Video player along with the decoder.
@@ -35,9 +36,9 @@ Client::Client(std::string tilesPerFrameTracePath,
       new VideoPlayer(tilesPerFrameTracePath, vpCorrPerFrameTracePath);
   Decoder *decoderEL = new Decoder(320, 160);
   Decoder *decoderBG = new Decoder(3840, 1920);
-  AbrAlgorithm *abr =
-      new AbrAlgorithm(tileChunkSizesPath, tileChunksQaulityPath,
-                       backgroundDisplacementPath, fullVideoChunkSizePath);
+  AbrAlgorithm *abr = new AbrAlgorithm(
+      tileChunkSizesPath, tileChunksQaulityPath, backgroundDisplacementPath,
+      fullVideoChunkSizePath, fullVideoChunkPSNRPath);
   TilePredictor *tilePredictor =
       new TilePredictor(vpCorrPerFrameTracePath, FLAGS_model);
   BandwidthPredictor *bandwidthPredictor = new BandwidthPredictor();
@@ -52,15 +53,22 @@ Client::Client(std::string tilesPerFrameTracePath,
                          videoPlayer, bandwidthPredictor);
 
   std::thread videoPlayerThread;
-  if (FLAGS_bufferModel == "skip") {
+
+  if (FLAGS_model == "Journal") {
+    videoPlayerThread =
+        std::thread(VideoPlayer::startVideoJournal, videoPlayer, tilePredictor,
+                    FLAGS_bufferModel == "skip" ? false : true);
+
+  } else if (FLAGS_bufferModel == "skip") {
     videoPlayerThread = std::thread(VideoPlayer::startVideoWithSkip,
                                     videoPlayer, tilePredictor);
   } else if (FLAGS_bufferModel == "rebuffer") {
     videoPlayerThread = std::thread(VideoPlayer::startVideoWithRebuffer,
                                     videoPlayer, tilePredictor);
-  } else if (FLAGS_bufferModel == "journalRebuffer") {
-    videoPlayerThread = std::thread(VideoPlayer::startVideoWithRebufferJournal,
-                                    videoPlayer, tilePredictor);
+  } else if (FLAGS_bufferModel == "UtilityJskip") {
+    videoPlayerThread = std::thread(VideoPlayer::startVideoJournal, videoPlayer,
+                                    tilePredictor, false);
+
   } else {
     videoPlayerThread =
         std::thread(VideoPlayer::startVideoLive, videoPlayer, tilePredictor);
@@ -133,14 +141,14 @@ int main(int argc, char **argv) {
   Client *client = nullptr;
   if (FLAGS_model == "Pano") {
     client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
-                        argv[7], argv[8], "");
+                        argv[7], argv[8], "", "");
   } else if (FLAGS_model == "Journal") {
     client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
-                        "", "", argv[7]);
+                        "", "", argv[7], "");
 
   } else {
     client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
-                        "", "", "");
+                        "", "", argv[7], argv[8]);
   }
 
   // to suppress warning

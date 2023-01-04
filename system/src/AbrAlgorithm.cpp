@@ -21,11 +21,15 @@
 #define ABR_FREQ 100
 
 DEFINE_bool(JournalCoraseABR, true, "corase or fine");
+DEFINE_bool(UtilityCoraseBackgroundStream, false,
+            "background stream full 360 chunks (true),"
+            "or wide range of small tiles(false).");
 
 AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
                            std::string tileChunksQaulityPath,
                            std::string backgroundDisplacementPath,
-                           std::string fullVideoChunkSizePath) {
+                           std::string fullVideoChunkSizePath,
+                           std::string fullVideoChunkPSNRPath) {
   std::ifstream infile1(tileChunkSizesPath);
   std::string line;
   uint8_t quality = -1;
@@ -98,11 +102,16 @@ AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
   //   background_tiles_.insert({chunkId, tiles});
   // }
 
-  fullVideoChunksSizes_;
   std::ifstream infile4(fullVideoChunkSizePath);
   while (std::getline(infile4, line)) {
     line.pop_back();
     folly::split(",", line.substr(1), fullVideoChunksSizes_);
+  }
+
+  std::ifstream infile5(fullVideoChunkPSNRPath);
+  while (std::getline(infile5, line)) {
+    line.pop_back();
+    folly::split(",", line.substr(1), fullVideoChunksPSNR_);
   }
 }
 
@@ -360,7 +369,7 @@ void AbrAlgorithm::getTileSetSizePerQualityJournal(
   // frame[i] needs M tiles for Class C1, and N tiles for Class C2
   // note that M ∩ N = Φ, tiles in class M cannot be in N (not duplicate tiles)
   auto tileClassesOfFutureFrames =
-      tilePredictor->getPredictedTilesFlareLR({{100, 100}}, 75);
+      tilePredictor->getPredictedTilesFlareLR({{100, 100}}, 25);
   if (tileClassesOfFutureFrames.size() == 0) {
     return;
   }
@@ -560,7 +569,7 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
 
     auto qualityMap = abrAlgorithm->getQualityIdx(
         frameIdSetQualitySizeSum, qualityAssignmentsVec, frameIdToRender,
-        numOfQualities, predictedBw, baseTime, "");
+        numOfQualities, predictedBw, baseTime, "Flare");
 
     std::string req = "Tiles\n" + bgTiles;
 
@@ -842,12 +851,15 @@ std::string AbrAlgorithm::scheduler(
       for (; bgchunkIdx <= chunkIdxs[chunkIdxs.size() - 1]; bgchunkIdx++) {
         for (; bgTileIdx < backgroundTiles[bgchunkIdx].size(); bgTileIdx++) {
           auto &bgTileInfo = backgroundTiles[bgchunkIdx][bgTileIdx];
-          float dtime = (tileChunkSizePerQuality_[1][bgTileInfo.second]
-                                                 [bgTileInfo.first] *
-                         1e3) /
-                        totalBw;
+          uint64_t tileSize =
+              FLAGS_UtilityCoraseBackgroundStream
+                  ? fullVideoChunksSizes_[bgTileInfo.first]
+                  : tileChunkSizePerQuality_[1][bgTileInfo.second]
+                                            [bgTileInfo.first];
+          float dtime = (tileSize * 1e3) / totalBw;
           request += std::to_string(bgTileInfo.first) + "_" +
-                     std::to_string(bgTileInfo.second) + "_1,";
+                     std::to_string(bgTileInfo.second);
+          request += FLAGS_UtilityCoraseBackgroundStream ? "_0," : "_1,";
           bgMsTarget -= dtime;
           if (bgMsTarget < 0) { // bg tile spills to fg slot
             request += fgTile;
@@ -912,58 +924,76 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
       break;
     }
 
-    for (auto idx = chunkId; idx < chunkId + backgroundHorizonInSec; idx++) {
-      if (idx >= 60) {
-        backgroundTiles[idx - chunkId] = {};
-        continue;
-      }
+    // if the background stream is fine grained ...
+    if (!FLAGS_UtilityCoraseBackgroundStream) {
+      for (auto idx = chunkId; idx < chunkId + backgroundHorizonInSec; idx++) {
+        if (idx >= 60) {
+          backgroundTiles[idx - chunkId] = {};
+          continue;
+        }
 
-      std::map<float, std::vector<uint16_t>> tempBgTiles;
-      // tempBgTiles.insert({0, abrAlgorithm->background_tiles_[idx]});
-      // abrAlgorithm->updateTilesAndgetTotalSize(
-      //     std::ref(backgroundTilesSizes[idx - chunkId]),
-      //     std::ref(backgroundTiles[idx - chunkId]), tempBgTiles, idx,
-      //     clientNetworkLayer);
+        std::map<float, std::vector<uint16_t>> tempBgTiles;
+        // tempBgTiles.insert({0, abrAlgorithm->background_tiles_[idx]});
+        // abrAlgorithm->updateTilesAndgetTotalSize(
+        //     std::ref(backgroundTilesSizes[idx - chunkId]),
+        //     std::ref(backgroundTiles[idx - chunkId]), tempBgTiles, idx,
+        //     clientNetworkLayer);
 
-      if (idx != chunkId) {
-        tilePredictor->getBackgroundTiles(
-            tempBgTiles, abrAlgorithm->backgroundDisplacement_[idx], 0);
-        abrAlgorithm->updateTilesAndgetTotalSize(
-            std::ref(backgroundTilesSizes[idx - chunkId]),
-            std::ref(backgroundTiles[idx - chunkId]), tempBgTiles, idx,
-            clientNetworkLayer);
-      } else if (idx == chunkId &&
-                 groundTruth.find(chunkId) == groundTruth.end()) {
-        tilePredictor->getBackgroundTiles(
-            tempBgTiles, abrAlgorithm->backgroundDisplacement_[idx],
-            (chunkId * 25) + 1);
-        abrAlgorithm->updateTilesAndgetTotalSize(
-            std::ref(backgroundTilesSizes[idx - chunkId]),
-            std::ref(backgroundTiles[idx - chunkId]), tempBgTiles, idx,
-            clientNetworkLayer);
-        std::string log = "";
-        for (auto v : tempBgTiles) {
-          if (v.first != 1) {
-            for (auto x : v.second) {
-              log += std::to_string(x) + ", ";
+        if (idx != chunkId) {
+          tilePredictor->getBackgroundTiles(
+              tempBgTiles, abrAlgorithm->backgroundDisplacement_[idx], 0);
+          abrAlgorithm->updateTilesAndgetTotalSize(
+              std::ref(backgroundTilesSizes[idx - chunkId]),
+              std::ref(backgroundTiles[idx - chunkId]), tempBgTiles, idx,
+              clientNetworkLayer);
+        } else if (idx == chunkId &&
+                   groundTruth.find(chunkId) == groundTruth.end()) {
+          tilePredictor->getBackgroundTiles(
+              tempBgTiles, abrAlgorithm->backgroundDisplacement_[idx],
+              (chunkId * 25) + 1);
+          abrAlgorithm->updateTilesAndgetTotalSize(
+              std::ref(backgroundTilesSizes[idx - chunkId]),
+              std::ref(backgroundTiles[idx - chunkId]), tempBgTiles, idx,
+              clientNetworkLayer);
+          std::string log = "";
+          for (auto v : tempBgTiles) {
+            if (v.first != 1) {
+              for (auto x : v.second) {
+                log += std::to_string(x) + ", ";
+              }
             }
           }
+          log.pop_back();
+          LOG(INFO) << "Ground truth for chunk" << idx;
+          LOG(INFO) << log;
+          LOG(INFO) << "=====";
+          groundTruth.insert(chunkId);
         }
-        log.pop_back();
-        LOG(INFO) << "Ground truth for chunk" << idx;
-        LOG(INFO) << log;
-        LOG(INFO) << "=====";
-        groundTruth.insert(chunkId);
-      }
 
-      else {
-        abrAlgorithm->updateTilesAndgetTotalSize(
-            std::ref(backgroundTilesSizes[idx - chunkId]),
-            std::ref(backgroundTiles[idx - chunkId]), clientNetworkLayer);
-      }
+        else {
+          abrAlgorithm->updateTilesAndgetTotalSize(
+              std::ref(backgroundTilesSizes[idx - chunkId]),
+              std::ref(backgroundTiles[idx - chunkId]), clientNetworkLayer);
+        }
 
-      // get the size of the background tiles, and remove tiles that have been
-      // recieved already.
+        // get the size of the background tiles, and remove tiles that have been
+        // recieved already.
+      }
+    } else {
+      // if the background stream is coarse grained ...
+      for (auto idx = chunkId; idx < chunkId + backgroundHorizonInSec; idx++) {
+        backgroundTiles[idx - chunkId] = {};
+        if (idx >= 60) {
+          continue;
+        }
+        if (clientNetworkLayer->isReceived(idx + 1, 0) == 0) {
+          backgroundTilesSizes[idx - chunkId] = 0;
+          continue;
+        }
+        backgroundTilesSizes[idx - chunkId] =
+            abrAlgorithm->fullVideoChunksSizes_[idx];
+        backgroundTiles[idx - chunkId].push_back({idx, 0});
+      }
     }
 
     // High priority tiles correspond to the [0-2) seconds.
@@ -1022,8 +1052,9 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
     std::string req = "";
     for (auto bgChunkIdx : {0, 1}) {
       for (auto &tile : backgroundTiles[bgChunkIdx]) {
-        req += std::to_string(tile.first) + "_" + std::to_string(tile.second) +
-               "_1,";
+
+        req += std::to_string(tile.first) + "_" + std::to_string(tile.second);
+        req += FLAGS_UtilityCoraseBackgroundStream ? "_0," : "_1,";
       }
     }
     std::string reqScheduled;
@@ -1034,8 +1065,8 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
       req += reqScheduled;
     } else {
       for (auto &tile : backgroundTiles[2]) {
-        req += std::to_string(tile.first) + "_" + std::to_string(tile.second) +
-               "_1,";
+        req += std::to_string(tile.first) + "_" + std::to_string(tile.second);
+        req += FLAGS_UtilityCoraseBackgroundStream ? "_0," : "_1,";
       }
     }
 
@@ -1519,8 +1550,11 @@ AbrAlgorithm::qualityABR(
         }
         continue;
       }
-      if (tile.first == 0) {
-        continue;
+      // should be removed!
+      if (!FLAGS_UtilityCoraseBackgroundStream) {
+        if (tile.first == 0) {
+          continue;
+        }
       }
       // create tile node and add to the linked list.
       if (tilesNodeMap.find(tile) == tilesNodeMap.end()) {
@@ -1529,6 +1563,10 @@ AbrAlgorithm::qualityABR(
                    estimatedBw);
         tileNode *tileN =
             new tileNode{tile, 0, estDownloadTime, 1, nullptr, nullptr};
+
+        // if bg is full chunk, it will have zero for tile index.
+        uint16_t tileIdx =
+            FLAGS_UtilityCoraseBackgroundStream ? 0 : tile.second;
         if (clientNetworkLayer->isReceived(tile.first + 1, tile.second) == -1) {
           tileN->quality = 0;
         }
@@ -1540,7 +1578,9 @@ AbrAlgorithm::qualityABR(
           tileN->quality == 0 ? 0 : tileChunkPSNRPerQuality_[tileN->quality]
                                                             [tile.second]
                                                             [tile.first];
-
+      if (FLAGS_UtilityCoraseBackgroundStream && tileN->quality == 1) {
+        tileOldPsnr = fullVideoChunksPSNR_[tile.first];
+      }
       auto tileNewPsnr =
           tileChunkPSNRPerQuality_[qualityIdx][tile.second][tile.first];
 
