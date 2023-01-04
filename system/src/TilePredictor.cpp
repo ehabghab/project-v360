@@ -513,20 +513,19 @@ void TilePredictor::getBackgroundTiles(
 
 std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
 TilePredictor::getPredictedTilesFlareLR(
-    std::vector<std::pair<int, int>> vpResolutions, int predictionWindow) {
+    std::vector<std::pair<int, int>> vpResolutions) {
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
       tileClassAllFrames;
 
   // video join time as it only happens at the start of video sessions.
   while (frameId_ == 0)
     ;
-  // std::vector<std::pair<int, int>> vpResolutions = {{100, 100}, {120, 120}};
 
   std::vector<std::pair<float, float>> predictedCorr;
 
   if (FLAGS_predLR) {
     LOG(INFO) << "Linear Regression";
-    if (corrCount_ >= 13) {
+    if (corrCount_ >= predictionWindow_ / 2) {
       linearRegressor_->predict(predictedCorr, std::ref(vpGroundTruth_),
                                 corrCount_);
     }
@@ -536,7 +535,7 @@ TilePredictor::getPredictedTilesFlareLR(
   }
   uint16_t frameId = frameId_;
 
-  for (uint16_t idx = 0; idx < predictionWindow; idx++) { // per frame
+  for (uint16_t idx = 0; idx < predictionWindow_; idx++) { // per frame
     if (frameId >= 1475) {
       break;
     }
@@ -625,8 +624,7 @@ TilePredictor::getPredictedTilesFlareLR(
 }
 
 std::map<uint16_t, std::map<float, std::vector<uint16_t>>>
-TilePredictor::getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution,
-                                             int predictionWindow) {
+TilePredictor::getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution) {
   // video join time as it only happens at the start of video sessions.
   while (frameId_ == 0)
     ;
@@ -635,7 +633,7 @@ TilePredictor::getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution,
 
   if (FLAGS_predLR) {
     LOG(INFO) << "Linear Regression";
-    if (corrCount_ >= 13) {
+    if (corrCount_ >= (predictionWindow_ / 2)) {
       linearRegressor_->predict(predictedCorr, std::ref(vpGroundTruth_),
                                 corrCount_);
     }
@@ -647,7 +645,7 @@ TilePredictor::getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution,
   std::map<uint16_t, std::map<float, std::vector<uint16_t>>> tileAreaPerFrame;
 
   uint16_t frameId = frameId_;
-  for (uint16_t idx = 0; idx < predictionWindow; idx++) { // per frame
+  for (uint16_t idx = 0; idx < predictionWindow_; idx++) { // per frame
     if (frameId >= 1475) {
       break;
     }
@@ -677,8 +675,7 @@ TilePredictor::getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution,
 std::map<std::pair<int, uint16_t>, std::vector<float>>
 TilePredictor::buildUtilityMatrix(
     std::vector<std::pair<float, float>> &predictedCorr,
-    std::vector<std::pair<int, int>> &vpResolutions,
-    uint8_t numberOfFutureFrames) {
+    std::vector<std::pair<int, int>> &vpResolutions) {
 
   // video join time as it only happens at the start of video sessions.
   while (frameId_ == 0)
@@ -691,7 +688,7 @@ TilePredictor::buildUtilityMatrix(
   // keep track of what is the frameId for utility at zero (base frame id)
   utilityMatrix.insert({{-1, -1}, {static_cast<float>(frameId)}});
 
-  for (uint8_t idx = 0; idx < numberOfFutureFrames; idx++) { // per frame
+  for (uint8_t idx = 0; idx < predictionWindow_; idx++) { // per frame
     if (frameId >= 1475) {
       break;
     }
@@ -723,7 +720,7 @@ TilePredictor::buildUtilityMatrix(
           std::pair<int, uint16_t> key{chunkId, tile};
           if (utilityMatrix.find(key) == utilityMatrix.end()) {
             std::vector<float> cumlativeTileUtility(
-                25, 0); // lookahead frames is 25.
+                predictionWindow_, 0); // lookahead frames is predictionWindow_.
             utilityMatrix.insert(std::make_pair(key, cumlativeTileUtility));
           }
           utilityMatrix.find(key)->second[idx] += (1 - tileSet.first);
@@ -891,12 +888,14 @@ void TilePredictor::addVpCoordinate(std::pair<float, float> coordinate,
 }
 
 TilePredictor::TilePredictor(std::string vpCorrPerFrameTracePath,
-                             std::string model) {
+                             std::string model, size_t window) {
   // vpGroundTruth_.reserve(2000);
   vpPredictions_.reserve(2000);
   frameId_ = 0;
   corrCount_ = 0;
-  linearRegressor_ = new LinearRegression(vpCorrPerFrameTracePath, model);
+  predictionWindow_ = window;
+  linearRegressor_ =
+      new LinearRegression(vpCorrPerFrameTracePath, model, predictionWindow_);
 
   // fill
   uint16_t c = 1;
@@ -915,7 +914,7 @@ void TilePredictor::getPredictedCorr(
     std::vector<std::pair<float, float>> &predictedCorr) {
   if (FLAGS_predLR) {
     LOG(INFO) << "Linear Regression";
-    if (corrCount_ >= 13) {
+    if (corrCount_ >= (predictionWindow_ / 2)) {
       linearRegressor_->predict(predictedCorr, vpGroundTruth_, corrCount_);
     }
   } else {

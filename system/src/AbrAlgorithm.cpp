@@ -118,7 +118,7 @@ AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
 void AbrAlgorithm::getTileSetSizePerQuality(
     std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
         &frameIdSetQualitySizeSumToReturn,
-    std::map<uint8_t, std::vector<std::pair<int, uint16_t>>>
+    std::map<int, std::map<uint8_t, std::vector<uint16_t>>>
         &tilesRequestToReturn,
     TilePredictor *tilePredictor, ClientNetworkLayer *clientNetworkLayer,
     uint32_t frameIdToRender, uint8_t numOfQualities, uint8_t &numOfClasses) {
@@ -128,7 +128,7 @@ void AbrAlgorithm::getTileSetSizePerQuality(
   // frame[i] needs M tiles for Class C1, and N tiles for Class C2
   // note that M ∩ N = Φ, tiles in class M cannot be in N (not duplicate tiles)
   auto tileClassesOfFutureFrames =
-      tilePredictor->getPredictedTilesFlareLR({{100, 100}, {120, 120}}, 25);
+      tilePredictor->getPredictedTilesFlareLR({{100, 100}, {120, 120}});
   if (tileClassesOfFutureFrames.size() == 0) {
     return;
   }
@@ -147,6 +147,11 @@ void AbrAlgorithm::getTileSetSizePerQuality(
       frameIdSetQualitySizeSumToReturn.insert(
           std::make_pair(frameId, setQualitySizeSum));
     }
+    if (tilesRequestToReturn.find(chunkId) == tilesRequestToReturn.end()) {
+      std::map<uint8_t, std::vector<uint16_t>> tilesPerClassRank;
+      tilesRequestToReturn.insert({chunkId, tilesPerClassRank});
+    }
+    auto &tilesPerClassRank = tilesRequestToReturn.find(chunkId)->second;
     bool frameHasTiles = false;
 
     auto &classQualitySizeSum =
@@ -156,12 +161,17 @@ void AbrAlgorithm::getTileSetSizePerQuality(
 
       auto classRank = SetOftilesInClass.first;
 
+      if (tilesPerClassRank.find(classRank) == tilesPerClassRank.end()) {
+        std::vector<uint16_t> tiles;
+        tilesPerClassRank.insert({classRank, tiles});
+      }
+      auto &tilesToReq = tilesPerClassRank.find(classRank)->second;
       //============================================
       // This line to determine how many classes to go over next.
       numOfClasses = numOfClasses < classRank ? classRank : numOfClasses;
       //============================================
 
-      std::string tiles =
+      std::string tilesLog =
           std::to_string(frameId) + ":" + std::to_string(classRank) + ":";
       bool classHasTiles = false;
       // first tile in set.
@@ -192,9 +202,10 @@ void AbrAlgorithm::getTileSetSizePerQuality(
                   tilesRequestToReturn.end()) {
                 tilesRequestToReturn.insert({classRank, {}});
               }
-              tilesRequestToReturn.find(classRank)->second.push_back(
-                  {chunkId, tile});
-              tiles += std::to_string(tile) + ",";
+              // tilesRequestToReturn.find(classRank)->second.push_back(
+              //     {chunkId, tile});
+              tilesToReq.push_back(tile);
+              tilesLog += std::to_string(tile) + ",";
               classHasTiles = true;
               frameHasTiles = true;
             }
@@ -208,7 +219,7 @@ void AbrAlgorithm::getTileSetSizePerQuality(
       }
       if (classHasTiles) {
         // if this class has tiles, then add tiles to request
-        tiles.pop_back();
+        tilesLog.pop_back();
         // tilesRequestToReturn.push_back(tiles);
         for (auto tile : tilesInSet) {
           tilesInPrevSets.insert(tile);
@@ -216,7 +227,7 @@ void AbrAlgorithm::getTileSetSizePerQuality(
 
         if (VLOG_IS_ON(1)) {
           VLOG(1) << "FrameId[" << static_cast<int>(frameId) << "] - "
-                  << "set[" << static_cast<int>(classRank) << "] : " << tiles
+                  << "set[" << static_cast<int>(classRank) << "] : " << tilesLog
                   << std::endl;
         }
       } else {
@@ -369,7 +380,7 @@ void AbrAlgorithm::getTileSetSizePerQualityJournal(
   // frame[i] needs M tiles for Class C1, and N tiles for Class C2
   // note that M ∩ N = Φ, tiles in class M cannot be in N (not duplicate tiles)
   auto tileClassesOfFutureFrames =
-      tilePredictor->getPredictedTilesFlareLR({{100, 100}}, 25);
+      tilePredictor->getPredictedTilesFlareLR({{100, 100}});
   if (tileClassesOfFutureFrames.size() == 0) {
     return;
   }
@@ -617,7 +628,7 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
 
   std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
       frameIdSetQualitySizeSum;
-  std::map<uint8_t, std::vector<std::pair<int, uint16_t>>> tilesRequest;
+  std::map<int, std::map<uint8_t, std::vector<uint16_t>>> tilesRequest;
   while (true) {
     // get the predicted tiles every ABR_FREQ(100ms).
     // we will have mutliple sets (e.g. viewport tiles, viewport edge tiles ,
@@ -679,16 +690,18 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
         numOfQualities, predictedBw, baseTime, "Flare");
 
     std::string req = "Tiles\n"; //+ urgentTileRequestAndSize.first;
-    // class rank --> tiles <chunkId, tileId>
-    for (auto &classTilesPair : tilesRequest) {
-      auto &classRank = classTilesPair.first;
-      auto &tilesInClass = classTilesPair.second;
-      for (auto &tilePair : tilesInClass) {
-        auto &solution = qualityAssignmentsVec[qualityMap[tilePair.first]];
-        int quality = int(solution[classRank * 2]) - 48;
-        req += std::to_string(tilePair.first) + "_" +
-               std::to_string(tilePair.second) + "_" + std::to_string(quality) +
-               ",";
+    // chunkId --> classRank --> <tiles>
+    for (auto &tilesInChunkPair : tilesRequest) {
+      auto &chunkId = tilesInChunkPair.first;
+      auto &tilesInChunk = tilesInChunkPair.second;
+      for (auto &tilesClassPair : tilesInChunk) {
+        auto &tileClass = tilesClassPair.first;
+        for (auto &tile : tilesClassPair.second) {
+          auto &solution = qualityAssignmentsVec[qualityMap[chunkId]];
+          int quality = int(solution[tileClass * 2]) - 48;
+          req += std::to_string(chunkId) + "_" + std::to_string(tile) + "_" +
+                 std::to_string(quality) + ",";
+        }
       }
     }
     req.pop_back();
@@ -1017,7 +1030,7 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
       // generate the utility matrix for predicted-to-render tiles in the next
       // 25 frames (1sec).
       auto utilityMatrix =
-          tilePredictor->buildUtilityMatrix(predictedCorr, vpResolutions, 25);
+          tilePredictor->buildUtilityMatrix(predictedCorr, vpResolutions);
       // sort tiles by their max utility.
       auto orderedUtilityMatrix =
           abrAlgorithm->orderTilesByMaxUtility(utilityMatrix, frameIdToRender);
@@ -2378,8 +2391,7 @@ std::map<int, std::map<uint8_t, float>>
 AbrAlgorithm::areaPerGroup(TilePredictor *tilePredictor,
                            uint8_t tilesGroups[]) {
 
-  auto areaPerTile =
-      tilePredictor->getOverlappingAreaSizePerTile({100, 100}, 75);
+  auto areaPerTile = tilePredictor->getOverlappingAreaSizePerTile({100, 100});
 
   std::map<int, std::map<uint8_t, float>> groupTotalAreaPerChunk;
 

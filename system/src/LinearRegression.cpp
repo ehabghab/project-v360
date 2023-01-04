@@ -178,8 +178,13 @@ void LinearRegression::initPerfect() {
 }
 
 LinearRegression::LinearRegression(std::string vpCorrPerFrameTracePath,
-                                   std::string model) {
+                                   std::string model, size_t window) {
   vpCorrPerFrameTracePath_ = vpCorrPerFrameTracePath;
-  // pw_ = (model == "Pano" || model == "Journal") ? 75 : 25;
-  pw_ = (model == "Pano") ? 75 : 25;
+  pw_ = window;
+  hw_ = window / 2;
+  for (uint8_t idx = 0; idx <= hw_; idx++) {
+    yawInput_.push_back(0);
+    pitchInput_.push_back(0);
+    timeSampleInput_.push_back(0);
+  }
 }

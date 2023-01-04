@@ -198,7 +198,7 @@ private:
   void getTileSetSizePerQuality(
       std::map<int, std::map<uint8_t, std::vector<uint64_t>>>
           &frameIdSetQualitySizeSumToReturn,
-      std::map<uint8_t, std::vector<std::pair<int, uint16_t>>>
+      std::map<int, std::map<uint8_t, std::vector<uint16_t>>>
           &tilesRequestToReturn,
       TilePredictor *tilePredictor, ClientNetworkLayer *clientNetworkLayer,
       uint32_t frameIdToRender, uint8_t numOfQualities, uint8_t &numOfClasses);

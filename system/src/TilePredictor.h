@@ -24,8 +24,7 @@ public:
   getPredictedTilesStatic();
 
   std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
-  getPredictedTilesFlareLR(std::vector<std::pair<int, int>> vpResolutions,
-                           int predictionWindow);
+  getPredictedTilesFlareLR(std::vector<std::pair<int, int>> vpResolutions);
 
   /**
    * @brief This function calculates the utility for all to-be-recevied tiles in
@@ -40,10 +39,10 @@ public:
    */
   std::map<std::pair<int, uint16_t>, std::vector<float>>
   buildUtilityMatrix(std::vector<std::pair<float, float>> &predictedCorr,
-                     std::vector<std::pair<int, int>> &vpResolutions,
-                     uint8_t numberOfFutureFrames);
+                     std::vector<std::pair<int, int>> &vpResolutions);
 
-  TilePredictor(std::string vpCorrPerFrameTracePath, std::string model);
+  TilePredictor(std::string vpCorrPerFrameTracePath, std::string model,
+                size_t window);
   uint16_t getFrameId();
 
   // key1: High/low quality tiles
@@ -80,8 +79,7 @@ public:
    *         <frame, <area_normalized,<tiles>>
    */
   std::map<uint16_t, std::map<float, std::vector<uint16_t>>>
-  getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution,
-                                int predictionWindow);
+  getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution);
 
 private:
   struct SquareCoordinates {
@@ -100,6 +98,8 @@ private:
   std::vector<std::pair<float, float>> vpGroundTruth_;
   uint16_t frameId_;
   uint16_t corrCount_;
+
+  size_t predictionWindow_;
 
   // TODO: build manifest to fill from.
   std::map<uint16_t, std::pair<float, float>> tileCoordinates_;
