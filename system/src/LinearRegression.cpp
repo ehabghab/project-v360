@@ -19,73 +19,27 @@
 void LinearRegression::predict(
     std::vector<std::pair<float, float>> &lrPredictions,
     std::vector<std::pair<float, float>> &input, int length) {
-  if (!initalized) {
-    init(std::ref(input));
-    initalized = true;
-  }
 
-  std::vector<float> pitchError; // for storing the pitch error values
-  std::vector<float> yawError;   // for storing the yaw error values
-
+  estimateCoefficient(std::ref(input), length);
   lrPredictions.push_back(
       std::make_pair(input[length - 1].first, input[length - 1].second));
-  /*Intialization Phase*/
-  for (size_t i = 1; i <= hw_; i++) {
-    // Assuming the ground truth is [1,2,3,4,5,6] with 6 being most recent.
-    yawInput_[hw_ - i] = input[length - i].first;
-    pitchInput_[hw_ - i] = input[length - i].second;
-    timeSampleInput_[i - 1] = i;
-  }
-  // std::cout << "=========" << std::endl;
-  /*std::string yawInput = "";
-  for (int i = 0; i < hw_; i++) {
-    yawInput += std::to_string(yawInput_[i]) + ",";
-  }
-  yawInput.pop_back();*/
-  // std::cout << yawInput << std::endl;
-  /*Training Phase*/
-  // Since there are {hw_} values in our dataset and we want to run for 4*HW
-  // epochs.
-  int idx;
-  float pred;
-  float yawErr;
-  for (int i = 0; i < (4 * hw_); i++) {
-    idx = i % hw_; // for accessing index after every epoch
-    pred = yawB0 + yawB1 * timeSampleInput_[idx]; // making the prediction
-    yawErr = pred - yawInput_[idx];               // calculating the error
-    yawB0 = yawB0 - kYawAlpha_ * yawErr;          // updating b0
-    yawB1 = yawB1 - kYawAlpha_ * yawErr * timeSampleInput_[idx]; // updating b1
-    if (yawB1 < kLowerBound_)
-      yawB1 = 0;
-    if (yawB0 < kLowerBound_)
-      yawB0 = 0;
-    yawError.push_back(yawErr);
-  }
-
-  float pitchErr; // for calculating pitch error on each stage
-  for (int i = 0; i < (4 * hw_); i++) {
-    idx = i % hw_; // for accessing index after every epoch
-    pred = pitchB0 + pitchB1 * timeSampleInput_[idx]; // making the prediction
-    pitchErr = pred - pitchInput_[idx];               // calculating the error
-    pitchB0 = pitchB0 - kPitchAlpha_ * pitchErr;      // updating b0
-    pitchB1 = pitchB1 -
-              kPitchAlpha_ * pitchErr * timeSampleInput_[idx]; // updating b1
-    if (pitchB1 < kLowerBound_)
-      pitchB1 = 0;
-    if (pitchB0 < kLowerBound_)
-      pitchB0 = 0;
-    pitchError.push_back(pitchErr);
-  }
 
   std::string results = "";
   for (size_t i = hw_ + 1; i < pw_ + hw_ + 1; i++) {
-    float predYaw = yawB0 + yawB1 * i;
-    float predPitch = pitchB0 + pitchB1 * i;
+    float predYaw = yawA_ + yawB_ * i;
+    float predPitch = pitchA_ + pitchB_ * i;
 
-    if (predYaw > 360)
+    if (predYaw > 360) {
       predYaw -= int(predYaw / 360) * 360;
-    if (predPitch > 180)
+    } else if (predYaw < 0) {
+      predYaw += (int(-predYaw / 360) + 1) * 360;
+    }
+
+    if (predPitch > 180) {
       predPitch -= int(predPitch / 180) * 180;
+    } else if (predPitch < 0) {
+      predPitch += (int(-predPitch / 180) + 1) * 180;
+    }
     results +=
         "(" + std::to_string(predYaw) + "," + std::to_string(predPitch) + ")--";
     lrPredictions.push_back(std::make_pair(predYaw, predPitch));
@@ -98,10 +52,7 @@ void LinearRegression::predict(
 
 void LinearRegression::predictPerfect(
     std::vector<std::pair<float, float>> vpTruth, int length) {
-  if (!initalized) {
-    initPerfect();
-    initalized = true;
-  }
+  initPerfect();
   std::string results = "";
   for (int i = length; i < length + 25; i++) {
     vpTruth.push_back(std::make_pair(groundTruthCoordinates_[i - 1].first,
@@ -117,45 +68,59 @@ void LinearRegression::predictPerfect(
   fprintf(predictionLog_, "%-50s %-20s\n", frameOut.c_str(), results.c_str());
 }
 
-void LinearRegression::init(std::vector<std::pair<float, float>> &input) {
-  std::vector<float> yawInputDep;
-  std::vector<float> pitchInputDep;
-  std::vector<float> indep;
-  for (int idx = 0; idx < hw_; idx++) {
-    yawInputDep.push_back(input[idx].first);
-    pitchInputDep.push_back(input[idx].second);
-    indep.push_back(idx + 1);
+void LinearRegression::estimateCoefficient(
+    std::vector<std::pair<float, float>> &input, int length) {
+
+  std::pair<float, float> sums(0, 0);
+  std::pair<float, float> sumsMul(0, 0);
+  float idxMulSum = 0;
+  float idxSum = 0;
+  int i;
+  int yawOverlap = 0;
+  int pitchOverlap = 0;
+  for (int idx = length - hw_, i = 1; idx < length; idx++, i++) {
+    if (idx != length - hw_) {
+      if (std::abs(input[idx].first - input[idx - 1].first) >= 180) {
+        if (input[idx - 1].first < input[idx].first) {
+          yawOverlap--;
+        } else {
+          yawOverlap++;
+        }
+      }
+      if (std::abs(input[idx].second - input[idx - 1].second) >= 90) {
+        if (input[idx - 1].second < input[idx].second) {
+          pitchOverlap--;
+        } else {
+          pitchOverlap++;
+        }
+      }
+    }
+
+    auto calbYaw = input[idx].first + yawOverlap * 360;
+    sums.first += calbYaw;
+    sumsMul.first += i * calbYaw;
+
+    auto calbPitch = input[idx].second + pitchOverlap * 180;
+    sums.second += calbPitch;
+    sumsMul.second += i * calbPitch;
+
+    idxSum += i;
+    idxMulSum += i * i;
   }
-  float n = yawInputDep.size() * 1.0;
-  auto yawMean =
-      std::accumulate(yawInputDep.begin(), yawInputDep.end(), 0.0) / n;
-  auto pitchMean =
-      std::accumulate(pitchInputDep.begin(), pitchInputDep.end(), 0.0) / n;
-  auto indepMean = std::accumulate(indep.begin(), indep.end(), 0.0) / n;
 
-  auto indepVecMult =
-      std::inner_product(indep.begin(), indep.end(), indep.begin(), 0.0);
-  auto indepYawVecMult =
-      std::inner_product(indep.begin(), indep.end(), yawInputDep.begin(), 0.0);
-  auto indepPitchVecMult = std::inner_product(indep.begin(), indep.end(),
-                                              pitchInputDep.begin(), 0.0);
+  float idxMean_ = idxSum / hw_;
+  float yawMean_ = sums.first / hw_;
+  float pitchMean_ = sums.second / hw_;
 
-  auto indepYaw = indepYawVecMult - (n * yawMean * indepMean);
-  auto indepPitch = indepPitchVecMult - (n * pitchMean * indepMean);
-  auto indepIndep = indepVecMult - (n * indepMean * indepMean);
+  float xx = idxMulSum - (hw_ * idxMean_ * idxMean_);
+  float xyYaw = sumsMul.first - (hw_ * yawMean_ * idxMean_);
+  float xyPitch = sumsMul.second - (hw_ * pitchMean_ * idxMean_);
 
-  yawB1 = indepYaw / indepIndep;
-  yawB0 = yawMean - (yawB1 * indepMean);
+  yawB_ = xyYaw / xx;
+  yawA_ = yawMean_ - (yawB_ * idxMean_);
 
-  pitchB1 = indepPitch / indepIndep;
-  pitchB0 = pitchMean - (pitchB1 * indepMean);
-
-  std::string filename = "prediction_log_" + Util::getLogTimestamp() + ".txt";
-  predictionLog_ = fopen(filename.c_str(), "wb");
-  fprintf(predictionLog_, "%-50s %s \n", "frame id (yaw,pitch)", "predictions");
-  // std::cout << "init" << std::endl;
-  // std::cout << "(yawB0,yawB1) = (" << yawB0 << "," << yawB1 << ")\n";
-  // std::cout << "(pitchB0,pitchB1) = (" << pitchB0 << "," << pitchB1 << ")\n";
+  pitchB_ = xyPitch / xx;
+  pitchA_ = pitchMean_ - (pitchB_ * idxMean_);
 }
 
 void LinearRegression::initPerfect() {
@@ -171,20 +136,15 @@ void LinearRegression::initPerfect() {
       std::cout << "Error reading ground truth\n" << line << std::endl;
     }
   }
-
-  std::string filename = "prediction_log_" + Util::getLogTimestamp() + ".txt";
-  predictionLog_ = fopen(filename.c_str(), "wb");
-  fprintf(predictionLog_, "%-50s %s \n", "frame id (yaw,pitch)", "predictions");
 }
 
 LinearRegression::LinearRegression(std::string vpCorrPerFrameTracePath,
                                    std::string model, size_t window) {
+  std::string filename = "prediction_log_" + Util::getLogTimestamp() + ".txt";
+  predictionLog_ = fopen(filename.c_str(), "wb");
+  fprintf(predictionLog_, "%-50s %s \n", "frame id (yaw,pitch)", "predictions");
+
   vpCorrPerFrameTracePath_ = vpCorrPerFrameTracePath;
   pw_ = window;
   hw_ = window / 2;
-  for (uint8_t idx = 0; idx <= hw_; idx++) {
-    yawInput_.push_back(0);
-    pitchInput_.push_back(0);
-    timeSampleInput_.push_back(0);
-  }
 }

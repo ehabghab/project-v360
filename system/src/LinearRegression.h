@@ -16,24 +16,13 @@
 
 class LinearRegression {
 private:
-  static constexpr float kLowerBound_ = 1e-5;
-  static constexpr float kYawAlpha_ = 0.01;   // initializing our learning rate
-  static constexpr float kPitchAlpha_ = 0.01; // initializing our learning rate
-
-  // ToDo initialize with slope function.
-
-  float pitchB0; // initializing pitch b0
-  float pitchB1; // initializing pitch b1
-  float yawB0;
-  float yawB1;
-  bool initalized = false;
+  float pitchA_; // initializing pitch b0
+  float pitchB_; // initializing pitch b1
+  float yawA_;
+  float yawB_;
 
   size_t hw_;
   size_t pw_;
-
-  std::vector<float> yawInput_;
-  std::vector<float> pitchInput_;
-  std::vector<float> timeSampleInput_;
 
   std::string vpCorrPerFrameTracePath_;
 
@@ -41,7 +30,8 @@ private:
 
   std::vector<std::pair<float, float>> groundTruthCoordinates_;
 
-  void init(std::vector<std::pair<float, float>> &input);
+  void estimateCoefficient(std::vector<std::pair<float, float>> &input,
+                           int length);
 
   void initPerfect();
 
