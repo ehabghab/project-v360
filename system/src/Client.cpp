@@ -18,7 +18,7 @@
 #include "VideoPlayer.h"
 DEFINE_string(model, "Utility", "Utility, Pano, Flare, Journal");
 DEFINE_string(bufferModel, "skip", "skip, rebuffer, or live");
-DEFINE_int32(predictionWindow, 25, " prediction window in frames");
+DEFINE_int32(predictionWindow, 1, " prediction window in seconds");
 
 Client::Client(std::string tilesPerFrameTracePath,
                std::string vpCorrPerFrameTracePath,
@@ -37,9 +37,10 @@ Client::Client(std::string tilesPerFrameTracePath,
       new VideoPlayer(tilesPerFrameTracePath, vpCorrPerFrameTracePath);
   Decoder *decoderEL = new Decoder(320, 160);
   Decoder *decoderBG = new Decoder(3840, 1920);
-  AbrAlgorithm *abr = new AbrAlgorithm(
-      tileChunkSizesPath, tileChunksQaulityPath, backgroundDisplacementPath,
-      fullVideoChunkSizePath, fullVideoChunkPSNRPath);
+  AbrAlgorithm *abr =
+      new AbrAlgorithm(tileChunkSizesPath, tileChunksQaulityPath,
+                       backgroundDisplacementPath, fullVideoChunkSizePath,
+                       fullVideoChunkPSNRPath, (size_t)FLAGS_predictionWindow);
   TilePredictor *tilePredictor = new TilePredictor(
       vpCorrPerFrameTracePath, FLAGS_model, (size_t)FLAGS_predictionWindow);
   BandwidthPredictor *bandwidthPredictor = new BandwidthPredictor();

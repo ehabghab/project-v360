@@ -893,7 +893,7 @@ TilePredictor::TilePredictor(std::string vpCorrPerFrameTracePath,
   vpPredictions_.reserve(2000);
   frameId_ = 0;
   corrCount_ = 0;
-  predictionWindow_ = window;
+  predictionWindow_ = window * 25;
   linearRegressor_ =
       new LinearRegression(vpCorrPerFrameTracePath, model, predictionWindow_);
 

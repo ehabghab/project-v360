@@ -29,7 +29,8 @@ AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
                            std::string tileChunksQaulityPath,
                            std::string backgroundDisplacementPath,
                            std::string fullVideoChunkSizePath,
-                           std::string fullVideoChunkPSNRPath) {
+                           std::string fullVideoChunkPSNRPath, size_t window) {
+  predictionWindow_ = window * 25;
   std::ifstream infile1(tileChunkSizesPath);
   std::string line;
   uint8_t quality = -1;
@@ -392,9 +393,7 @@ void AbrAlgorithm::getTileSetSizePerQualityJournal(
       continue;
     }
     auto chunkId = ((frameId - 1) / 25);
-
-    // stChunk == -1 if fine-grained abr call is made.
-    if (chunkId != stChunk && stChunk != -1) {
+    if (chunkId <= stChunk) {
       continue;
     }
     if (frameIdSetQualitySizeSumToReturn.find(frameId) ==
@@ -494,7 +493,6 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
   // every 100ms, update tile list.
   long stime = Util::getTime();
   int backgroundBufferSize = 3;
-  int foregroundBufferSize = 1; // 0 live.
   int missBgSt, missBgEn;
   int lastForegroundChunkRecieved = -1;
   uint8_t numOfQualities = abrAlgorithm->getNumberOfQualities();
@@ -508,7 +506,7 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
 
   std::pair<int, uint16_t> chunkTileAwaited(-1, 0);
 
-  uint16_t chunkId;
+  int chunkId;
   int frameIdToRender;
   while (true) {
 
@@ -519,13 +517,15 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
         frameIdToRender = videoPlayer->getFrameToRenderId();
         chunkId = (frameIdToRender - 1) / 25;
 
-        if (chunkTileAwaited.first == -1) {
+        if (chunkTileAwaited.first == -1 || chunkTileAwaited.first < chunkId) {
           break;
         }
+        // this should check the bg buffer as well.
         if (clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
                                            chunkTileAwaited.second) != -1) {
           lastForegroundChunkRecieved = chunkTileAwaited.first;
-          if (lastForegroundChunkRecieved - chunkId < foregroundBufferSize) {
+          if (lastForegroundChunkRecieved - chunkId <
+              (abrAlgorithm->predictionWindow_ / 25)) {
             break;
           }
         }
@@ -536,21 +536,25 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
       frameIdToRender = videoPlayer->getFrameToRenderId();
       chunkId = (frameIdToRender - 1) / 25;
     }
+    // std::cout << chunkTileAwaited.first << ":" << chunkTileAwaited.second
+    //           << " --> "
+    //           << clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
+    //                                             chunkTileAwaited.second)
+    //           << "\n";
 
-    // std::cout << "Frame to render: " << frameIdToRender << "\n";
-    missBgSt = chunkId;
-    missBgEn = chunkId + backgroundBufferSize;
+    missBgSt = std::ceil((frameIdToRender - 1) / 25.0);
+    missBgEn = missBgSt + backgroundBufferSize;
 
     // next chunk Id to fetch.
-    int stChunk = chunkTileAwaited.first == -1 ? 0 : chunkTileAwaited.first + 1;
-    stChunk = FLAGS_JournalCoraseABR ? stChunk : -1;
+    // int stChunk = std::max(chunkId, chunkTileAwaited.first + 1);
+    // stChunk = -1; // FLAGS_JournalCoraseABR ? stChunk : -1;
     // this will return the size per class per frame.
     // along with number of class = max(class rank),
     numOfClasses = 0;
     abrAlgorithm->getTileSetSizePerQualityJournal(
         frameIdSetQualitySizeSum, tilesRequest, tilePredictor,
         clientNetworkLayer, frameIdToRender, numOfQualities, numOfClasses,
-        stChunk);
+        FLAGS_JournalCoraseABR ? chunkTileAwaited.first : -1);
     numOfClasses++;
     float predictedBw =
         (bandwidthPredictor->getMpcBandwidthPrediction()); // Bytes Per Second
@@ -582,25 +586,44 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
         frameIdSetQualitySizeSum, qualityAssignmentsVec, frameIdToRender,
         numOfQualities, predictedBw, baseTime, "Flare");
 
-    std::string req = "Tiles\n" + bgTiles;
+    // in coarse model we make a decision every chunk,
+    // so we must await the arrival of the last tile in the chunk,
+    // before we make new request.
+    std::pair<int, uint16_t> chunkToWait(-1, 0);
 
+    std::string req = "Tiles\n" + bgTiles;
     for (auto &classTilesPair : tilesRequest) {
       auto &classRank = classTilesPair.first;
       auto &tilesInClass = classTilesPair.second;
       for (auto &tilePair : tilesInClass) {
+        // if it is coarse do not correct chunk request.
+        if (FLAGS_JournalCoraseABR) {
+          if (chunkTileAwaited.first == tilePair.first ||
+              tilePair.first < chunkToWait.first) {
+            continue;
+          }
+          // this is assuming only one class of tiles.
+          // we try to find what tile-chunk to await before calling abr again.
+          // first chunkId then tileId.
+          if (chunkToWait.first == -1) {
+            chunkToWait.first = tilePair.first;
+          }
+          if (tilePair.first == chunkToWait.first) {
+            chunkToWait.second = tilePair.second;
+          }
+        }
         auto &solution = qualityAssignmentsVec[qualityMap[tilePair.first]];
         int quality = int(solution[classRank * 2]) - 48;
         req += std::to_string(tilePair.first) + "_" +
                std::to_string(tilePair.second) + "_" + std::to_string(quality) +
                ",";
-        if (tilePair.first == stChunk) {
-          chunkTileAwaited.first = stChunk;
-          chunkTileAwaited.second = tilePair.second;
-        }
       }
     }
+
+    // this is the tile-chunk to await before abr
+    chunkTileAwaited = chunkToWait.first == -1 ? chunkTileAwaited : chunkToWait;
     req.pop_back();
-    // std::cout << stime << ":" << req << "\n";
+    std::cout << stime << ":" << frameIdToRender << "\n" << req << "\n======\n";
     req += "\nQuality\n" + std::to_string(0);
     clientNetworkLayer->setRequest(req);
     tilesRequest.clear();
@@ -2145,7 +2168,8 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
                            std::string panoTilesGroupsPath,
                            std::string panoVideoBitrate) {
 
-  abrAlgorithm->buildBitrateAssigment({}, 3, 16);
+  abrAlgorithm->buildBitrateAssigment(
+      {}, int(abrAlgorithm->predictionWindow_ / 25) + 1, 16);
 
   // index at zero is not used.
   uint8_t tilesGroups[12 * 12 + 1];
@@ -2168,7 +2192,7 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
   float videoTime = 0;
   std::map<uint8_t, std::vector<std::pair<int, uint16_t>>> tilesRequest;
   // this the id of the chunk currently being downloaded.
-  int chunkRequested = -1;
+  int chunkToRequest = 0;
   while (true) {
 
     auto frameId = videoPlayer->getFrameToRenderId();
@@ -2183,25 +2207,30 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
     // Request for this chunk is sent and it has not been fully downloaded.
     // OR
     // buffer is full
-    if ((chunkRequested - chunkId >= 2) ||
-        (bufferChunkStat[chunkRequested - chunkId] != 144 &&
-         chunkRequested >= chunkId)) {
+
+    // how pano works.
+    // 1- predict for the next N seconds.
+    // 2- as long as buffer size < N, request chunk c.
+    // 3- wait until c is received, then repeat. Or current played > requested.
+
+    if ((bufferChunkStat[(chunkToRequest - 1) - chunkId] != 144 &&
+         (chunkToRequest - 1) >= chunkId)) {
       Util::sleep(stime, 100);
       videoTime += (Util::getTime() - stime);
       stime += 100;
-      VLOG(3) << "=== sleep ===\n"
-              << chunkId << ":" << chunkRequested << "\n"
-              << bufferChunkStat[0] << " : " << bufferChunkStat[1] << " : "
-              << bufferChunkStat[2];
+      std::cout << "=== sleep ===\n"
+                << chunkId << ":" << chunkToRequest << "\n"
+                << bufferChunkStat[(chunkToRequest - 1) - chunkId] << "\n";
+      //           << bufferChunkStat[0] << " : " << bufferChunkStat[1] << "
+      //           : "
+      //           << bufferChunkStat[2];
       continue;
     }
-    chunkRequested++;
-
-    VLOG(3) << "=== awake ===\n"
-            << Util::getTime() << "\n"
-            << chunkId << ":" << chunkRequested << "\n"
-            << bufferChunkStat[0] << " : " << bufferChunkStat[1] << " : "
-            << bufferChunkStat[2];
+    // std::cout << "=== awake ===\n"
+    //           << Util::getTime() << "\n"
+    //           << chunkId << ":" << chunkRequested << "\n"
+    //           << bufferChunkStat[0] << " : " << bufferChunkStat[1] << " : "
+    //           << bufferChunkStat[2] << "\n";
 
     auto bitrateAssignmentIdx = abrAlgorithm->mpcBitratePerChunk(
         bandwidthPredictor, clientNetworkLayer, chunksBitrates,
@@ -2217,20 +2246,32 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
         bitrateAssignmentIdx, chunksBitrates, areaPerGroup);
 
     std::string req = "Tiles\n";
-    for (auto stChunk = chunkRequested - chunkId;
-         stChunk < groupsQualityPerChunk.size(); stChunk++) { // for chunk
-      for (auto const &groupPair : areaPerGroup.find(chunkRequested)
-                                       ->second) { // for group [sorted by area]
+    bool update = false;
+    // for (auto stChunk = chunkToRequest - chunkId;
+    //      stChunk < groupsQualityPerChunk.size(); stChunk++) { // for chunk
+    for (auto &chunkAreaPair : areaPerGroup) {
+      auto chunkIdx = chunkAreaPair.first;
+      if (chunkIdx < chunkToRequest) {
+        continue;
+      }
+      for (auto const &groupPair :
+           chunkAreaPair.second) { // for group [sorted by area]
+        update = true;
         auto groupId = groupPair.first;
         for (auto tileId : groupsTiles.find(groupId)->second) { // for tile
-          auto qualityId = groupsQualityPerChunk[stChunk][groupId];
-          req += std::to_string(stChunk + chunkId) + "_" +
-                 std::to_string(tileId) + "_" + std::to_string(qualityId) + ",";
+          auto qualityId =
+              groupsQualityPerChunk.find(chunkIdx)->second[groupId];
+          req += std::to_string(chunkIdx) + "_" + std::to_string(tileId) + "_" +
+                 std::to_string(qualityId) + ",";
         }
       }
     }
+    if (update) {
+      // this ensures that we only send the request for the chunk once.
+      chunkToRequest++;
+    }
     if (VLOG_IS_ON(3)) {
-      std::vector<int> sizes(3, 0);
+      std::vector<int> sizes(int(abrAlgorithm->predictionWindow_ / 25), 0);
       for (int chunkIds = 0; chunkIds < groupsQualityPerChunk.size();
            chunkIds++) {
         for (int idx = 1; idx < groupsQualityPerChunk[chunkIds].size(); idx++) {
@@ -2248,7 +2289,7 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
 
     req += "\nQuality\n" + std::to_string(0);
     clientNetworkLayer->setRequest(req);
-
+    std::cout << req;
     Util::sleep(stime, ABR_FREQ);
     videoTime += (Util::getTime() - stime);
     stime += 100;
@@ -2330,18 +2371,19 @@ int AbrAlgorithm::mpcBitratePerChunk(
   return idxBestBitrate;
 }
 
-std::vector<std::vector<uint8_t>> AbrAlgorithm::selectIntraGroupQuality(
+std::map<int, std::vector<uint8_t>> AbrAlgorithm::selectIntraGroupQuality(
     int bitrateAssignmentIdx,
     std::map<uint8_t, std::vector<float>> chunksBitrates,
     std::map<int, std::map<uint8_t, float>> groupsAreaPerChunk) {
-  std::vector<std::vector<uint8_t>> intraGroupQPerChunk;
+  std::map<int, std::vector<uint8_t>> intraGroupQPerChunk;
   auto &chunkBitrateAssignment = bitrateAssignments_[bitrateAssignmentIdx];
   int idx = 0;
   // chunk(i, i+1,i+2) --> group--> area.
   for (auto &chunkAreaPerGroup : groupsAreaPerChunk) { // per chunk
-    if (idx > 2) {                                     // limit W to 3seconds.
-      break;
-    }
+    // if (idx > 2) {                                     // limit W to
+    // 3seconds.
+    //   break;
+    // }
     auto chunkId = chunkAreaPerGroup.first;
     auto chunkTargetSize =
         (chunksBitrates[chunkBitrateAssignment[idx]][chunkId] * 1e6) /
@@ -2381,7 +2423,7 @@ std::vector<std::vector<uint8_t>> AbrAlgorithm::selectIntraGroupQuality(
         }
       }
     }
-    intraGroupQPerChunk.push_back(groupsQ);
+    intraGroupQPerChunk.insert({chunkId, groupsQ});
     idx++;
   }
   return intraGroupQPerChunk;

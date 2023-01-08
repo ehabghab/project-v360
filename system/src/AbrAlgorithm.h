@@ -19,7 +19,7 @@ public:
                std::string tileChunksQaulityPath,
                std::string backgroundDisplacementPath,
                std::string fullVideoChunkSizePath,
-               std::string fullVideoChunkPSNRPath);
+               std::string fullVideoChunkPSNRPath, size_t window);
 
   static void flareAbr(AbrAlgorithm *abrAlgorithm, TilePredictor *tilePredictor,
                        BandwidthPredictor *bandwidthPredictor,
@@ -56,6 +56,8 @@ private:
     tileNode *nextTile;
     tileNode *prevTile;
   };
+
+  size_t predictionWindow_;
 
   const std::map<uint8_t, uint8_t> QUALITYMAP_ = {{42, 1}, {37, 2}, {32, 3},
                                                   {27, 4}, {22, 5}, {17, 6}};
@@ -304,7 +306,7 @@ private:
    *         chunk --> group = quality.
    *
    */
-  std::vector<std::vector<uint8_t>> selectIntraGroupQuality(
+  std::map<int, std::vector<uint8_t>> selectIntraGroupQuality(
       int bitrateAssignmentIdx,
       std::map<uint8_t, std::vector<float>> chunksBitrates,
       std::map<int, std::map<uint8_t, float>> groupsAreaPerChunk);
