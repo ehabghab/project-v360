@@ -132,178 +132,191 @@ void VideoPlayer::freePastChunks(uint16_t chunkIdx) {
   }
 }
 
-void VideoPlayer::decode(VideoPlayer *videoPlayer, Decoder *decoderEL,
-                         Decoder *decoderBG) {
+void VideoPlayer::decodeBackground(VideoPlayer *videoPlayer,
+                                   Decoder *decoderBG) {
+  int startChunk = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
+  for (uint32_t idx = startChunk; idx < startChunk + 2; idx++) {
+    auto chunkBg = videoPlayer->chunksBg_.find(idx);
+    if (chunkBg != videoPlayer->chunksBg_.end()) {
+      std::vector<uint8_t *> rawTileFrames;
+      decoderBG->decodeNotOptimized(chunkBg->second.chunk,
+                                    chunkBg->second.chunkSize, rawTileFrames);
+      for (auto &ptr : rawTileFrames) {
+        free(ptr);
+      }
+      videoPlayer->decodedTileChunksMutex_.lock();
+      if (videoPlayer->decodedTileChunks_.find(idx) !=
+          videoPlayer->decodedTileChunks_.end()) {
 
-  // TODO decode based on priority
-  // TODO use list/set instead of map. Not sure!
+        auto &chunkTilesInfo =
+            videoPlayer->decodedTileChunks_.find(idx)->second;
+        // tile already recieved in bg quality.
+        // so update it.
+        if (chunkTilesInfo.find(0) != chunkTilesInfo.end()) {
+
+          auto rawFramesToFree = chunkTilesInfo[0].first;
+
+          chunkTilesInfo.find(0)->second = {rawTileFrames, 0};
+
+        } else {
+          // first time tile is received.
+          videoPlayer->decodedTileChunks_.find(idx)->second.insert(
+              {0, {rawTileFrames, 0}});
+        }
+
+      } else {
+        std::map<uint16_t, std::pair<std::vector<uint8_t *>, uint8_t>> temp;
+        temp.insert({0, {rawTileFrames, 0}});
+
+        videoPlayer->decodedTileChunks_.insert(std::make_pair(idx, temp));
+      }
+      videoPlayer->decodedTileChunksMutex_.unlock();
+
+      auto &encodedFrameStruct = chunkBg->second;
+      free(encodedFrameStruct.chunk);
+      videoPlayer->recvBgChunKMutex_.lock();
+      videoPlayer->chunksBg_.erase(idx);
+      videoPlayer->recvBgChunKMutex_.unlock();
+    }
+  }
+}
+
+void VideoPlayer::decode(VideoPlayer *videoPlayer, TilePredictor *tilePredictor,
+                         Decoder *decoderEL, Decoder *decoderBG) {
+
+  // first call background decoder.
+  // second using tile predictor of the next 1 second,
+  // sort tiles based on deadline, then based on area when decoding.
+
   uint16_t startChunk;
-  std::vector<std::string> chunksDecoded;
   bool first = true;
-  std::unordered_set<int> freedChunk;
+  uint16_t frameIdOfDecodingPriorityMap = -1;
+
+  // frameId, rank, list of tiles sorted by area.
+  std::map<uint16_t, std::map<uint8_t, std::vector<uint16_t>>>
+      decodingPriorityMap;
+
   while (true) {
     bool decode_frame = false;
     startChunk = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
 
     videoPlayer->freePastChunks(startChunk);
+    videoPlayer->decodeBackground(videoPlayer, decoderBG);
 
-    for (uint32_t idx = startChunk; idx < startChunk + 2; idx++) {
-      // chunks have presentation time first, and map<tile index, encoded tile
-      // frames> second.
-
-      auto chunkBg = videoPlayer->chunksBg_.find(idx);
-      if (chunkBg != videoPlayer->chunksBg_.end()) {
-        std::vector<uint8_t *> rawTileFrames;
-        decoderBG->decodeNotOptimized(chunkBg->second.chunk,
-                                      chunkBg->second.chunkSize, rawTileFrames);
-        for (auto &ptr : rawTileFrames) {
-          free(ptr);
+    // find the most important tile to decode next.
+    if (frameIdOfDecodingPriorityMap != videoPlayer->frameId_) {
+      decodingPriorityMap =
+          tilePredictor->getPredictedTilesFlareLR({{100, 100}, {120, 120}});
+      frameIdOfDecodingPriorityMap = videoPlayer->frameId_;
+    }
+    std::pair<int, uint16_t> tileToDecode = {-1, 0};
+    for (auto &frameIdTilesMap : decodingPriorityMap) {
+      for (auto &tilesMapPerRank : frameIdTilesMap.second) {
+        int chunkId = ((frameIdTilesMap.first - 1) / 25) + 1;
+        auto tilesRecived = videoPlayer->chunks_.find(chunkId);
+        if (tilesRecived == videoPlayer->chunks_.end()) {
+          continue;
         }
-        videoPlayer->decodedTileChunksMutex_.lock();
-        if (videoPlayer->decodedTileChunks_.find(idx) !=
-            videoPlayer->decodedTileChunks_.end()) {
-
-          auto &chunkTilesInfo =
-              videoPlayer->decodedTileChunks_.find(idx)->second;
-          // tile already recieved in bg quality.
-          // so update it.
-          if (chunkTilesInfo.find(0) != chunkTilesInfo.end()) {
-
-            auto rawFramesToFree = chunkTilesInfo[0].first;
-
-            chunkTilesInfo.find(0)->second = {rawTileFrames, 0};
-            // free raw bg tiles
-            for (auto &ptr : rawFramesToFree) {
-              free(ptr);
-            }
-
-          } else {
-            // first time tile is received.
-            videoPlayer->decodedTileChunks_.find(idx)->second.insert(
-                {0, {rawTileFrames, 0}});
+        for (auto tile : tilesMapPerRank.second) {
+          if (tilesRecived->second.find(tile) == tilesRecived->second.end()) {
+            continue;
           }
-
-        } else {
-          std::map<uint16_t, std::pair<std::vector<uint8_t *>, uint8_t>> temp;
-          temp.insert({0, {rawTileFrames, 0}});
-
-          videoPlayer->decodedTileChunks_.insert(std::make_pair(idx, temp));
+          tileToDecode.first = chunkId;
+          tileToDecode.second = tile;
+          goto EXIT_TILE_LOOP;
         }
-        videoPlayer->decodedTileChunksMutex_.unlock();
-
-        auto &encodedFrameStruct = chunkBg->second;
-        free(encodedFrameStruct.chunk);
-        videoPlayer->recvBgChunKMutex_.lock();
-        videoPlayer->chunksBg_.erase(idx);
-        videoPlayer->recvBgChunKMutex_.unlock();
-        decode_frame = true;
       }
-      // end BG ============
-      if (decode_frame) {
-        break;
-      }
-      auto chunks = videoPlayer->chunks_.find(idx);
-      if (chunks != videoPlayer->chunks_.end()) {
-        // tileInfo has tileIndex first, and encoded tile frames second.
-        while (chunks->second.size() != 0) {
+    }
+  EXIT_TILE_LOOP:
+    // if (tileToDecode.first != -1) {
+    //   std::cout << std::to_string(tileToDecode.first) << ":"
+    //             << std::to_string(tileToDecode.second) << "\n";
+    // }
+    if (tileToDecode.first == -1) {
+      for (uint32_t idx = startChunk; idx < startChunk + 2; idx++) {
+        auto chunks = videoPlayer->chunks_.find(idx);
+        if (chunks != videoPlayer->chunks_.end() &&
+            chunks->second.size() != 0) {
           auto tileInfo = chunks->second.begin();
-          std::vector<uint8_t *> rawTileFrames;
-          // std::vector<AVFrame *> rawTileFrames;
-
-          if (first) {
-            first = false;
-            rawTileFrames.clear();
-            decoderEL->decodeNotOptimized(tileInfo->second.chunk,
-                                          tileInfo->second.chunkSize,
-                                          rawTileFrames);
-          }
-
-          // call decoder
-          /*std::cout << "------\n"
-                    << "decoding time [" << chunks->first << "_"
-                    << tileInfo->first << "]\n";*/
-          // auto decodeStart = Util::getTime();
-          decoderEL->decodeNotOptimized(tileInfo->second.chunk,
-                                        tileInfo->second.chunkSize,
-                                        rawTileFrames);
-          /*std::cout << "Total Decoding :" << Util::getTime() - decodeStart
-                    << "\n";*/
-          /*std::cout << "Decoded:" << idx << "_"
-                    << std::to_string(tileInfo->first) << "_"
-                    << std::to_string(tileInfo->second.qualityIdx) <<
-             std::endl;*/
-          // insert to decodedTileChunks_
-
-          auto tileQuality = tileInfo->second.qualityIdx;
-
-          videoPlayer->decodedTileChunksMutex_.lock();
-          if (videoPlayer->decodedTileChunks_.find(chunks->first) !=
-              videoPlayer->decodedTileChunks_.end()) {
-
-            auto &chunkTilesInfo =
-                videoPlayer->decodedTileChunks_.find(chunks->first)->second;
-            // tile already recieved in bg quality.
-            // so update it.
-            if (chunkTilesInfo.find(tileInfo->first) != chunkTilesInfo.end()) {
-
-              auto rawFramesToFree = chunkTilesInfo[tileInfo->first].first;
-
-              chunkTilesInfo.find(tileInfo->first)->second = {rawTileFrames,
-                                                              tileQuality};
-              // free raw bg tiles
-              for (auto &ptr : rawFramesToFree) {
-                free(ptr);
-              }
-
-              /*std::cout << "Qupdate:" << std::to_string(chunks->first) << "_"
-                        << std::to_string(tileInfo->first) << "_"
-                        << std::to_string(tileQuality) << "\n";*/
-            } else {
-              // first time tile is received.
-              videoPlayer->decodedTileChunks_.find(chunks->first)
-                  ->second.insert(
-                      {tileInfo->first, {rawTileFrames, tileQuality}});
-            }
-            /*std::cout << std::to_string(videoPlayer->decodedTileChunks_
-                                            .find(chunks->first)
-                                            ->second.find(tileInfo->first)
-                                            ->second.second)
-                      << std::endl;*/
-
-          } else {
-            std::map<uint16_t, std::pair<std::vector<uint8_t *>, uint8_t>> temp;
-            temp.insert({tileInfo->first, {rawTileFrames, tileQuality}});
-
-            videoPlayer->decodedTileChunks_.insert(
-                std::make_pair(chunks->first, temp));
-          }
-          videoPlayer->decodedTileChunksMutex_.unlock();
-
-          // free chunks.
-          auto &encodedFrameStruct = tileInfo->second;
-          free(encodedFrameStruct.chunk);
-          videoPlayer->recvChunKMutex_.lock();
-          chunks->second.erase(tileInfo->first);
-          videoPlayer->recvChunKMutex_.unlock();
-          decode_frame = true;
+          tileToDecode.first = idx;
+          tileToDecode.second = tileInfo->first;
           break;
         }
       }
-      if (decode_frame) {
-        break;
+    }
+
+    if (tileToDecode.first == -1) {
+      continue;
+    }
+
+    auto tileChunk = videoPlayer->chunks_.find(tileToDecode.first)
+                         ->second.find(tileToDecode.second)
+                         ->second;
+    std::vector<uint8_t *> rawTileFrames;
+
+    if (first) {
+      first = false;
+      decoderEL->decodeNotOptimized(tileChunk.chunk, tileChunk.chunkSize,
+                                    rawTileFrames);
+    }
+
+    // call decoder
+    /*std::cout << "------\n"
+              << "decoding time [" << chunks->first << "_"
+              << tileInfo->first << "]\n";*/
+    // auto decodeStart = Util::getTime();
+    decoderEL->decodeNotOptimized(tileChunk.chunk, tileChunk.chunkSize,
+                                  rawTileFrames);
+    // std::cout << "Total Decoding :" << Util::getTime() - decodeStart
+    //           << "\n";
+    // std::cout << "[" << Util::getTime() << "]-["
+    //           << std::to_string(videoPlayer->getFrameToRenderId())
+    //           << "]-Decoded:" << tileToDecode.first << "_"
+    //           << std::to_string(tileToDecode.second) << "_"
+    //           << std::to_string(tileChunk.qualityIdx) << std::endl;
+    auto tileQuality = tileChunk.qualityIdx;
+    videoPlayer->decodedTileChunksMutex_.lock();
+    if (videoPlayer->decodedTileChunks_.find(tileToDecode.first) !=
+        videoPlayer->decodedTileChunks_.end()) {
+
+      auto &chunkTilesInfo =
+          videoPlayer->decodedTileChunks_.find(tileToDecode.first)->second;
+      // tile already recieved in bg quality.
+      // so update it.
+      if (chunkTilesInfo.find(tileToDecode.second) != chunkTilesInfo.end()) {
+
+        auto rawFramesToFree = chunkTilesInfo[tileToDecode.second].first;
+
+        chunkTilesInfo.find(tileToDecode.second)->second = {rawTileFrames,
+                                                            tileQuality};
+        // free raw bg tiles
+        for (auto &ptr : rawFramesToFree) {
+          free(ptr);
+        }
+
+      } else {
+        // first time tile is received.
+        videoPlayer->decodedTileChunks_.find(tileToDecode.first)
+            ->second.insert(
+                {tileToDecode.second, {rawTileFrames, tileQuality}});
       }
 
-      // delete tiles that will not be uses.
-      /*for (auto &chunk : videoPlayer->chunks_) {
-        if (chunk.first < startChunk) {
-          for (auto &tile : chunk.second) {
-            if (tile.second.chunk != nullptr) {
-              free(tile.second.chunk);
-            }
-          }
-        }
-      }*/
+    } else {
+      std::map<uint16_t, std::pair<std::vector<uint8_t *>, uint8_t>> temp;
+      temp.insert({tileToDecode.second, {rawTileFrames, tileQuality}});
+
+      videoPlayer->decodedTileChunks_.insert(
+          std::make_pair(tileToDecode.first, temp));
     }
+    videoPlayer->decodedTileChunksMutex_.unlock();
+
+    // free chunks.
+    auto &encodedFrameStruct = tileChunk;
+    free(encodedFrameStruct.chunk);
+    videoPlayer->recvChunKMutex_.lock();
+    videoPlayer->chunks_.find(tileToDecode.first)
+        ->second.erase(tileToDecode.second);
+    videoPlayer->recvChunKMutex_.unlock();
   }
 }
 

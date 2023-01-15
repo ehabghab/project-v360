@@ -104,8 +104,10 @@ public:
                          std::map<uint16_t, uint8_t *> &viewport,
                          std::string &tilesQuality);
 
-  static void decode(VideoPlayer *videoPlayer, Decoder *decoderEL,
-                     Decoder *decoderBG);
+  void decodeBackground(VideoPlayer *videoPlayer, Decoder *decoderBG);
+
+  static void decode(VideoPlayer *videoPlayer, TilePredictor *tilePredictor,
+                     Decoder *decoderEL, Decoder *decoderBG);
 
   VideoPlayer(std::string tilesPerFrameTracePath,
               std::string vpCorrPerFrameTracePath);

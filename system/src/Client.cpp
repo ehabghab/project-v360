@@ -77,7 +77,7 @@ Client::Client(std::string tilesPerFrameTracePath,
   }
 
   std::thread videoPlayerDecoderThread(VideoPlayer::decode, videoPlayer,
-                                       decoderEL, decoderBG);
+                                       tilePredictor, decoderEL, decoderBG);
 
   std::thread senderThread(ClientNetworkLayer::sender, clientNetworkLayer);
   std::thread abrThread;
