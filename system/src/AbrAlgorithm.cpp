@@ -623,7 +623,7 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
     // this is the tile-chunk to await before abr
     chunkTileAwaited = chunkToWait.first == -1 ? chunkTileAwaited : chunkToWait;
     req.pop_back();
-    std::cout << stime << ":" << frameIdToRender << "\n" << req << "\n======\n";
+    // std::cout << frameIdToRender << ":" << req << "\n======\n";
     req += "\nQuality\n" + std::to_string(0);
     clientNetworkLayer->setRequest(req);
     tilesRequest.clear();
@@ -730,7 +730,7 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
     req.pop_back();
 
     req += "\nQuality\n" + std::to_string(0);
-    // std::cout << req << std::endl;
+    // std::cout << frameIdToRender << ":" << req << std::endl;
     clientNetworkLayer->setRequest(req);
     tilesRequest.clear();
     frameIdSetQualitySizeSum.clear();
@@ -1587,11 +1587,11 @@ AbrAlgorithm::qualityABR(
         continue;
       }
       // should be removed!
-      if (!FLAGS_UtilityCoraseBackgroundStream) {
-        if (tile.first == 0) {
-          continue;
-        }
-      }
+      // if (!FLAGS_UtilityCoraseBackgroundStream) {
+      //   if (tile.first == 0) {
+      //     continue;
+      //   }
+      // }
       // create tile node and add to the linked list.
       if (tilesNodeMap.find(tile) == tilesNodeMap.end()) {
         float estDownloadTime =
@@ -2213,14 +2213,15 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
     // 2- as long as buffer size < N, request chunk c.
     // 3- wait until c is received, then repeat. Or current played > requested.
 
-    if ((bufferChunkStat[(chunkToRequest - 1) - chunkId] != 144 &&
+    if (chunkToRequest != 0 &&
+        (bufferChunkStat[(chunkToRequest - 1) - chunkId] != 144 &&
          (chunkToRequest - 1) >= chunkId)) {
-      Util::sleep(stime, 100);
-      videoTime += (Util::getTime() - stime);
-      stime += 100;
-      std::cout << "=== sleep ===\n"
-                << chunkId << ":" << chunkToRequest << "\n"
-                << bufferChunkStat[(chunkToRequest - 1) - chunkId] << "\n";
+      // Util::sleep(stime, 100);
+      // videoTime += (Util::getTime() - stime);
+      // stime += 100;
+      // std::cout << "=== sleep ===\n"
+      //           << chunkId << ":" << chunkToRequest << "\n"
+      //           << bufferChunkStat[(chunkToRequest - 1) - chunkId] << "\n";
       //           << bufferChunkStat[0] << " : " << bufferChunkStat[1] << "
       //           : "
       //           << bufferChunkStat[2];
@@ -2231,21 +2232,27 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
     //           << chunkId << ":" << chunkRequested << "\n"
     //           << bufferChunkStat[0] << " : " << bufferChunkStat[1] << " : "
     //           << bufferChunkStat[2] << "\n";
-
+    // std::cout << frameId << "\n";
     auto bitrateAssignmentIdx = abrAlgorithm->mpcBitratePerChunk(
         bandwidthPredictor, clientNetworkLayer, chunksBitrates,
         videoPlayer->getFrameToRenderId(), 16);
 
-    auto assignment = abrAlgorithm->bitrateAssignments_[bitrateAssignmentIdx];
-    VLOG(3) << chunksBitrates[assignment[0]][chunkId] << "   :   "
-            << chunksBitrates[assignment[1]][chunkId + 1] << "    :   "
-            << chunksBitrates[assignment[2]][chunkId + 2] << "\n";
+    // std::string y = "";
+    // for (auto x : abrAlgorithm->bitrateAssignments_[bitrateAssignmentIdx]) {
+    //   y += std::to_string(x) + ",";
+    // }
 
-    auto areaPerGroup = abrAlgorithm->areaPerGroup(tilePredictor, tilesGroups);
+    // y.pop_back();
+    // std::cout << "BEST : " << y << "\n";
+
+    auto assignment = abrAlgorithm->bitrateAssignments_[bitrateAssignmentIdx];
+
+    auto areaPerTile = tilePredictor->getOverlappingAreaSizePerTile({100, 100});
+    auto areaPerGroup = abrAlgorithm->areaPerGroup(areaPerTile, tilesGroups);
     auto groupsQualityPerChunk = abrAlgorithm->selectIntraGroupQuality(
         bitrateAssignmentIdx, chunksBitrates, areaPerGroup);
 
-    std::string req = "Tiles\n";
+    std::map<int, std::map<int, std::vector<uint16_t>>> chunkQualityTileMap;
     bool update = false;
     // for (auto stChunk = chunkToRequest - chunkId;
     //      stChunk < groupsQualityPerChunk.size(); stChunk++) { // for chunk
@@ -2254,21 +2261,39 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
       if (chunkIdx < chunkToRequest) {
         continue;
       }
+      if (chunkQualityTileMap.find(chunkIdx) == chunkQualityTileMap.end()) {
+        chunkQualityTileMap.insert({chunkIdx, {}});
+      }
+      auto &qualityTilesMap = chunkQualityTileMap.find(chunkIdx)->second;
       for (auto const &groupPair :
            chunkAreaPair.second) { // for group [sorted by area]
         update = true;
         auto groupId = groupPair.first;
         for (auto tileId : groupsTiles.find(groupId)->second) { // for tile
-          auto qualityId =
-              groupsQualityPerChunk.find(chunkIdx)->second[groupId];
-          req += std::to_string(chunkIdx) + "_" + std::to_string(tileId) + "_" +
-                 std::to_string(qualityId) + ",";
+          int qualityId = groupsQualityPerChunk.find(chunkIdx)->second[groupId];
+          qualityId *= -1;
+          if (qualityTilesMap.find(qualityId) == qualityTilesMap.end()) {
+            qualityTilesMap.insert({qualityId, {}});
+          }
+          qualityTilesMap.find(qualityId)->second.push_back(tileId);
+          ;
         }
       }
     }
     if (update) {
       // this ensures that we only send the request for the chunk once.
       chunkToRequest++;
+    }
+
+    std::string req = "Tiles\n";
+    for (auto &chunksQualityTiles : chunkQualityTileMap) {
+      for (auto qualityTiles : chunksQualityTiles.second) {
+        for (auto tile : qualityTiles.second) {
+          req += std::to_string(chunksQualityTiles.first) + "_" +
+                 std::to_string(tile) + "_" +
+                 std::to_string(qualityTiles.first * -1) + ",";
+        }
+      }
     }
     if (VLOG_IS_ON(3)) {
       std::vector<int> sizes(int(abrAlgorithm->predictionWindow_ / 25), 0);
@@ -2286,13 +2311,13 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
               << "    :   " << sizes[2] * 8 / 1e6 << "\n======\n";
     }
     req.pop_back();
-
+    std::cout << req << "\n";
     req += "\nQuality\n" + std::to_string(0);
     clientNetworkLayer->setRequest(req);
-    std::cout << req;
-    Util::sleep(stime, ABR_FREQ);
-    videoTime += (Util::getTime() - stime);
-    stime += 100;
+    // std::cout << frameId << ":" << req;
+    // Util::sleep(stime, ABR_FREQ);
+    // videoTime += (Util::getTime() - stime);
+    // stime += 100;
   }
 }
 
@@ -2352,8 +2377,13 @@ int AbrAlgorithm::mpcBitratePerChunk(
       reward +=
           (maxQuality - bitrateAssignment[chunkIdx]) * bufferTimeForThisChunk;
     }
-
+    // std::string y = "";
+    // for (auto x : bitrateAssignments_[idx]) {
+    //   y += std::to_string(x) + ",";
+    // }
+    // y.pop_back();
     reward = reward - rebuffering * maxQuality;
+    // std::cout << y << ":" << reward << "\n";
     if (VLOG_IS_ON(3)) {
       VLOG(3) << "Sol id:" << idx << "[" << std::to_string(bitrateAssignment[0])
               << "," << std::to_string(bitrateAssignment[1]) << ","
@@ -2429,11 +2459,9 @@ std::map<int, std::vector<uint8_t>> AbrAlgorithm::selectIntraGroupQuality(
   return intraGroupQPerChunk;
 }
 
-std::map<int, std::map<uint8_t, float>>
-AbrAlgorithm::areaPerGroup(TilePredictor *tilePredictor,
-                           uint8_t tilesGroups[]) {
-
-  auto areaPerTile = tilePredictor->getOverlappingAreaSizePerTile({100, 100});
+std::map<int, std::map<uint8_t, float>> AbrAlgorithm::areaPerGroup(
+    std::map<uint16_t, std::map<float, std::vector<uint16_t>>> areaPerTile,
+    uint8_t tilesGroups[]) {
 
   std::map<int, std::map<uint8_t, float>> groupTotalAreaPerChunk;
 
@@ -2536,7 +2564,8 @@ AbrAlgorithm::getBufferChunkStatus(ClientNetworkLayer *clientNetworkLayer,
   // if not all tiles are received then video chunk is not received.
   std::vector<uint16_t> numOfTilesRecvPerChunk;
   int stChunkId = ((frameId - 1) / 25) + 1; // server adds one.
-  for (auto chunkId = stChunkId; chunkId < stChunkId + 3; chunkId++) {
+  int enChunkId = std::ceil((predictionWindow_ + frameId - 1) / 25.0) + 1;
+  for (auto chunkId = stChunkId; chunkId < enChunkId; chunkId++) {
     uint16_t numberOfTilesRecieved = 0;
     for (u_int16_t tileId = 1; tileId <= 144; tileId++) {
       if (clientNetworkLayer->isReceived(chunkId, tileId) >= 1) {

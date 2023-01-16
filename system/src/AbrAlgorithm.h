@@ -334,8 +334,9 @@ private:
    * @return std::map<int, std::map<uint8_t, float>>
    *         chunk --> group --> overlapping area.
    */
-  std::map<int, std::map<uint8_t, float>>
-  areaPerGroup(TilePredictor *tilePredictor, uint8_t tilesGroups[]);
+  std::map<int, std::map<uint8_t, float>> areaPerGroup(
+      std::map<uint16_t, std::map<float, std::vector<uint16_t>>> areaPerTile,
+      uint8_t tilesGroups[]);
 
   void buildBitrateAssigment(std::vector<uint8_t> assignment,
                              int numOfChunkInHorizon,
