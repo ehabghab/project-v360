@@ -405,7 +405,7 @@ bool Server::isTileSent(std::pair<int, uint16_t> tile, uint8_t quality) {
     tilesSent_.insert({tile, quality});
     return false;
   }
-  if (FLAGS_utilityAbr == 0 || quality == 1) {
+  if (FLAGS_utilityAbr == 0 || quality <= 1) {
     return true;
   }
   uint8_t qRec = tilesSent_[tile];
