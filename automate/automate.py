@@ -74,21 +74,60 @@ def main():
 	bw_trace_dir ="/home/ehab/Desktop/mmlink_traces_raw_to_use/"## "/home/ehab/Desktop/mmlink_traces_raw_to_use/"#    
 	tile_size ="sizes.txt"
 	quality_name = "psnr_avgs.txt"
-	args_client = {"journal":" -model=Journal -predLR=1 -bufferModel=journalRebuffer ","flare_skip":" -model=Flare -predLR=1 -bufferModel=skip","flare_rebuffer":" -model=Flare -predLR=1 -bufferModel=rebuffer", "utility":" -model=Utility -predLR=1 -bufferModel=skip", "pano_skip":" -model=Pano -predLR=1 -bufferModel=skip", "pano_rebuffer":" -model=Pano -predLR=1 -bufferModel=rebuffer"}
-	models = ["pano_rebuffer"]#,"journal"]#,["pano_skip","pano_rebuffer","flare_skip","utility","flare_rebuffer"]
-	args_server = {"journal":" 0 ","flare_skip":" 0", "flare_rebuffer":" 0","utility":" 1","pano_skip":" 0","pano_rebuffer":" 0"}
+
+	args_client = { "journal":" -model=Journal -predLR=1 -bufferModel=journalRebuffer JournalCoraseABR=true",
+					"Flare_with_background_stream": "-model=Journal -predLR=1 -bufferModel=journalRebuffer JournalCoraseABR=false "
+
+					"flare_skip_1sec":" -model=Flare -predLR=1 -bufferModel=skip -predictionWindow=1 ",
+					"flare_skip_3sec":" -model=Flare -predLR=1 -bufferModel=skip -predictionWindow=3 ",
+					
+					"flare_rebuffer_1sec":" -model=Flare -predLR=1 -bufferModel=rebuffer -predictionWindow=1 ", 
+					"flare_rebuffer_3sec":" -model=Flare -predLR=1 -bufferModel=rebuffer -predictionWindow=3 ", 
+					
+					"pano_skip_1sec":" -model=Pano -predLR=1 -bufferModel=skip -predictionWindow=1 ", 
+					"pano_skip_3sec":" -model=Pano -predLR=1 -bufferModel=skip -predictionWindow=3 ", 
+					
+					"pano_rebuffer_1sec":" -model=Pano -predLR=1 -bufferModel=rebuffer -predictionWindow=1 ",
+					"pano_rebuffer_3sec":" -model=Pano -predLR=1 -bufferModel=rebuffer -predictionWindow=3 ",
+
+					"utility":" -model=Utility -predLR=1 -bufferModel=skip -UtilityCoraseBackgroundStream=false ", 
+					"utility_360_background":" -model=Utility -predLR=1 -bufferModel=UtilityJskip -UtilityCoraseBackgroundStream=true ", 
+
+					}
+
+	args_server = { "journal":" 0 ",
+					"Flare_with_background_stream": " 0 ",
+
+					"flare_skip_1sec":" 0 ",
+					"flare_skip_3sec":" 0 ",
+					
+					"flare_rebuffer_1sec":" 0 ",
+					"flare_rebuffer_3sec":" 0 ",
+					
+					"pano_skip_1sec":" 0 ",
+					"pano_skip_3sec":" 0 ",
+					
+					"pano_rebuffer_1sec":" 0 ",
+					"pano_rebuffer_3sec":" 0 ",
+
+					"utility":" 1 ",
+					"utility_360_background":" 1 ",
+
+					}
+
+	models = ["pano_rebuffer_3sec","flare_rebuffer_1sec","flare_rebuffer_3sec"]
+
 	videos = ["v1_data","v2_data","v7_data","v8_data","v14_data","v27_data","v28_data"] #"v1_data","v2_data","v7_data","v8_data","v14_data","v27_data",
-	#labels =  ["low","low","med","med","med","high","high"]
-	bw_traces_raw_exp1_exp2 = ["report_bus_0003_subtrace1","report_car_0004_subtrace2","report_foot_0004_subtrace1","report_train_0003_subtrace1","report_bus_0003_subtrace2","report_foot_0006_subtrace1","report_foot_0004_subtrace2","report_car_0002_subtrace1","report_foot_0002_subtrace1","report_car_0004_subtrace1","report_car_0004_subtrace3"]
+	bw_traces_raw_exp1_exp2 = ["report_bus_0003_subtrace1","report_car_0004_subtrace2","report_foot_0004_subtrace1","report_train_0003_subtrace1"]#,"report_bus_0003_subtrace2","report_foot_0006_subtrace1","report_foot_0004_subtrace2","report_car_0002_subtrace1","report_foot_0002_subtrace1","report_car_0004_subtrace1","report_car_0004_subtrace3"]
 	bw_traces_raw_exp3 = ["10_B_2020.02.13_13.57.29_subtrace44","4_B_2020.02.13_13.57.29_subtrace2","8_B_2020.02.13_13.57.29_subtrace26","1_B_2019.12.16_13.40.04_subtrace14","5_B_2020.02.13_13.57.29_subtrace10","9_B_2020.02.13_13.57.29_subtrace33","2_B_2020.01.16_10.43.34_subtrace2","6_B_2020.02.13_13.57.29_subtrace11","3_B_2020.01.16_10.43.34_subtrace7","7_B_2020.02.13_13.57.29_subtrace18"]#"10_B_2020.02.13_13.57.29_subtrace44","4_B_2020.02.13_13.57.29_subtrace2"
 	users = {
-		"v1_data":[3,9,14,18,24,33,44,51,56,62],
-		"v2_data":[2,6,8,12,17,26,37,46,50,57],
-		"v7_data":[2,7,15,22,28,33,38,41,51,59],
-		"v8_data":[4,8,12,16,23,32,36,40,55,62],
-		"v14_data":[6,9,15,24,33,37,45,47,55,60],
-		"v27_data":[1,7,11,28,31,35,41,42,51,52],
-		"v28_data":[2,3,14,19,22,26,36,48,50,55],
+		"v1_data":[3,9,14,18],#24,33,44,51,56,62],
+		"v2_data":[2,6,8,12],#17,26,37,46,50,57],
+		"v7_data":[2,7,15,22],#28,33,38,41,51,59],
+		"v8_data":[4,8,12,16],#23,32,36,40,55,62],
+		"v14_data":[6,9,15,24],#33,37,45,47,55,60],
+		"v27_data":[1,7,11,28],#31,35,41,42,51,52],
+		"v28_data":[2,3,14,19],#22,26,36,48,50,55],
 		}
 
 	idx = 0
@@ -99,6 +138,7 @@ def main():
 		videoId = int(video.split("_")[0].replace("v",""))
 		videoPath = video_dir + video
 		videoPsnr = videoPath+"/" + quality_name
+		vidoePsnrChunk = videoPath+"/psnr_chunk.txt"
 		videoSPSNR = video_dir+"/pano-static-pspnr/static_pspnr_"+"%03d"%(videoId)+".txt"
 		videoSizes = videoPath+"/"  + tile_size
 		displacementPath = videoPath+"/"+"displacement_across_users_p100.txt"
@@ -126,6 +166,10 @@ def main():
 						#client_cmd += " /home/ehab/Desktop/Videos/pano-static-pspnr/v"+str(videoId)+"_grouping_spspnr.txt" +" /home/ehab/Desktop/Videos/videos_bitrates/v"+str(videoId)+"_bitrates.txt "
 					if "journal" in model:
 						client_cmd += baseLayerSize
+					
+					if "utility_360_background" in model:
+						client_cmd += baseLayerSize +" "+vidoePsnrChunk
+
 					client_cmd += args_client[model]
 					print(client_cmd)
 					pid = subprocess.Popen(client_cmd,shell=True)
