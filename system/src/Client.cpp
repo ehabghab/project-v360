@@ -148,11 +148,13 @@ int main(int argc, char **argv) {
     client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
                         "", "", argv[7], "");
 
-  } else {
+  } else if (FLAGS_model == "Utility" && FLAGS_bufferModel == "UtilityJskip") {
     client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
                         "", "", argv[7], argv[8]);
+  } else {
+    client = new Client(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6],
+                        "", "", "", "");
   }
-
   // to suppress warning
   assert(client != nullptr);
   return 0;
