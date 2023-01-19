@@ -203,8 +203,6 @@ void TilePredictor::getUrgetTilesList(
 
   while (frameId_ == 0)
     ;
-  uint16_t frame = frameId_;
-  float highQwindow = 13; // half second 25FPS/2;
 
   if (predictedCorr.size() == 0) {
     // low quality tiles = all tiles
@@ -216,7 +214,7 @@ void TilePredictor::getUrgetTilesList(
   } else {
     int yawDir = 0;   // positive: right
     int pitchDir = 0; // positive: up
-    for (int idx = 1; idx < predictedCorr.size(); idx++) {
+    for (int idx = 1; idx < (int)predictedCorr.size(); idx++) {
       predictedCorr[idx].first - predictedCorr[idx - 1].first >= 0 ? yawDir++
                                                                    : yawDir--;
       predictedCorr[idx].second - predictedCorr[idx - 1].second >= 0
@@ -230,7 +228,7 @@ void TilePredictor::getUrgetTilesList(
     // find the max displacement (for the first half secodns).
 
     // find the maximum  predicted user displacement.
-    for (int frameIdx = 1; frameIdx < predictedCorr.size(); frameIdx++) {
+    for (int frameIdx = 1; frameIdx < (int)predictedCorr.size(); frameIdx++) {
       if (yawDir >= 0) { // right
         yawMaxDisp +=
             predictedCorr[frameIdx].first < predictedCorr[frameIdx - 1].first
@@ -310,7 +308,6 @@ void TilePredictor::getUrgetTilesListsTemp(
 
   while (frameId_ == 0)
     ;
-  uint16_t frame = frameId_;
   float highQwindow = 13; // half second 25FPS/2;
 
   if (predictedCorr.size() == 0) {
@@ -331,7 +328,7 @@ void TilePredictor::getUrgetTilesListsTemp(
   } else {
     int yawDir = 0;   // positive: right
     int pitchDir = 0; // positive: up
-    for (int idx = 1; idx < predictedCorr.size(); idx++) {
+    for (int idx = 1; idx < (int)predictedCorr.size(); idx++) {
       predictedCorr[idx].first - predictedCorr[idx - 1].first >= 0 ? yawDir++
                                                                    : yawDir--;
       predictedCorr[idx].second - predictedCorr[idx - 1].second >= 0
@@ -350,7 +347,7 @@ void TilePredictor::getUrgetTilesListsTemp(
     // (1.1)
 
     // find the maximum  predicted user displacement.
-    for (int frameIdx = 1; frameIdx < predictedCorr.size(); frameIdx++) {
+    for (int frameIdx = 1; frameIdx < (int)predictedCorr.size(); frameIdx++) {
       if (yawDir >= 0) { // right
         yawMaxDisp +=
             predictedCorr[frameIdx].first < predictedCorr[frameIdx - 1].first
@@ -525,7 +522,7 @@ TilePredictor::getPredictedTilesFlareLR(
 
   if (FLAGS_predLR) {
     LOG(INFO) << "Linear Regression";
-    if (corrCount_ >= predictionWindow_ / 2) {
+    if (corrCount_ >= (predictionWindow_ / 2)) {
       linearRegressor_->predict(predictedCorr, std::ref(vpGroundTruth_),
                                 corrCount_);
     }
@@ -539,7 +536,6 @@ TilePredictor::getPredictedTilesFlareLR(
     if (frameId >= 1475) {
       break;
     }
-    int chunkId = ((frameId + idx) - 1) / 25;
 
     std::pair<float, float> viewportCenter;
     // use static predictor.
@@ -649,8 +645,6 @@ TilePredictor::getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution) {
     if (frameId >= 1475) {
       break;
     }
-    int chunkId = ((frameId + idx) - 1) / 25;
-
     std::pair<float, float> viewportCenter;
     // use static predictor.
     if (predictedCorr.size() == 0) {

@@ -34,7 +34,6 @@ AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
   predictionWindow_ = window * 25;
   std::ifstream infile1(tileChunkSizesPath);
   std::string line;
-  uint8_t quality = -1;
   while (std::getline(infile1, line)) {
     line.pop_back();
     auto pos = line.find(":");
@@ -267,8 +266,6 @@ std::map<int, int> AbrAlgorithm::getQualityIdx(
   //    1       1
   // current video time is the time of the last played frame + time
   // passed since last frame was rendered.
-  int qIdx = numOfQualities;
-  bool qualityFound;
   float currentVideoTime =
       (((frameIdToRender - 1) * 40.0) + Util::getTimePassedSinceLastFrame()) /
       1e3; // current video time.
@@ -285,14 +282,14 @@ std::map<int, int> AbrAlgorithm::getQualityIdx(
   int frameIdx = 0;
   int currChunk = -1;
   int maxQ = -1;
-  for (qualityIdx; qualityIdx < qualitiesAssignments.size(); qualityIdx++) {
+  for (; qualityIdx < (int)qualitiesAssignments.size(); qualityIdx++) {
     bool qualityFound = false;
     int chunkId = -1;
     int frameId = -1;
     auto solution = qualitiesAssignments[qualityIdx];
     float downloadTime = 0;
     // try get all frames within the chunk with this quality(solution)
-    for (frameId = frameIdx; frameId < sortedFrameIds.size(); frameId++) {
+    for (frameId = frameIdx; frameId < (int)sortedFrameIds.size(); frameId++) {
       chunkId = int((sortedFrameIds[frameId] - 1) / 25);
       if (currChunk == -1) {
         currChunk = chunkId;
@@ -322,9 +319,9 @@ std::map<int, int> AbrAlgorithm::getQualityIdx(
       currChunk = chunkId;
       timeCascade += downloadTime;
     } else if (!qualityFound &&
-               (frameId == sortedFrameIds.size() &&
+               (frameId == (int)sortedFrameIds.size() &&
                 (qualityIdx + 1) !=
-                    qualitiesAssignments
+                    (int)qualitiesAssignments
                         .size())) { // found the quality of the last chunk.
       chunkQualityAssignment.insert({currChunk, qualityIdx});
       break;
@@ -332,9 +329,10 @@ std::map<int, int> AbrAlgorithm::getQualityIdx(
 
     else if (!qualityFound &&
              (qualityIdx + 1) ==
-                 qualitiesAssignments.size()) { // no assignment is working.
+                 (int)
+                     qualitiesAssignments.size()) { // no assignment is working.
       // get tiles for the current chunk with lowest quality.
-      for (frameIdx; frameIdx < sortedFrameIds.size(); frameIdx++) {
+      for (; frameIdx < (int)sortedFrameIds.size(); frameIdx++) {
         chunkId = int((sortedFrameIds[frameIdx] - 1) / 25);
         if (currChunk != chunkId) {
           break;
@@ -350,7 +348,7 @@ std::map<int, int> AbrAlgorithm::getQualityIdx(
       }
       chunkQualityAssignment.insert({currChunk, qualityIdx});
       qualityIdx = 0;
-      if (frameIdx == sortedFrameIds.size()) {
+      if (frameIdx == (int)sortedFrameIds.size()) {
         break;
       }
       currChunk = int((sortedFrameIds[frameIdx] - 1) / 25);
@@ -526,7 +524,7 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
                                            chunkTileAwaited.second) != -1) {
           lastForegroundChunkRecieved = chunkTileAwaited.first;
           if (lastForegroundChunkRecieved - chunkId <
-              (abrAlgorithm->predictionWindow_ / 25)) {
+              ((int)abrAlgorithm->predictionWindow_ / 25)) {
             break;
           }
         }
@@ -793,7 +791,6 @@ AbrAlgorithm::getBackgroundLessUrgentTilesInfo(
   // tileId, tile size --> size will be used by tiles scheduler.
   std::vector<std::pair<int, uint16_t>> tilesInfo;
 
-  int size = 0;
   for (auto chunkIdx = stChunkId; chunkIdx <= enChunkId; chunkIdx++) {
     for (auto &tileSet : urgetTiles) {
       if (tileSet.first == 1) {
@@ -863,7 +860,7 @@ std::string AbrAlgorithm::scheduler(
   int bgchunkIdx = chunkIdxs[0];
   float fgMsTarget = fgMsShare;
   float bgMsTarget;
-  for (int fgIdx = 0; fgIdx < fgTiles.size(); fgIdx++) {
+  for (int fgIdx = 0; fgIdx < (int)fgTiles.size(); fgIdx++) {
     // <tileId, chunkId>
     auto &fgTileInfo = fgTiles[fgIdx].first;
     auto tileQuality = fgTiles[fgIdx].second;
@@ -886,7 +883,8 @@ std::string AbrAlgorithm::scheduler(
       bgMsTarget = (1 + fgExtraMs) * bgMsShare;
       // fill the BG tiles
       for (; bgchunkIdx <= chunkIdxs[chunkIdxs.size() - 1]; bgchunkIdx++) {
-        for (; bgTileIdx < backgroundTiles[bgchunkIdx].size(); bgTileIdx++) {
+        for (; bgTileIdx < (int)backgroundTiles[bgchunkIdx].size();
+             bgTileIdx++) {
           auto &bgTileInfo = backgroundTiles[bgchunkIdx][bgTileIdx];
           uint64_t tileSize =
               FLAGS_UtilityCoraseBackgroundStream == "coarse"
@@ -906,7 +904,7 @@ std::string AbrAlgorithm::scheduler(
             break;
           }
         }
-        if (bgTileIdx < backgroundTiles[bgchunkIdx].size()) {
+        if (bgTileIdx < (int)backgroundTiles[bgchunkIdx].size()) {
           break;
         }
         bgTileIdx = 0;
@@ -929,9 +927,6 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
   // every 100ms, update tile list.
   long stime = Util::getTime();
   float videoTime = 0;
-
-  uint8_t numOfQualities = abrAlgorithm->getNumberOfQualities();
-  uint8_t numOfClasses;
 
   // This set will contain all tiles in prev sets (to contain duplicates)
   // tilechunk_tileIdx
@@ -1337,7 +1332,7 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
         float updatedUtility = overallUtility;
 
         while (trace != nullptr) {
-          // UTILITY LOSS \\
+          // UTILITY LOSS
 
           // cumlative utility vector for tile to be pushed further.
           auto const &utilityNxtTile = utilityMatrix[trace->tile];
@@ -1360,7 +1355,7 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
                           utilityNxtTile[oldEstArrNxtTileFrameId];
           }
 
-          // UTILITY GAIN \\
+          // UTILITY GAIN
           // cumlative utility vector for current tile.
           auto const &utilitycurrTile = utilityMatrix[tile];
           // its estimated arrival frame Id before.
@@ -1687,7 +1682,7 @@ AbrAlgorithm::qualityABR(
           utilityMatrix, tailTile, tileN, frameIdSt, downloadTimeUpdated,
           tileNewPsnr, overallValueUpdated, overallValue);
 
-      ////// TILE PLACEMENT \\\\
+      // TILE PLACEMENT
       // Place tile in its potention new place if exists.
       if (!placeAtTail && potentionalPos == nullptr) {
         goto EXIT_L1;
@@ -2028,7 +2023,6 @@ void AbrAlgorithm::checkTilesUtility(
   // check tiles with 0 utility, if quality > 2, drop quality if still fit,
   // then keep
   tileNode *trace = headTile;
-  float timeDiff;
   while (trace != nullptr) {
     auto estArrFrameId = int(trace->EstArrivalTime / 40) - frameIdSt;
     auto tileUtilityVec = utilityMatrix[trace->tile];
@@ -2192,9 +2186,6 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
   // this can be done in the constructor
   abrAlgorithm->fillGroupQualityInfo(tilesGroups, 12 * 12 + 1);
 
-  // every 100ms, update tile list.
-  long stime = Util::getTime();
-  float videoTime = 0;
   std::map<uint8_t, std::vector<std::pair<int, uint16_t>>> tilesRequest;
   // this the id of the chunk currently being downloaded.
   int chunkToRequest = 0;
@@ -2302,9 +2293,10 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
     }
     if (VLOG_IS_ON(3)) {
       std::vector<int> sizes(int(abrAlgorithm->predictionWindow_ / 25), 0);
-      for (int chunkIds = 0; chunkIds < groupsQualityPerChunk.size();
+      for (int chunkIds = 0; chunkIds < (int)groupsQualityPerChunk.size();
            chunkIds++) {
-        for (int idx = 1; idx < groupsQualityPerChunk[chunkIds].size(); idx++) {
+        for (int idx = 1; idx < (int)groupsQualityPerChunk[chunkIds].size();
+             idx++) {
           sizes[chunkIds] +=
               abrAlgorithm
                   ->groupChunkSizePerQuality_[groupsQualityPerChunk[chunkIds]
@@ -2350,12 +2342,12 @@ int AbrAlgorithm::mpcBitratePerChunk(
   // initially set to the highest possible quality.
   int idxBestBitrate = 0;
   float maxReward = -FLT_MAX;
-  for (int idx = 0; idx < bitrateAssignments_.size(); idx++) {
+  for (int idx = 0; idx < (int)bitrateAssignments_.size(); idx++) {
     auto &bitrateAssignment = bitrateAssignments_[idx];
     float rebuffering = 0;
     float buffer = 0;
     float reward = 0;
-    for (int chunkIdx = 0; chunkIdx < bufferChunkStat.size(); chunkIdx++) {
+    for (int chunkIdx = 0; chunkIdx < (int)bufferChunkStat.size(); chunkIdx++) {
       // time to be added to buffer if this chunk is downloaded.
       auto bufferTimeForThisChunk =
           (chunkIdx == 0 ? timeLeftInCurrChunk : 1000);
@@ -2435,7 +2427,7 @@ std::map<int, std::vector<uint8_t>> AbrAlgorithm::selectIntraGroupQuality(
     }
     // increase the quality of each group by one at a time;
     // if the total size >= assigned bitrate; Stop.
-    for (int qualityId = 2; qualityId <= groupChunkSizePerQuality_.size();
+    for (int qualityId = 2; qualityId <= (int)groupChunkSizePerQuality_.size();
          qualityId++) {
       auto sortedGroups = sortedGroupsByMaxPsnrImpact(
           chunkAreaPerGroup.second, groupsQ, chunkId, qualityId);
@@ -2536,7 +2528,7 @@ void AbrAlgorithm::fillGroupQualityInfo(uint8_t tilesGroups[], int numOfTiles) {
         groupChunkSizePerQuality_[qualityIdx].insert({groupId, {}});
       }
       for (int chunkIdx = 0;
-           chunkIdx < tileChunkSizePerQuality_[qualityIdx][tileIdx].size();
+           chunkIdx < (int)tileChunkSizePerQuality_[qualityIdx][tileIdx].size();
            chunkIdx++) {
         if (groupChunkSizePerQuality_[qualityIdx][groupId].size() <
             tileChunkSizePerQuality_[qualityIdx][tileIdx].size()) {
@@ -2555,7 +2547,7 @@ void AbrAlgorithm::fillGroupQualityInfo(uint8_t tilesGroups[], int numOfTiles) {
   }
   for (auto &groupChunkPSNRPerQuality : groupChunkPSNRPerQuality_) {
     for (auto &qualityPnsr : groupChunkPSNRPerQuality.second) {
-      for (auto idx = 0; idx < qualityPnsr.second.size(); idx++) {
+      for (auto idx = 0; idx < (int)qualityPnsr.second.size(); idx++) {
         qualityPnsr.second[idx] /= numTilesPerGroup[qualityPnsr.first];
       }
     }

@@ -135,7 +135,7 @@ void VideoPlayer::freePastChunks(uint16_t chunkIdx) {
 void VideoPlayer::decodeBackground(VideoPlayer *videoPlayer,
                                    Decoder *decoderBG) {
   int startChunk = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
-  for (uint32_t idx = startChunk; idx < startChunk + 2; idx++) {
+  for (int idx = startChunk; idx < startChunk + 2; idx++) {
     auto chunkBg = videoPlayer->chunksBg_.find(idx);
     if (chunkBg != videoPlayer->chunksBg_.end()) {
       std::vector<uint8_t *> rawTileFrames;
@@ -197,7 +197,6 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, TilePredictor *tilePredictor,
       decodingPriorityMap;
 
   while (true) {
-    bool decode_frame = false;
     startChunk = ((videoPlayer->frameId_ - 1) / videoPlayer->FPS_) + 1;
 
     videoPlayer->freePastChunks(startChunk);
@@ -233,7 +232,7 @@ void VideoPlayer::decode(VideoPlayer *videoPlayer, TilePredictor *tilePredictor,
     //             << std::to_string(tileToDecode.second) << "\n";
     // }
     if (tileToDecode.first == -1) {
-      for (uint32_t idx = startChunk; idx < startChunk + 2; idx++) {
+      for (int idx = startChunk; idx < startChunk + 2; idx++) {
         auto chunks = videoPlayer->chunks_.find(idx);
         if (chunks != videoPlayer->chunks_.end() &&
             chunks->second.size() != 0) {
@@ -606,7 +605,6 @@ void VideoPlayer::startVideoJournal(VideoPlayer *videoPlayer,
   std::string skippedTiles;
 
   std::string tilesQuality;
-  bool bgChunkRecv;
   while (true) {
     long frameDeadline = Util::getTime();
     tilesQuality = "";
@@ -738,7 +736,6 @@ void VideoPlayer::startVideoLive(VideoPlayer *videoPlayer,
 
   long frameGap = (1000.0 / videoPlayer->FPS_);
 
-  uint32_t playSecond;
   // tileIndex, raw-tile-frame.
   std::map<uint16_t, uint8_t *> viewport;
 
@@ -750,9 +747,6 @@ void VideoPlayer::startVideoLive(VideoPlayer *videoPlayer,
   // For the first frame in the video, we don't skip any tiles (allow join
   // time)
   bool firstFrame = true;
-
-  // if the needed tile has not been received, the skip it.
-  bool haveReceivedTile;
 
   bool playNextFrame = true;
 

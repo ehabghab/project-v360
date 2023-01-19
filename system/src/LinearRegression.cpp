@@ -75,11 +75,11 @@ void LinearRegression::estimateCoefficient(
   std::pair<float, float> sumsMul(0, 0);
   float idxMulSum = 0;
   float idxSum = 0;
-  int i;
+
   int yawOverlap = 0;
   int pitchOverlap = 0;
   for (int idx = length - hw_, i = 1; idx < length; idx++, i++) {
-    if (idx != length - hw_) {
+    if (idx != length - (int)hw_) {
       if (std::abs(input[idx].first - input[idx - 1].first) >= 180) {
         if (input[idx - 1].first < input[idx].first) {
           yawOverlap--;

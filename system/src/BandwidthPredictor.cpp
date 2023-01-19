@@ -54,14 +54,14 @@ float BandwidthPredictor::getMpcBandwidthPrediction() {
       bwGroundTruth_.size() < 50 ? 0 : bwGroundTruth_.size() - 50;
   float bwSum = 0;
   int bwCount = bwGroundTruth_.size() - timeStartIdx;
-  for (timeStartIdx; timeStartIdx < bwGroundTruth_.size(); timeStartIdx++) {
+  for (; timeStartIdx < (int)bwGroundTruth_.size(); timeStartIdx++) {
     bwSum += (1 / bwGroundTruth_[timeStartIdx]);
   }
   float harmonicBw = 1 / (bwSum / bwCount);
 
   float maxError = 0;
   timeStartIdx = bwError_.size() < 10 ? 0 : bwError_.size() - 10;
-  for (timeStartIdx; timeStartIdx < bwError_.size(); timeStartIdx++) {
+  for (; timeStartIdx < (int)bwError_.size(); timeStartIdx++) {
     maxError = std::max(maxError, bwError_[timeStartIdx]);
   }
   auto futureBw = harmonicBw / (1 + maxError);

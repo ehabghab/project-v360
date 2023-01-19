@@ -152,7 +152,7 @@ void ClientNetworkLayer::receiver(ClientNetworkLayer *client,
       // we assume that data buffer can only have either full response or
       // part of res header, part of file.
       int headerPosEndLimit = (leftoverString + data).find("\r\n\r\n");
-      if (headerPosEndLimit != std::string::npos) {
+      if (headerPosEndLimit != (int)std::string::npos) {
         // this is the index at which tile bytes resides.
         respHeaderFileBoarderIndex =
             (headerPosEndLimit + 4) - leftoverString.size();
