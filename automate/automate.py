@@ -75,8 +75,9 @@ def main():
 	tile_size ="sizes.txt"
 	quality_name = "psnr_avgs.txt"
 
-	args_client = { "journal":" -model=Journal -predLR=1 -bufferModel=journalRebuffer JournalCoraseABR=true",
-					"Flare_with_background_stream": "-model=Journal -predLR=1 -bufferModel=journalRebuffer JournalCoraseABR=false "
+	args_client = { "journal":" -model=Journal -predLR=1 -bufferModel=journalRebuffer -JournalCoraseABR=true",
+					"journal_flare_with_background_stream": "-model=Journal -predLR=1 -bufferModel=journalRebuffer -JournalCoraseABR=false ",
+					"journal_flare_with_background_stream_skip": "-model=Journal -predLR=1 -bufferModel=skip -JournalCoraseABR=false ",
 
 					"flare_skip_1sec":" -model=Flare -predLR=1 -bufferModel=skip -predictionWindow=1 ",
 					"flare_skip_3sec":" -model=Flare -predLR=1 -bufferModel=skip -predictionWindow=3 ",
@@ -90,13 +91,15 @@ def main():
 					"pano_rebuffer_1sec":" -model=Pano -predLR=1 -bufferModel=rebuffer -predictionWindow=1 ",
 					"pano_rebuffer_3sec":" -model=Pano -predLR=1 -bufferModel=rebuffer -predictionWindow=3 ",
 
-					"utility":" -model=Utility -predLR=1 -bufferModel=skip -UtilityCoraseBackgroundStream=false ", 
-					"utility_360_background":" -model=Utility -predLR=1 -bufferModel=UtilityJskip -UtilityCoraseBackgroundStream=true ", 
-
+					"utility_minSkip":" -model=Utility -predLR=1 -bufferModel=skip -UtilityCoraseBackgroundStream=fine ", 
+					"utility_minOH":" -model=Utility -predLR=1 -bufferModel=skip -UtilityCoraseBackgroundStream=fine ", 
+					"utility_360_background":" -model=Utility -predLR=1 -bufferModel=UtilityJskip -UtilityCoraseBackgroundStream=coarse ", 
+					"utility_off":" -model=Utility -predLR=1 -bufferModel=skip -UtilityCoraseBackgroundStream=off ", 
 					}
 
 	args_server = { "journal":" 0 ",
-					"Flare_with_background_stream": " 0 ",
+					"journal_flare_with_background_stream": " 0 ",
+					"journal_flare_with_background_stream_skip": " 0 ",
 
 					"flare_skip_1sec":" 0 ",
 					"flare_skip_3sec":" 0 ",
@@ -110,24 +113,27 @@ def main():
 					"pano_rebuffer_1sec":" 0 ",
 					"pano_rebuffer_3sec":" 0 ",
 
-					"utility":" 1 ",
+					"utility_minSkip":" 1 ",
+					"utility_minOH": " 1 ",
 					"utility_360_background":" 1 ",
+					"utility_off":" 1 ",
 
 					}
 
-	models = ["pano_rebuffer_3sec","flare_rebuffer_1sec","flare_rebuffer_3sec"]
+	#./build/client /home/ehab/Desktop/Project-V360/analysis/traces_system/vid14_uid24_tiles_per_frame_user.txt /home/ehab/Desktop/Project-V360/analysis/traces_system/vid14_uid24_vp_corr_per_frame.txt /home/ehab/Desktop/Videos/v14_data/sizes.txt /home/ehab/Desktop/Videos/v14_data/psnr_avgs.txt /home/ehab/Desktop/Videos/full_360.txt 100.64.0.2 /home/ehab/Desktop/Videos/v14_data/QP00/sizes_b.txt /home/ehab/Desktop/Videos/v14_data/psnr_chunk.txt  -model=Utility -UtilityCoraseBackgroundStream="off" -bufferModel=skip 
+	models = ["journal_flare_with_background_stream_skip"]
 
-	videos = ["v1_data","v2_data","v7_data","v8_data","v14_data","v27_data","v28_data"] #"v1_data","v2_data","v7_data","v8_data","v14_data","v27_data",
-	bw_traces_raw_exp1_exp2 = ["report_bus_0003_subtrace1","report_car_0004_subtrace2","report_foot_0004_subtrace1","report_train_0003_subtrace1"]#,"report_bus_0003_subtrace2","report_foot_0006_subtrace1","report_foot_0004_subtrace2","report_car_0002_subtrace1","report_foot_0002_subtrace1","report_car_0004_subtrace1","report_car_0004_subtrace3"]
+	videos = ["v1_data","v2_data","v7_data","v8_data","v14_data","v27_data","v28_data"] 
+	bw_traces_raw_exp1_exp2 = ["report_bus_0003_subtrace1","report_car_0004_subtrace2","report_foot_0004_subtrace1","report_train_0003_subtrace1","report_bus_0003_subtrace2","report_foot_0006_subtrace1","report_foot_0004_subtrace2","report_car_0002_subtrace1","report_foot_0002_subtrace1","report_car_0004_subtrace1","report_car_0004_subtrace3"]
 	bw_traces_raw_exp3 = ["10_B_2020.02.13_13.57.29_subtrace44","4_B_2020.02.13_13.57.29_subtrace2","8_B_2020.02.13_13.57.29_subtrace26","1_B_2019.12.16_13.40.04_subtrace14","5_B_2020.02.13_13.57.29_subtrace10","9_B_2020.02.13_13.57.29_subtrace33","2_B_2020.01.16_10.43.34_subtrace2","6_B_2020.02.13_13.57.29_subtrace11","3_B_2020.01.16_10.43.34_subtrace7","7_B_2020.02.13_13.57.29_subtrace18"]#"10_B_2020.02.13_13.57.29_subtrace44","4_B_2020.02.13_13.57.29_subtrace2"
 	users = {
-		"v1_data":[3,9,14,18],#24,33,44,51,56,62],
-		"v2_data":[2,6,8,12],#17,26,37,46,50,57],
-		"v7_data":[2,7,15,22],#28,33,38,41,51,59],
-		"v8_data":[4,8,12,16],#23,32,36,40,55,62],
-		"v14_data":[6,9,15,24],#33,37,45,47,55,60],
-		"v27_data":[1,7,11,28],#31,35,41,42,51,52],
-		"v28_data":[2,3,14,19],#22,26,36,48,50,55],
+		"v1_data":[3,9,14,18,24,33,44,51,56,62],
+		"v2_data":[2,6,8,12,17,26,37,46,50,57],
+		"v7_data":[2,7,15,22,28,33,38,41,51,59],
+		"v8_data":[4,8,12,16,23,32,36,40,55,62],
+		"v14_data":[6,9,15,24,33,37,45,47,55,60],
+		"v27_data":[1,7,11,28,31,35,41,42,51,52],
+		"v28_data":[2,3,14,19,22,26,36,48,50,55],
 		}
 
 	idx = 0
@@ -157,7 +163,10 @@ def main():
 					server_ip = run_server_and_get_ip(bw_trace_path,videoPath,args_server[model])
 					time.sleep(1)
 
-					client_cmd = "./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+videoSizes+" "+videoPsnr+" "+displacementTrainingPath+" "+server_ip+" "
+					if "utility_minOH" in model:
+						client_cmd = "./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+videoSizes+" "+videoPsnr+" "+displacementPath+" "+server_ip+" "
+					else:
+						client_cmd = "./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+videoSizes+" "+videoPsnr+" "+displacementTrainingPath+" "+server_ip+" "
 					#client_cmd = "./bin/client "+user_frame_tiles_path+" "+user_frame_vp_path+" "+videoSizes+" "+videoSPSNR+" "+displacementTrainingPath+" "+server_ip+" "
 					
 					if "pano" in model:
