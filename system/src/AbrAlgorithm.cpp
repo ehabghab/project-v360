@@ -1028,7 +1028,22 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
         backgroundTiles[idx - chunkId].push_back({idx, 0});
       }
     } else {
-      // off
+      // no masking stream
+      backgroundTilesSizes = {0, 0, 0};
+      backgroundTiles = {{}, {}, {}};
+      // get all viewport tiles for the first frame only,
+      // so the video player can start.
+      std::map<float, std::vector<uint16_t>> tempBgTiles;
+
+      if (frameIdToRender == 1) {
+        // return all viewport tiles with zero displacement.
+        tilePredictor->getBackgroundTiles(tempBgTiles, {{0, 0}, {0, 0}}, 0);
+
+        // get the size of the viewport tiles in the lowest quality
+        abrAlgorithm->updateTilesAndgetTotalSize(
+            std::ref(backgroundTilesSizes[0]), std::ref(backgroundTiles[0]),
+            tempBgTiles, 0, clientNetworkLayer);
+      }
     }
 
     // High priority tiles correspond to the [0-2) seconds.
@@ -1041,9 +1056,11 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
     float downloadTimeBgMPInMS =
         predictedBw == 0 ? 0 : (backgroundTilesSizes[2] * 1e3) / predictedBw;
 
-    std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>> foregroundTiles;
-    float bandwidthBgMP = predictedBw;
+    float bandwidthBgMP =
+        backgroundTilesSizes[2] / (1 - (downloadTimeBgMPInMS / 1e3)); // B/S
+
     float bandwidthFg = 0;
+    std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>> foregroundTiles;
     // std::cout << "time remaining in ms :"
     //          << 1000 - (downloadTimeBgHPInMS + downloadTimeBgMPInMS) << "\n";
 
@@ -1056,17 +1073,10 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
       // sort tiles by their max utility.
       auto orderedUtilityMatrix =
           abrAlgorithm->orderTilesByMaxUtility(utilityMatrix, frameIdToRender);
-      bandwidthBgMP = backgroundTilesSizes[2] /
-                      (1 - (downloadTimeBgHPInMS / 1e3)); // Bytes per Second
-      bandwidthFg = predictedBw == 0 ? 0 : (predictedBw - bandwidthBgMP);
-      // std::cout << (predictedBw * 8 / 1e6) << ":" << (bandwidthBgMP * 8 /
-      // 1e6)
-      //        << "-" << (bandwidthFg * 8 / 1e6) << "\n";
 
-      /*foregroundTiles = abrAlgorithm->getTilesWithMaxOverallUtility(
-          utilityMatrix, orderedUtilityMatrix, frameIdToRender,
-          bandwidthFg > 0 ? bandwidthFg : 2.5 * 1e6, downloadTimeBgHPInMS,
-          clientNetworkLayer);*/
+      bandwidthFg = predictedBw == 0 ? 0 : (predictedBw - bandwidthBgMP);
+
+      // std::cout << downloadTimeBgHPInMS << ":" << bandwidthFg << "\n";
       foregroundTiles =
           abrAlgorithm->qualityABR(utilityMatrix, frameIdToRender,
                                    bandwidthFg > 0 ? bandwidthFg : 2.5 * 1e6,
@@ -1092,10 +1102,15 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
         req += FLAGS_UtilityCoraseBackgroundStream == "coarse" ? "_0," : "_1,";
       }
     }
-    std::string reqScheduled;
 
-    if (foregroundTiles.size() > 0) {
-      reqScheduled = abrAlgorithm->scheduler(
+    if (FLAGS_UtilityCoraseBackgroundStream == "off") {
+      for (auto &chunkTiles : foregroundTiles) {
+        req += std::to_string(chunkTiles.first.first) + "_" +
+               std::to_string(chunkTiles.first.second) + "_" +
+               std::to_string(chunkTiles.second) + ",";
+      }
+    } else if (foregroundTiles.size() > 0) {
+      auto reqScheduled = abrAlgorithm->scheduler(
           backgroundTiles, {2}, bandwidthBgMP, foregroundTiles, bandwidthFg);
       req += reqScheduled;
     } else {
@@ -1597,7 +1612,7 @@ AbrAlgorithm::qualityABR(
             1e3 * (tileChunkSizePerQuality_[1][tile.second][tile.first] /
                    estimatedBw);
         tileNode *tileN =
-            new tileNode{tile, 0, estDownloadTime, 1, nullptr, nullptr};
+            new tileNode{tile, 0, estDownloadTime, 1, 0, nullptr, nullptr};
 
         // if bg is full chunk, it will have zero for tile index.
         uint16_t tileIdx =
@@ -2020,8 +2035,7 @@ void AbrAlgorithm::checkTilesUtility(
     std::map<std::pair<int, uint16_t>, tileNode *> &tilesNodeMap,
     tileNode *&headTile, tileNode *&tailTile, int frameIdSt, float estimatedBw,
     float currTime) {
-  // check tiles with 0 utility, if quality > 2, drop quality if still fit,
-  // then keep
+  // if the tile has utility == 0 or tile quality 0 or 1, then drop the tile.
   tileNode *trace = headTile;
   while (trace != nullptr) {
     auto estArrFrameId = int(trace->EstArrivalTime / 40) - frameIdSt;
@@ -2030,7 +2044,7 @@ void AbrAlgorithm::checkTilesUtility(
     if (estArrFrameId < 25) {
       tileUtility = tileUtilityVec[24] - tileUtilityVec[estArrFrameId];
     }
-    if (tileUtility != 0) {
+    if (tileUtility != 0 && trace->quality >= 2) {
       trace = trace->nextTile;
       continue;
     }

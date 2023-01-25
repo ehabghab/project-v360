@@ -53,6 +53,7 @@ private:
     // expected time to transmit tile.
     float EstDownloadTime;
     uint8_t quality;
+    bool baseQualityReceived;
     tileNode *nextTile;
     tileNode *prevTile;
   };
@@ -252,6 +253,9 @@ private:
       long &totalSize, std::vector<std::pair<int, uint16_t>> &tilesToUpdate,
       ClientNetworkLayer *clientNetworkLayer);
 
+  float getUtilityDiff(tileNode *&tileN, std::vector<float> &locationVec,
+                       float currentArrivalTime, float potentialArrivalTime,
+                       uint8_t potentialQuality, int frameIdSt);
   /**
    * @brief This will return list of interleaving fg/bg tiles to request
    *
