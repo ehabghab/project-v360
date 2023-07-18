@@ -97,15 +97,6 @@ AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
                                        {displacements[2], displacements[3]}});
   }
 
-  // while (std::getline(infile3, line)) {
-  //   std::vector<uint16_t> tiles;
-  //   int chunkId = stoi(line.substr(0, line.find(":")));
-  //   std::string tilesString = line.substr(line.find(":") + 2);
-  //   tilesString.pop_back();
-  //   folly::split(",", tilesString, tiles);
-  //   background_tiles_.insert({chunkId, tiles});
-  // }
-
   std::ifstream infile4(fullVideoChunkSizePath);
   while (std::getline(infile4, line)) {
     line.pop_back();
@@ -537,11 +528,6 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
       frameIdToRender = videoPlayer->getFrameToRenderId();
       chunkId = (frameIdToRender - 1) / 25;
     }
-    // std::cout << chunkTileAwaited.first << ":" << chunkTileAwaited.second
-    //           << " --> "
-    //           << clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
-    //                                             chunkTileAwaited.second)
-    //           << "\n";
 
     missBgSt = std::ceil((frameIdToRender - 1) / 25.0);
     missBgEn = missBgSt + backgroundBufferSize;
@@ -672,34 +658,7 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
     float predictedBw =
         (bandwidthPredictor->getMpcBandwidthPrediction());  // Bytes Per Second
 
-    /*for (auto &frameSet : frameIdSetQualitySizeSum) {
-      for (auto &classs : frameSet.second) {
-        std::string line = std::to_string(frameSet.first) + "-" +
-                           std::to_string(classs.first) + ":";
-        for (auto v : classs.second) {
-          line += std::to_string(v) + ",";
-        }
-        line.pop_back();
-        std::cout << line << std::endl;
-      }
-    }
-    std::cout << predictedBw << std::endl;
-    std::cout << frameIdToRender << std::endl;
-    std::cout << "======\n";*/
-    // generate a list of all required background tiles.
-    // std::map<float, std::vector<uint16_t>> urgentTiles;
-    // tilePredictor->getUrgetTilesList(urgentTiles, predictedCorr);
-    // auto urgentTileRequestAndSize =
-    //    abrAlgorithm->buildBackgroundUrgentTilesRequest(
-    //       frameIdToRender, clientNetworkLayer, urgentTiles);
-
-    // auto lessUrgentBGTilesInfo =
-    // abrAlgorithm->getBackgroundLessUrgentTilesInfo(
-    //   frameIdToRender, clientNetworkLayer, urgentTiles);
-
     float baseTime = 0;
-    //   predictedBw == 0 ? 0 : (urgentTileRequestAndSize.second * 1e3) /
-    //                              predictedBw; // in MS
 
     auto qualityAssignments = abrAlgorithm->getPossibleQualityAssignment(
         numOfQualities, numOfClasses);
@@ -1808,15 +1767,8 @@ AbrAlgorithm::qualityABR(
     tilesToReturn.push_back({headTile->tile, headTile->quality});
     headTile = headTile->nextTile;
   }
-  // std::string line = "";
-  // for (auto &tilepair : tilesToReturn) {
-  //   line += std::to_string(tilepair.first.second) + "_" +
-  //           std::to_string(tilepair.first.first) + "_" +
-  //           std::to_string(tilepair.second) + ",";
-  // }
-  // std::cout << "tiles:" << line << "\n";
+
   return tilesToReturn;
-  // return request.
 }
 
 void AbrAlgorithm::removeNodeAndUpdateUtility(
@@ -2282,34 +2234,11 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
     if (chunkToRequest != 0 &&
         (bufferChunkStat[(chunkToRequest - 1) - chunkId] != 144 &&
          (chunkToRequest - 1) >= chunkId)) {
-      // Util::sleep(stime, 100);
-      // videoTime += (Util::getTime() - stime);
-      // stime += 100;
-      // std::cout << "=== sleep ===\n"
-      //           << chunkId << ":" << chunkToRequest << "\n"
-      //           << bufferChunkStat[(chunkToRequest - 1) - chunkId] << "\n";
-      //           << bufferChunkStat[0] << " : " << bufferChunkStat[1] << "
-      //           : "
-      //           << bufferChunkStat[2];
       continue;
     }
-    // std::cout << "=== awake ===\n"
-    //           << Util::getTime() << "\n"
-    //           << chunkId << ":" << chunkRequested << "\n"
-    //           << bufferChunkStat[0] << " : " << bufferChunkStat[1] << " : "
-    //           << bufferChunkStat[2] << "\n";
-    // std::cout << frameId << "\n";
     auto bitrateAssignmentIdx = abrAlgorithm->mpcBitratePerChunk(
         bandwidthPredictor, clientNetworkLayer, chunksBitrates,
         videoPlayer->getFrameToRenderId(), 16);
-
-    // std::string y = "";
-    // for (auto x : abrAlgorithm->bitrateAssignments_[bitrateAssignmentIdx]) {
-    //   y += std::to_string(x) + ",";
-    // }
-
-    // y.pop_back();
-    // std::cout << "BEST : " << y << "\n";
 
     auto assignment = abrAlgorithm->bitrateAssignments_[bitrateAssignmentIdx];
 
@@ -2320,8 +2249,6 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
 
     std::map<int, std::map<int, std::vector<uint16_t>>> chunkQualityTileMap;
     bool update = false;
-    // for (auto stChunk = chunkToRequest - chunkId;
-    //      stChunk < groupsQualityPerChunk.size(); stChunk++) { // for chunk
     for (auto &chunkAreaPair : areaPerGroup) {
       auto chunkIdx = chunkAreaPair.first;
       if (chunkIdx < chunkToRequest) {
@@ -2381,10 +2308,6 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
     // std::cout << req << "\n";
     req += "\nQuality\n" + std::to_string(0);
     clientNetworkLayer->setRequest(req);
-    // std::cout << frameId << ":" << req;
-    // Util::sleep(stime, ABR_FREQ);
-    // videoTime += (Util::getTime() - stime);
-    // stime += 100;
   }
 }
 
@@ -2443,11 +2366,7 @@ int AbrAlgorithm::mpcBitratePerChunk(
       reward +=
           (maxQuality - bitrateAssignment[chunkIdx]) * bufferTimeForThisChunk;
     }
-    // std::string y = "";
-    // for (auto x : bitrateAssignments_[idx]) {
-    //   y += std::to_string(x) + ",";
-    // }
-    // y.pop_back();
+
     reward = reward - rebuffering * maxQuality;
     // std::cout << y << ":" << reward << "\n";
     if (VLOG_IS_ON(3)) {
@@ -2476,10 +2395,7 @@ std::map<int, std::vector<uint8_t>> AbrAlgorithm::selectIntraGroupQuality(
   int idx = 0;
   // chunk(i, i+1,i+2) --> group--> area.
   for (auto &chunkAreaPerGroup : groupsAreaPerChunk) {  // per chunk
-    // if (idx > 2) {                                     // limit W to
-    // 3seconds.
-    //   break;
-    // }
+
     auto chunkId = chunkAreaPerGroup.first;
     auto chunkTargetSize =
         (chunksBitrates[chunkBitrateAssignment[idx]][chunkId] * 1e6) /
