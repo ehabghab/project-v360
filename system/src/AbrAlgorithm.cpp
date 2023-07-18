@@ -138,7 +138,7 @@ void AbrAlgorithm::getTileSetSizePerQuality(
   }
 
   for (auto const &tileClassesSingleFrame :
-       tileClassesOfFutureFrames) { // A- per frame
+       tileClassesOfFutureFrames) {  // A- per frame
     auto frameId = tileClassesSingleFrame.first;
     if (frameId < frameIdToRender) {
       continue;
@@ -161,7 +161,7 @@ void AbrAlgorithm::getTileSetSizePerQuality(
     auto &classQualitySizeSum =
         frameIdSetQualitySizeSumToReturn.find(frameId)->second;
     for (auto const &SetOftilesInClass :
-         tileClassesSingleFrame.second) { // B- tiles per class
+         tileClassesSingleFrame.second) {  // B- tiles per class
 
       auto classRank = SetOftilesInClass.first;
 
@@ -188,9 +188,9 @@ void AbrAlgorithm::getTileSetSizePerQuality(
       std::unordered_set<std::string> tilesInSet;
       auto &qualitySizeSumVec = classQualitySizeSum.find(classRank)->second;
       for (uint8_t qualityIdx = 0; qualityIdx < numOfQualities;
-           qualityIdx++) { // C- per quality
+           qualityIdx++) {  // C- per quality
 
-        for (auto const &tile : SetOftilesInClass.second) { // D- per tile
+        for (auto const &tile : SetOftilesInClass.second) {  // D- per tile
           // if tile chunk is recevied then do not count it.
           std::string tileKey =
               std::to_string(chunkId) + "_" + std::to_string(tile);
@@ -271,7 +271,7 @@ std::map<int, int> AbrAlgorithm::getQualityIdx(
   // passed since last frame was rendered.
   float currentVideoTime =
       (((frameIdToRender - 1) * 40.0) + Util::getTimePassedSinceLastFrame()) /
-      1e3; // current video time.
+      1e3;  // current video time.
 
   std::vector<int> sortedFrameIds;
   for (auto const &tileClassesSingleFrame : frameIdSetQualitySizeSum) {
@@ -325,15 +325,15 @@ std::map<int, int> AbrAlgorithm::getQualityIdx(
                (frameId == (int)sortedFrameIds.size() &&
                 (qualityIdx + 1) !=
                     (int)qualitiesAssignments
-                        .size())) { // found the quality of the last chunk.
+                        .size())) {  // found the quality of the last chunk.
       chunkQualityAssignment.insert({currChunk, qualityIdx});
       break;
     }
 
     else if (!qualityFound &&
              (qualityIdx + 1) ==
-                 (int)
-                     qualitiesAssignments.size()) { // no assignment is working.
+                 (int)qualitiesAssignments
+                     .size()) {  // no assignment is working.
       // get tiles for the current chunk with lowest quality.
       for (; frameIdx < (int)sortedFrameIds.size(); frameIdx++) {
         chunkId = int((sortedFrameIds[frameIdx] - 1) / 25);
@@ -389,7 +389,7 @@ void AbrAlgorithm::getTileSetSizePerQualityJournal(
   }
 
   for (auto const &tileClassesSingleFrame :
-       tileClassesOfFutureFrames) { // A- per frame
+       tileClassesOfFutureFrames) {  // A- per frame
     auto frameId = tileClassesSingleFrame.first;
     if (frameId < frameIdToRender) {
       continue;
@@ -409,7 +409,7 @@ void AbrAlgorithm::getTileSetSizePerQualityJournal(
     auto &classQualitySizeSum =
         frameIdSetQualitySizeSumToReturn.find(frameId)->second;
     for (auto const &SetOftilesInClass :
-         tileClassesSingleFrame.second) { // B- tiles per class
+         tileClassesSingleFrame.second) {  // B- tiles per class
 
       auto classRank = SetOftilesInClass.first;
 
@@ -431,9 +431,9 @@ void AbrAlgorithm::getTileSetSizePerQualityJournal(
       std::unordered_set<std::string> tilesInSet;
       auto &qualitySizeSumVec = classQualitySizeSum.find(classRank)->second;
       for (uint8_t qualityIdx = 1; qualityIdx < numOfQualities;
-           qualityIdx++) { // C- per quality
+           qualityIdx++) {  // C- per quality
 
-        for (auto const &tile : SetOftilesInClass.second) { // D- per tile
+        for (auto const &tile : SetOftilesInClass.second) {  // D- per tile
           // if tile chunk is recevied then do not count it.
           std::string tileKey =
               std::to_string(chunkId) + "_" + std::to_string(tile);
@@ -444,8 +444,8 @@ void AbrAlgorithm::getTileSetSizePerQualityJournal(
           }
           tilesInSet.insert(tileKey);
           if (clientNetworkLayer->isReceived(chunkId + 1, tile) ==
-              -1) {                // tile is not received.
-            if (qualityIdx == 1) { // do some initializations
+              -1) {                 // tile is not received.
+            if (qualityIdx == 1) {  // do some initializations
               if (tilesRequestToReturn.find(classRank) ==
                   tilesRequestToReturn.end()) {
                 tilesRequestToReturn.insert({classRank, {}});
@@ -511,7 +511,6 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
   int chunkId;
   int frameIdToRender;
   while (true) {
-
     // if foreground chunk is not fully received.
     // or if the foreground buffer is full. Then pause ABR.
     if (FLAGS_JournalCoraseABR) {
@@ -559,19 +558,20 @@ void AbrAlgorithm::journalAbr(AbrAlgorithm *abrAlgorithm,
         FLAGS_JournalCoraseABR ? chunkTileAwaited.first : -1);
     numOfClasses++;
     float predictedBw =
-        (bandwidthPredictor->getMpcBandwidthPrediction()); // Bytes Per Second
+        (bandwidthPredictor->getMpcBandwidthPrediction());  // Bytes Per Second
     std::string bgTiles = "";
     float bgDownloadTime = 0;
     for (auto idx = missBgSt; idx < missBgEn; idx++) {
       if (clientNetworkLayer->isReceived(idx + 1, 0) == -1) {
         bgTiles += std::to_string(idx) +
-                   "_0_0,"; // tile id is zero, and quality as well.s
+                   "_0_0,";  // tile id is zero, and quality as well.s
         bgDownloadTime +=
             abrAlgorithm->fullVideoChunksSizes_[idx] / predictedBw;
       }
     }
 
-    float baseTime = bgDownloadTime; // change this based on the BG buffer size.
+    float baseTime =
+        bgDownloadTime;  // change this based on the BG buffer size.
 
     auto qualityAssignments = abrAlgorithm->getPossibleQualityAssignment(
         numOfQualities, numOfClasses);
@@ -670,7 +670,7 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
         clientNetworkLayer, frameIdToRender, numOfQualities, numOfClasses);
     numOfClasses++;
     float predictedBw =
-        (bandwidthPredictor->getMpcBandwidthPrediction()); // Bytes Per Second
+        (bandwidthPredictor->getMpcBandwidthPrediction());  // Bytes Per Second
 
     /*for (auto &frameSet : frameIdSetQualitySizeSum) {
       for (auto &classs : frameSet.second) {
@@ -714,7 +714,7 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
         frameIdSetQualitySizeSum, qualityAssignmentsVec, frameIdToRender,
         numOfQualities, predictedBw, baseTime, "Flare");
 
-    std::string req = "Tiles\n"; //+ urgentTileRequestAndSize.first;
+    std::string req = "Tiles\n";  //+ urgentTileRequestAndSize.first;
     // chunkId --> classRank --> <tiles>
     for (auto &tilesInChunkPair : tilesRequest) {
       auto &chunkId = tilesInChunkPair.first;
@@ -745,12 +745,11 @@ void AbrAlgorithm::flareAbr(AbrAlgorithm *abrAlgorithm,
 std::pair<std::string, int> AbrAlgorithm::buildBackgroundUrgentTilesRequest(
     uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
     std::map<float, std::vector<uint16_t>> &urgetTiles) {
-
   // Objective: get all urgent tiles in lowest quality for the next two seconds
 
   // find the chunk ids correspond to the next two seconds.
   int stChunkId = (((frameIdToRender)-1) / 25);
-  int enChunkId = stChunkId; //+ 1;
+  int enChunkId = stChunkId;  //+ 1;
   if ((frameIdToRender - 1) % 25 != 0) {
     enChunkId++;
   }
@@ -783,7 +782,6 @@ std::vector<std::pair<int, uint16_t>>
 AbrAlgorithm::getBackgroundLessUrgentTilesInfo(
     uint32_t frameIdToRender, ClientNetworkLayer *clientNetworkLayer,
     std::map<float, std::vector<uint16_t>> &urgetTiles) {
-
   // Less urgent chunk corresponds to future-seconds 2-4.
   // So, it starts at sec =  urgent_chunkId + 2
   int stChunkId = (((frameIdToRender)-1) / 25) + 1;
@@ -875,10 +873,10 @@ std::string AbrAlgorithm::scheduler(
     std::string fgTile = std::to_string(fgTileInfo.first) + "_" +
                          std::to_string(fgTileInfo.second) + "_" +
                          std::to_string(tileQuality) + ",";
-    if (fgMsTarget - dtime >= 0) { // fg tile fits in the FG slot
+    if (fgMsTarget - dtime >= 0) {  // fg tile fits in the FG slot
       request += fgTile;
       fgMsTarget -= dtime;
-    } else { // fg tile spills to bg slot
+    } else {  // fg tile spills to bg slot
 
       // by how much it overspilled.
       float fgExtraMs = std::abs(fgMsTarget - dtime) / fgMsShare;
@@ -900,7 +898,7 @@ std::string AbrAlgorithm::scheduler(
           request +=
               FLAGS_UtilityCoraseBackgroundStream == "coarse" ? "_0," : "_1,";
           bgMsTarget -= dtime;
-          if (bgMsTarget < 0) { // bg tile spills to fg slot
+          if (bgMsTarget < 0) {  // bg tile spills to fg slot
             request += fgTile;
             float bgExtraMs = std::abs(bgMsTarget) / bgMsShare;
             fgMsTarget = (1 + bgExtraMs) * fgMsShare;
@@ -912,7 +910,7 @@ std::string AbrAlgorithm::scheduler(
         }
         bgTileIdx = 0;
       }
-      if (bgMsTarget >= 0) { // all bg tiles are scheduled.
+      if (bgMsTarget >= 0) {  // all bg tiles are scheduled.
         request += fgTile;
         fgMsTarget = 100;
       }
@@ -1212,7 +1210,7 @@ AbrAlgorithm::orderTilesByMaxUtility(
 
   std::map<float, std::vector<std::pair<int, uint16_t>>> sortedUtilityMatrix;
   for (auto const tileChunk : utilityMatrix) {
-    if (tileChunk.first.first == -1) { // base frame id.
+    if (tileChunk.first.first == -1) {  // base frame id.
       continue;
     }
     // 50 = number of frames in the future (25) * number of classes (2)
@@ -1368,7 +1366,7 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
       float estDownloadTime = 1e3 * (tileChunkSizePerQuality_.find(2)
                                          ->second.find(tileId)
                                          ->second[chunkId] /
-                                     estimatedBw); //
+                                     estimatedBw);  //
 
       // estimated arrival time of the tile = its download time + time of being
       // last in list.
@@ -1389,7 +1387,6 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
 
       // this the first tile to add (highest priority/utility)
       if (tailTile->tile.first == 0 && tailTile->tile.second == 0) {
-
         // This should rarely happen.
         if (arrvFrameId > 25) {
           // LOG(ERROR)
@@ -1490,7 +1487,7 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
           }
         }
         currTileNode->EstDownloadTime = estDownloadTime;
-        if (currTileNode->prevTile != nullptr) { // it is not the head.
+        if (currTileNode->prevTile != nullptr) {  // it is not the head.
           currTileNode->prevTile->nextTile = currTileNode;
         }
         trace = currTileNode;
@@ -1545,7 +1542,7 @@ AbrAlgorithm::getTilesWithMaxOverallUtility(
           trace = trace->nextTile;
         }
 
-        if (tileDropped) { // recalcuate utility as it might improve.
+        if (tileDropped) {  // recalcuate utility as it might improve.
           trace = headTile;
           float newUtility = 0;
           while (trace != nullptr) {
@@ -1630,7 +1627,6 @@ AbrAlgorithm::qualityABR(
     std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
     uint16_t frameIdToRender, float estimatedBw, float baseTime,
     ClientNetworkLayer *clientNetworkLayer) {
-
   std::map<std::pair<int, uint16_t>, tileNode *> tilesNodeMap;
   // tile with highest priority.
   tileNode *headTile = nullptr;
@@ -1702,17 +1698,17 @@ AbrAlgorithm::qualityABR(
 
       // calc the old value of the tile.
       float tileOldValue = 0;
-      if (tileN->EstArrivalTime != 0) { // this node already in the linkedlist
+      if (tileN->EstArrivalTime != 0) {  // this node already in the linkedlist
         tileOldValue =
             (tileUtilityVec[24] -
              tileUtilityVec[int(tileN->EstArrivalTime / 40) - frameIdSt]) *
             tileOldPsnr;
-      } else {                     // new tile node, if so place at the end.
-        if (tailTile == nullptr) { // first node in the request.
+      } else {                      // new tile node, if so place at the end.
+        if (tailTile == nullptr) {  // first node in the request.
           tailTile = tileN;
           headTile = tileN;
           tileN->EstArrivalTime = tileN->EstDownloadTime + curTime;
-        } else { // if not then place at the end.
+        } else {  // if not then place at the end.
           tailTile->nextTile = tileN;
           tileN->prevTile = tailTile;
           tailTile = tileN;
@@ -1829,24 +1825,23 @@ void AbrAlgorithm::removeNodeAndUpdateUtility(
     std::map<std::pair<int, uint16_t>, std::vector<float>> utilityMatrix,
     tileNode *&headTile, tileNode *&tailTile, int frameIdSt, float currTime,
     tileNode *&tileN, float &overallValue) {
-
   // remove node from linkedlist.
-  if (tileN->prevTile == nullptr) { // remove head.
+  if (tileN->prevTile == nullptr) {  // remove head.
     headTile = headTile->nextTile;
     if (headTile != nullptr) {
       headTile->prevTile->nextTile = nullptr;
       headTile->prevTile = nullptr;
-    } else { // this happens if tail and head are the only node (which to be
-             // removed)
+    } else {  // this happens if tail and head are the only node (which to be
+              // removed)
       tailTile = nullptr;
     }
-  } else if (tileN->nextTile == nullptr) { // remove tail
+  } else if (tileN->nextTile == nullptr) {  // remove tail
     tailTile = tailTile->prevTile;
     if (tailTile != nullptr) {
       tailTile->nextTile->prevTile = nullptr;
       tailTile->nextTile = nullptr;
-    } else { // this happens if tail and head are the only node (which to be
-             // removed)
+    } else {  // this happens if tail and head are the only node (which to be
+              // removed)
       headTile = nullptr;
     }
   } else {
@@ -1963,7 +1958,7 @@ AbrAlgorithm::tileNode *AbrAlgorithm::returnBestPosition(
       overallValue = overallValueUpdated;
     }
     trace = trace->prevTile;
-  } // end tile_quality_update_loop
+  }  // end tile_quality_update_loop
   return potentionalPos;
 }
 
@@ -2020,7 +2015,7 @@ void AbrAlgorithm::updateArrivalTimeOfSuccessorNodes(tileNode *&tailTile,
       trace->EstArrivalTime += diffInDT;
     }
     trace = trace->nextTile;
-  } // end while: update EstArrivalTime
+  }  // end while: update EstArrivalTime
 }
 
 void AbrAlgorithm::moveAndUpdateTile(tileNode *&headTile, tileNode *&tailTile,
@@ -2051,12 +2046,12 @@ void AbrAlgorithm::moveAndUpdateTile(tileNode *&headTile, tileNode *&tailTile,
     } else {
       tileN->EstArrivalTime += currTime;
     }
-  } else if (potentionalPos->prevTile == tileN) { // keep in the same position
+  } else if (potentionalPos->prevTile == tileN) {  // keep in the same position
     tileN->EstArrivalTime =
         (tileN->EstArrivalTime - tileN->EstDownloadTime) + downloadTimeUpdated;
-  } else { // move the tileN to potentional Postition -> prev.
+  } else {  // move the tileN to potentional Postition -> prev.
 
-    if (potentionalPos->prevTile == nullptr) { // move to head.
+    if (potentionalPos->prevTile == nullptr) {  // move to head.
       if (tileN->nextTile == nullptr) {
         // move tail to head.
         tileN->prevTile->nextTile = nullptr;
@@ -2074,10 +2069,10 @@ void AbrAlgorithm::moveAndUpdateTile(tileNode *&headTile, tileNode *&tailTile,
 
     } else {
       // move anywhere but not the head nor tail.
-      if (tileN->nextTile == nullptr) { // move tail
+      if (tileN->nextTile == nullptr) {  // move tail
         tileN->prevTile->nextTile = nullptr;
         tailTile = tileN->prevTile;
-      } else if (tileN->prevTile == nullptr) { // move the head.
+      } else if (tileN->prevTile == nullptr) {  // move the head.
         tileN->nextTile->prevTile = nullptr;
         headTile = tileN->nextTile;
       } else {
@@ -2087,7 +2082,7 @@ void AbrAlgorithm::moveAndUpdateTile(tileNode *&headTile, tileNode *&tailTile,
       tileN->nextTile = potentionalPos;
       tileN->prevTile = potentionalPos->prevTile;
       potentionalPos->prevTile = tileN;
-      tileN->prevTile->nextTile = tileN; // cannot this if I am the head.
+      tileN->prevTile->nextTile = tileN;  // cannot this if I am the head.
       tileN->EstArrivalTime =
           tileN->prevTile->EstArrivalTime + downloadTimeUpdated;
     }
@@ -2145,9 +2140,9 @@ void AbrAlgorithm::checkTilesUtility(
     // remove tile.
     tileNode *temp = trace;
     if (removeTile) {
-      if (trace->prevTile == nullptr) { // remove head;
+      if (trace->prevTile == nullptr) {  // remove head;
         headTile = trace->nextTile;
-        if (headTile != nullptr) { // this is the only node in linkedlist
+        if (headTile != nullptr) {  // this is the only node in linkedlist
           headTile->prevTile->nextTile = nullptr;
           headTile->prevTile = nullptr;
           headTile->EstArrivalTime = headTile->EstDownloadTime + currTime;
@@ -2184,7 +2179,7 @@ void AbrAlgorithm::checkTilesUtility(
         updateNode = updateNode->nextTile;
       }
       trace = temp;
-    } // end while
+    }  // end while
     else {
       trace = trace->nextTile;
     }
@@ -2245,7 +2240,6 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
                            VideoPlayer *videoPlayer,
                            std::string panoTilesGroupsPath,
                            std::string panoVideoBitrate) {
-
   abrAlgorithm->buildBitrateAssigment(
       {}, int(abrAlgorithm->predictionWindow_ / 25) + 1, 16);
 
@@ -2269,7 +2263,6 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
   // this the id of the chunk currently being downloaded.
   int chunkToRequest = 0;
   while (true) {
-
     auto frameId = videoPlayer->getFrameToRenderId();
     int chunkId = (frameId - 1) / 25;
     auto bufferChunkStat =
@@ -2341,10 +2334,10 @@ void AbrAlgorithm::panoAbr(AbrAlgorithm *abrAlgorithm,
       }
       auto &qualityTilesMap = chunkQualityTileMap.find(chunkIdx)->second;
       for (auto const &groupPair :
-           chunkAreaPair.second) { // for group [sorted by area]
+           chunkAreaPair.second) {  // for group [sorted by area]
         update = true;
         auto groupId = groupPair.first;
-        for (auto tileId : groupsTiles.find(groupId)->second) { // for tile
+        for (auto tileId : groupsTiles.find(groupId)->second) {  // for tile
           int qualityId = groupsQualityPerChunk.find(chunkIdx)->second[groupId];
           qualityId *= -1;
           if (qualityTilesMap.find(qualityId) == qualityTilesMap.end()) {
@@ -2402,13 +2395,12 @@ int AbrAlgorithm::mpcBitratePerChunk(
     ClientNetworkLayer *clientNetworkLayer,
     std::map<uint8_t, std::vector<float>> &chunksBitrates, uint32_t frameId,
     int maxQuality) {
-
   // this should return the highest chunk bitrate with minimum rebuffering.
   // determine buffer occupancy
   auto bufferChunkStat = getBufferChunkStatus(clientNetworkLayer, frameId);
 
   float predictedBw =
-      (bandwidthPredictor->getMpcBandwidthPrediction() * 8.0) / 1e6; // mbps
+      (bandwidthPredictor->getMpcBandwidthPrediction() * 8.0) / 1e6;  // mbps
   assert(predictedBw >= 0);
   if (predictedBw == 0) {
     return bitrateAssignments_.size() - 1;
@@ -2430,7 +2422,7 @@ int AbrAlgorithm::mpcBitratePerChunk(
       // time to be added to buffer if this chunk is downloaded.
       auto bufferTimeForThisChunk =
           (chunkIdx == 0 ? timeLeftInCurrChunk : 1000);
-      if (bufferChunkStat[chunkIdx] == 144) { // chunk is fully received.
+      if (bufferChunkStat[chunkIdx] == 144) {  // chunk is fully received.
         buffer += bufferTimeForThisChunk;
         continue;
       }
@@ -2485,7 +2477,7 @@ std::map<int, std::vector<uint8_t>> AbrAlgorithm::selectIntraGroupQuality(
   auto &chunkBitrateAssignment = bitrateAssignments_[bitrateAssignmentIdx];
   int idx = 0;
   // chunk(i, i+1,i+2) --> group--> area.
-  for (auto &chunkAreaPerGroup : groupsAreaPerChunk) { // per chunk
+  for (auto &chunkAreaPerGroup : groupsAreaPerChunk) {  // per chunk
     // if (idx > 2) {                                     // limit W to
     // 3seconds.
     //   break;
@@ -2493,7 +2485,7 @@ std::map<int, std::vector<uint8_t>> AbrAlgorithm::selectIntraGroupQuality(
     auto chunkId = chunkAreaPerGroup.first;
     auto chunkTargetSize =
         (chunksBitrates[chunkBitrateAssignment[idx]][chunkId] * 1e6) /
-        8.0; // Bytes
+        8.0;  // Bytes
 
     // size of all groups in lowest quality.
     std::vector<uint8_t> groupsQ(chunkAreaPerGroup.second.size() + 1, 1);
@@ -2538,16 +2530,15 @@ std::map<int, std::vector<uint8_t>> AbrAlgorithm::selectIntraGroupQuality(
 std::map<int, std::map<uint8_t, float>> AbrAlgorithm::areaPerGroup(
     std::map<uint16_t, std::map<float, std::vector<uint16_t>>> areaPerTile,
     uint8_t tilesGroups[]) {
-
   std::map<int, std::map<uint8_t, float>> groupTotalAreaPerChunk;
 
-  for (auto &frameTilesArea : areaPerTile) { // per frame
+  for (auto &frameTilesArea : areaPerTile) {  // per frame
     auto frameId = frameTilesArea.first;
     int chunkId = frameId / 25;
     if (groupTotalAreaPerChunk.find(chunkId) == groupTotalAreaPerChunk.end()) {
       groupTotalAreaPerChunk.insert({chunkId, {}});
     }
-    for (auto &tilesArea : frameTilesArea.second) { // tile area
+    for (auto &tilesArea : frameTilesArea.second) {  // tile area
       auto tileArea = 1 - tilesArea.first;
       for (auto tile : tilesArea.second) {
         auto groupId = tilesGroups[tile];
@@ -2596,7 +2587,6 @@ void AbrAlgorithm::fillGroupQualityInfo(uint8_t tilesGroups[], int numOfTiles) {
     numTilesPerGroup[groupId] += 1;
     for (uint8_t qualityIdx = 1; qualityIdx <= numberOfQualities_;
          qualityIdx++) {
-
       if (groupChunkSizePerQuality_.find(qualityIdx) ==
           groupChunkSizePerQuality_.end()) {
         groupChunkSizePerQuality_.insert({qualityIdx, {}});
@@ -2633,13 +2623,11 @@ void AbrAlgorithm::fillGroupQualityInfo(uint8_t tilesGroups[], int numOfTiles) {
   }
 }
 
-std::vector<uint16_t>
-AbrAlgorithm::getBufferChunkStatus(ClientNetworkLayer *clientNetworkLayer,
-                                   uint32_t frameId) {
-
+std::vector<uint16_t> AbrAlgorithm::getBufferChunkStatus(
+    ClientNetworkLayer *clientNetworkLayer, uint32_t frameId) {
   // if not all tiles are received then video chunk is not received.
   std::vector<uint16_t> numOfTilesRecvPerChunk;
-  int stChunkId = ((frameId - 1) / 25) + 1; // server adds one.
+  int stChunkId = ((frameId - 1) / 25) + 1;  // server adds one.
   int enChunkId = std::ceil((predictionWindow_ + frameId - 1) / 25.0) + 1;
   for (auto chunkId = stChunkId; chunkId < enChunkId; chunkId++) {
     uint16_t numberOfTilesRecieved = 0;
