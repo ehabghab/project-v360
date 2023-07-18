@@ -1128,8 +1128,6 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
                                    bandwidthFg > 0 ? bandwidthFg : 2.5 * 1e6,
                                    downloadTimeBgHPInMS, clientNetworkLayer);
       auto foregroundTilesSize = abrAlgorithm->getTilesSizes(foregroundTiles);
-      float downloadTimeFgInMS =
-          predictedBw == 0 ? 0 : (foregroundTilesSize * 1e3) / predictedBw;
 
     }  // END foreground tile block
   end_forground_block:
