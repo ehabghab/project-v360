@@ -25,6 +25,9 @@ DEFINE_string(UtilityCoraseBackgroundStream, "fine",
               "background stream full 360 chunks (coarse),"
               "wide range of small tiles(fine),"
               "or not background stream (off).");
+DEFINE_bool(UtilityCoraseForegroundStream, false,
+            "true (Dragonfly-coarse),"
+            "false (Dragonfly)");
 
 AbrAlgorithm::AbrAlgorithm(std::string tileChunkSizesPath,
                            std::string tileChunksQaulityPath,
@@ -909,7 +912,7 @@ std::string AbrAlgorithm::scheduler(
         }
         bgTileIdx = 0;
       }
-      if (bgMsTarget > 0) { // all bg tiles are scheduled.
+      if (bgMsTarget >= 0) { // all bg tiles are scheduled.
         request += fgTile;
         fgMsTarget = 100;
       }
@@ -935,30 +938,57 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
   int chunkId;
 
   const int backgroundHorizonInSec = 3;
-
   std::vector<std::vector<std::pair<int, uint16_t>>> backgroundTiles(
       backgroundHorizonInSec);
   std::vector<long> backgroundTilesSizes(backgroundHorizonInSec);
   std::set<int> groundTruth;
+
+  std::pair<int, uint16_t> chunkTileAwaited(-1, 0);
+
+  // These variables will be used if FLAGS_UtilityCoraseForegroundStream is true
+  int coarseForgroundChunkIdToRequest = 0;
+  std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>>
+      coarseForegroundTiles;
+
+  uint8_t backgroundQualityIdx =
+      FLAGS_UtilityCoraseBackgroundStream == "fine" ? 1 : 0;
+
   while (true) {
-
-    // retrieve the predicted tiles using linear regression.
-    predictedCorr.clear();
-    tilePredictor->getPredictedCorr(predictedCorr);
     auto frameIdToRender = videoPlayer->getFrameToRenderId();
-
-    float predictedBw =
-        (bandwidthPredictor->getMpcBandwidthPrediction()); // Bytes Per Second
-    // get the background tiles for the next 3 seconds.
-    // for the current second, since we have the vp groundtruth for the first
-    // frame; we only do it once.
     chunkId = (frameIdToRender - 1) / 25;
     if (chunkId == 60) {
+      // video ended!
       break;
     }
 
-    // if the background stream is fine grained ...
+    if (FLAGS_UtilityCoraseForegroundStream) {
+      // check if the last request foreground tile-chunk is received or passed
+      // its deadline. If so, clear the old foreground request and update the
+      // awaited tile-chunk.
+      if ((clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
+                                          chunkTileAwaited.second) >
+               backgroundQualityIdx ||
+           chunkTileAwaited.first < chunkId) &&
+          (coarseForgroundChunkIdToRequest - chunkId < 2)) {
+        coarseForegroundTiles.clear();
+        chunkTileAwaited.first = -1;  // we are not waiting on foreground tiles.
+
+        if (clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
+                                           chunkTileAwaited.second) >
+            backgroundQualityIdx) {
+          coarseForgroundChunkIdToRequest++;
+        }
+      }
+
+      coarseForgroundChunkIdToRequest =
+          std::max(coarseForgroundChunkIdToRequest, chunkId);
+    }
+
+    // START background tiles block
     if (FLAGS_UtilityCoraseBackgroundStream == "fine") {
+      // if the background stream is fine grained,
+      // determine background tiles based on displacement.
+
       for (auto idx = chunkId; idx < chunkId + backgroundHorizonInSec; idx++) {
         if (idx >= 60) {
           backgroundTiles[idx - chunkId] = {};
@@ -966,11 +996,6 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
         }
 
         std::map<float, std::vector<uint16_t>> tempBgTiles;
-        // tempBgTiles.insert({0, abrAlgorithm->background_tiles_[idx]});
-        // abrAlgorithm->updateTilesAndgetTotalSize(
-        //     std::ref(backgroundTilesSizes[idx - chunkId]),
-        //     std::ref(backgroundTiles[idx - chunkId]), tempBgTiles, idx,
-        //     clientNetworkLayer);
 
         if (idx != chunkId) {
           tilePredictor->getBackgroundTiles(
@@ -997,23 +1022,21 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
             }
           }
           log.pop_back();
-          LOG(INFO) << "Ground truth for chunk" << idx;
-          LOG(INFO) << log;
-          LOG(INFO) << "=====";
           groundTruth.insert(chunkId);
         }
 
         else {
+          // get the size of the background tiles, and remove tiles that have
+          // been
+          // recieved already.
           abrAlgorithm->updateTilesAndgetTotalSize(
               std::ref(backgroundTilesSizes[idx - chunkId]),
               std::ref(backgroundTiles[idx - chunkId]), clientNetworkLayer);
         }
-
-        // get the size of the background tiles, and remove tiles that have been
-        // recieved already.
       }
     } else if (FLAGS_UtilityCoraseBackgroundStream == "coarse") {
-      // if the background stream is coarse grained ...
+      // if the background stream is coarse grained,
+      // determine background chunks to fetch.
       for (auto idx = chunkId; idx < chunkId + backgroundHorizonInSec; idx++) {
         backgroundTiles[idx - chunkId] = {};
         if (idx >= 60) {
@@ -1028,7 +1051,9 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
         backgroundTiles[idx - chunkId].push_back({idx, 0});
       }
     } else {
-      // no masking stream
+      // if background stream is turned off (i.e., no background tile/chunks to
+      // fetch)
+      // create empty background request.
       backgroundTilesSizes = {0, 0, 0};
       backgroundTiles = {{}, {}, {}};
       // get all viewport tiles for the first frame only,
@@ -1044,32 +1069,55 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
             std::ref(backgroundTilesSizes[0]), std::ref(backgroundTiles[0]),
             tempBgTiles, 0, clientNetworkLayer);
       }
-    }
+    }  // END background tiles block
 
-    // High priority tiles correspond to the [0-2) seconds.
+    // update user predictions.
+    predictedCorr.clear();
+    tilePredictor->getPredictedCorr(predictedCorr);
+
+    // START bandwidth calc block
+    // update bandwidth estimation.
+    float predictedBw =
+        (bandwidthPredictor->getMpcBandwidthPrediction());  // Bytes Per Second
+
+    // High-priority background chunks/tiles with render deadline of the next
+    // 2
+    // seconds.
     float downloadTimeBgHPInMS =
         predictedBw == 0
             ? 0
             : ((backgroundTilesSizes[0] + backgroundTilesSizes[1]) * 1e3) /
                   predictedBw;
-    // Medium priority tiles correspond to the [2-3) second.
+    // Med-priority background chunks/tiles with render deadline of the next
+    // 2-3
+    // seconds.
     float downloadTimeBgMPInMS =
         predictedBw == 0 ? 0 : (backgroundTilesSizes[2] * 1e3) / predictedBw;
 
-    float bandwidthBgMP =
-        backgroundTilesSizes[2] / (1 - (downloadTimeBgMPInMS / 1e3)); // B/S
+    // bandwidth will be shared between foreground tiles and Med-priority
+    // background tiles/chunks.
+    // high-priorty background fetched first.
+    float bandwidthBgMP = backgroundTilesSizes[2] /
+                          (1 - (downloadTimeBgMPInMS / 1e3));  // Bytes/Sec
 
     float bandwidthFg = 0;
     std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>> foregroundTiles;
-    // std::cout << "time remaining in ms :"
-    //          << 1000 - (downloadTimeBgHPInMS + downloadTimeBgMPInMS) << "\n";
+    // END bandwidth calc block
 
-    // improve quality of tiles (foreground tiles)
+    // if the download time of background tiles/chunks less than 1 sec,
+    // then there is a room to fetch foreground tiles;
+    // START foreground tile block
     if (downloadTimeBgHPInMS + downloadTimeBgMPInMS < 1000) {
+      // if foreground tiles to be fetched on chunk basis (i.e., coarse
+      // foreground),
+      // and still waiting on an ongoing request. Then, skip ABR call.
+      if (FLAGS_UtilityCoraseForegroundStream && chunkTileAwaited.first != -1) {
+        goto end_forground_block;
+      }
       // generate the utility matrix for predicted-to-render tiles in the next
       // 25 frames (1sec).
       auto utilityMatrix =
-          tilePredictor->buildUtilityMatrix(predictedCorr, vpResolutions);
+          tilePredictor->buildUtilityMatrix(predictedCorr, vpResolutions, -1);
       // sort tiles by their max utility.
       auto orderedUtilityMatrix =
           abrAlgorithm->orderTilesByMaxUtility(utilityMatrix, frameIdToRender);
@@ -1084,20 +1132,43 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
       auto foregroundTilesSize = abrAlgorithm->getTilesSizes(foregroundTiles);
       float downloadTimeFgInMS =
           predictedBw == 0 ? 0 : (foregroundTilesSize * 1e3) / predictedBw;
-      // std::cout << foregroundTilesSize << ":" << downloadTimeFgInMS << "\n"
-      //        << foregroundTiles.size() << "\n=====\n";
 
-      if (downloadTimeBgHPInMS + downloadTimeBgMPInMS + downloadTimeFgInMS <
-          1000) {
-        // ToDo
-        // extra Tiles
+    }  // END foreground tile block
+  end_forground_block:
+
+    if (FLAGS_UtilityCoraseForegroundStream) {
+      // This is not new request (chunkTileAwaited.first != -1);
+      // so update currentFgRequest. Otherwise it is a new request.
+      // And, currentFgRequest should be foregroundTiles and
+      // chunkTileAwaited.first should be updated.
+      auto &tileChunksLoop = chunkTileAwaited.first != -1
+                                 ? coarseForegroundTiles
+                                 : foregroundTiles;
+      std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>>
+          updatedCoarseForegroundTiles;
+      int chunkIdx;
+      uint16_t tileIdx;
+      for (auto &chunkTile : tileChunksLoop) {
+        chunkIdx = chunkTile.first.first;
+        tileIdx = chunkTile.first.second;
+        auto qaulityIdx = chunkTile.second;
+        if (clientNetworkLayer->isReceived(chunkIdx + 1, tileIdx) !=
+            qaulityIdx) {
+          updatedCoarseForegroundTiles.push_back(
+              {{chunkIdx, tileIdx}, qaulityIdx});
+        }
+      }
+      coarseForegroundTiles = updatedCoarseForegroundTiles;
+      foregroundTiles = coarseForegroundTiles;
+      if (chunkTileAwaited.first == -1) {
+        chunkTileAwaited.first = chunkIdx;
+        chunkTileAwaited.second = tileIdx;
       }
     }
 
     std::string req = "";
     for (auto bgChunkIdx : {0, 1}) {
       for (auto &tile : backgroundTiles[bgChunkIdx]) {
-
         req += std::to_string(tile.first) + "_" + std::to_string(tile.second);
         req += FLAGS_UtilityCoraseBackgroundStream == "coarse" ? "_0," : "_1,";
       }
@@ -1120,12 +1191,6 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
       }
     }
 
-    /*std::cout << "frame:" << videoPlayer->getFrameToRenderId()
-    << std::endl;
-    std::cout << "baseTime:" << baseTime << std::endl;
-    std::cout << "size:" << urgentTileRequestAndSize.second <<
-    std::endl;*/
-
     if (req.size()) {
       req.pop_back();
     }
@@ -1134,7 +1199,7 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
     clientNetworkLayer->setRequest(finalReq);
     Util::sleep(stime, ABR_FREQ);
     videoTime += (Util::getTime() - stime);
-    stime += 100;
+    stime += ABR_FREQ;
   }
 }
 
