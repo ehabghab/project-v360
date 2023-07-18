@@ -27,7 +27,7 @@ void Decoder::initAVCodec(int width, int height) {
   avCodecContext->width = width;
   avCodecContext->height = height;
   avCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-  avCodecContext->thread_count = 1;
+  avCodecContext->thread_count = 8;
   avCodecContext->thread_type = FF_THREAD_FRAME;
   avcodec_open2(avCodecContext, avCodec, NULL);
 }
@@ -88,33 +88,6 @@ void Decoder::decodeOptimized(uint8_t *encodedFrame, uint32_t size,
 
     return;
   }
-
-  // lookup info about the stream.
-  //		ret = avformat_find_stream_info(formatContext,
-  //(PointerPointer)null); 		if (ret < 0) {
-  // System.out.printf("Finding stream
-  // failed!\n"); 			throw new IllegalStateException();
-  //		}
-  //
-  //		// looking for stream id.
-  //		for (int i = 0; i < formatContext.nb_streams(); i++) {
-  //			if (formatContext.streams(i).codecpar().codec_type() ==
-  // AVMEDIA_TYPE_VIDEO) { 				videoStreamIdx = i;
-  // break;
-  //			}
-  //		}
-  //		if (videoStreamIdx == -1) {
-  //			System.out.println("Cannot find video stream");
-  //			throw new IllegalStateException();
-  //		} else {
-  //			System.out.printf("Video stream %d with resolution
-  //%dx%d\n", videoStreamIdx,
-  // formatContext.streams(videoStreamIdx).codecpar().width(),
-  //					formatContext.streams(videoStreamIdx).codecpar().height());
-  //		}
-  //
-  //		avcodec_parameters_to_context(avCodecContext,
-  //				formatContext.streams(videoStreamIdx).codecpar());
 
   // determine the size of the buffer
 
@@ -183,33 +156,6 @@ void Decoder::decodeNotOptimized(uint8_t *encodedFrame, uint32_t size,
 
     return;
   }
-
-  // lookup info about the stream.
-  //		ret = avformat_find_stream_info(formatContext,
-  //(PointerPointer)null); 		if (ret < 0) {
-  // System.out.printf("Finding stream
-  // failed!\n"); 			throw new IllegalStateException();
-  //		}
-  //
-  //		// looking for stream id.
-  //		for (int i = 0; i < formatContext.nb_streams(); i++) {
-  //			if (formatContext.streams(i).codecpar().codec_type() ==
-  // AVMEDIA_TYPE_VIDEO) { 				videoStreamIdx = i;
-  // break;
-  //			}
-  //		}
-  //		if (videoStreamIdx == -1) {
-  //			System.out.println("Cannot find video stream");
-  //			throw new IllegalStateException();
-  //		} else {
-  //			System.out.printf("Video stream %d with resolution
-  //%dx%d\n", videoStreamIdx,
-  // formatContext.streams(videoStreamIdx).codecpar().width(),
-  //					formatContext.streams(videoStreamIdx).codecpar().height());
-  //		}
-  //
-  //		avcodec_parameters_to_context(avCodecContext,
-  //				formatContext.streams(videoStreamIdx).codecpar());
 
   // determine the size of the buffer
 
