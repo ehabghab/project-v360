@@ -13,13 +13,17 @@
 #include <functional>
 #include <iostream>
 #include <numeric>
+#include <random>
+
+#include <gflags/gflags.h>
 
 #include "Util.h"
+
+DEFINE_int32(RandomDistributionUpperRange, 0, "upper bound for random distribution");
 
 void LinearRegression::predict(
     std::vector<std::pair<float, float>> &lrPredictions,
     std::vector<std::pair<float, float>> &input, int length) {
-
   estimateCoefficient(std::ref(input), length);
   lrPredictions.push_back(
       std::make_pair(input[length - 1].first, input[length - 1].second));
@@ -76,12 +80,24 @@ void LinearRegression::estimateCoefficient(
   float idxMulSum = 0;
   float idxSum = 0;
 
+  std::default_random_engine uniformGenerator;
+  std::uniform_real_distribution<float> uniformDistribution(0, FLAGS_RandomDistributionUpperRange);
+  auto getUniformRandomNumber =
+      std::bind(uniformDistribution, uniformGenerator);
+
   int yawOverlap = 0;
   int pitchOverlap = 0;
   for (int idx = length - hw_, i = 1; idx < length; idx++, i++) {
+    float yaw = input[idx].first;
+    float prevYaw = input[idx - 1].first;
+    if (FLAGS_RandomDistributionUpperRange > 0) {
+      yaw += getUniformRandomNumber();
+      prevYaw += getUniformRandomNumber();
+    }
+
     if (idx != length - (int)hw_) {
-      if (std::abs(input[idx].first - input[idx - 1].first) >= 180) {
-        if (input[idx - 1].first < input[idx].first) {
+      if (std::abs(yaw - prevYaw) >= 180) {
+        if (prevYaw < yaw) {
           yawOverlap--;
         } else {
           yawOverlap++;
@@ -96,7 +112,7 @@ void LinearRegression::estimateCoefficient(
       }
     }
 
-    auto calbYaw = input[idx].first + yawOverlap * 360;
+    auto calbYaw = yaw + yawOverlap * 360;
     sums.first += calbYaw;
     sumsMul.first += i * calbYaw;
 
