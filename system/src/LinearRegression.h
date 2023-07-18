@@ -15,9 +15,9 @@
 #include <vector>
 
 class LinearRegression {
-private:
-  float pitchA_; // initializing pitch b0
-  float pitchB_; // initializing pitch b1
+ private:
+  float pitchA_;  // initializing pitch b0
+  float pitchB_;  // initializing pitch b1
   float yawA_;
   float yawB_;
 
@@ -35,7 +35,7 @@ private:
 
   void initPerfect();
 
-public:
+ public:
   LinearRegression(std::string vpCorrPerFrameTracePath, std::string model,
                    size_t window);
 

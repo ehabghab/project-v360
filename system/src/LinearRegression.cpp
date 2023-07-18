@@ -19,7 +19,8 @@
 
 #include "Util.h"
 
-DEFINE_int32(RandomDistributionUpperRange, 0, "upper bound for random distribution");
+DEFINE_int32(RandomDistributionUpperRange, 0,
+             "upper bound for random distribution");
 
 void LinearRegression::predict(
     std::vector<std::pair<float, float>> &lrPredictions,
@@ -74,14 +75,14 @@ void LinearRegression::predictPerfect(
 
 void LinearRegression::estimateCoefficient(
     std::vector<std::pair<float, float>> &input, int length) {
-
   std::pair<float, float> sums(0, 0);
   std::pair<float, float> sumsMul(0, 0);
   float idxMulSum = 0;
   float idxSum = 0;
 
   std::default_random_engine uniformGenerator;
-  std::uniform_real_distribution<float> uniformDistribution(0, FLAGS_RandomDistributionUpperRange);
+  std::uniform_real_distribution<float> uniformDistribution(
+      0, FLAGS_RandomDistributionUpperRange);
   auto getUniformRandomNumber =
       std::bind(uniformDistribution, uniformGenerator);
 
