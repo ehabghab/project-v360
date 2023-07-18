@@ -669,7 +669,7 @@ TilePredictor::getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution) {
 std::map<std::pair<int, uint16_t>, std::vector<float>>
 TilePredictor::buildUtilityMatrix(
     std::vector<std::pair<float, float>> &predictedCorr,
-    std::vector<std::pair<int, int>> &vpResolutions) {
+    std::vector<std::pair<int, int>> &vpResolutions, int chunkToCal) {
 
   // video join time as it only happens at the start of video sessions.
   while (frameId_ == 0)
@@ -687,7 +687,9 @@ TilePredictor::buildUtilityMatrix(
       break;
     }
     int chunkId = ((frameId + idx) - 1) / 25;
-
+    if (chunkToCal != -1 && chunkToCal != chunkId) {
+      continue;
+    }
     std::pair<float, float> viewportCenter;
     // use static predictor.
     if (predictedCorr.size() == 0) {

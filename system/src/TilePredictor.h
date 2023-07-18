@@ -39,7 +39,8 @@ public:
    */
   std::map<std::pair<int, uint16_t>, std::vector<float>>
   buildUtilityMatrix(std::vector<std::pair<float, float>> &predictedCorr,
-                     std::vector<std::pair<int, int>> &vpResolutions);
+                     std::vector<std::pair<int, int>> &vpResolutions,
+                     int chunkToCal);
 
   TilePredictor(std::string vpCorrPerFrameTracePath, std::string model,
                 size_t window);
