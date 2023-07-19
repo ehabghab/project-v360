@@ -928,13 +928,12 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
            chunkTileAwaited.first < chunkId) &&
           (coarseForgroundChunkIdToRequest - chunkId < 2)) {
         coarseForegroundTiles.clear();
-        chunkTileAwaited.first = -1;  // we are not waiting on foreground tiles.
-
         if (clientNetworkLayer->isReceived(chunkTileAwaited.first + 1,
                                            chunkTileAwaited.second) >
             backgroundQualityIdx) {
           coarseForgroundChunkIdToRequest++;
         }
+        chunkTileAwaited.first = -1;  // we are not waiting on foreground tiles.
       }
 
       coarseForgroundChunkIdToRequest =
@@ -1073,8 +1072,11 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
       }
       // generate the utility matrix for predicted-to-render tiles in the next
       // 25 frames (1sec).
-      auto utilityMatrix =
-          tilePredictor->buildUtilityMatrix(predictedCorr, vpResolutions, -1);
+      auto utilityMatrix = tilePredictor->buildUtilityMatrix(
+          predictedCorr, vpResolutions, FLAGS_UtilityCoraseForegroundStream
+                                            ? coarseForgroundChunkIdToRequest
+                                            : -1);
+
       // sort tiles by their max utility.
       auto orderedUtilityMatrix =
           abrAlgorithm->orderTilesByMaxUtility(utilityMatrix, frameIdToRender);
@@ -1086,8 +1088,6 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
           abrAlgorithm->qualityABR(utilityMatrix, frameIdToRender,
                                    bandwidthFg > 0 ? bandwidthFg : 2.5 * 1e6,
                                    downloadTimeBgHPInMS, clientNetworkLayer);
-      auto foregroundTilesSize = abrAlgorithm->getTilesSizes(foregroundTiles);
-
     }  // END foreground tile block
   end_forground_block:
 
@@ -1101,8 +1101,8 @@ void AbrAlgorithm::utilityAbr(AbrAlgorithm *abrAlgorithm,
                                  : foregroundTiles;
       std::vector<std::pair<std::pair<int, uint16_t>, uint8_t>>
           updatedCoarseForegroundTiles;
-      int chunkIdx;
-      uint16_t tileIdx;
+      int chunkIdx = -1;
+      uint16_t tileIdx = 0;
       for (auto &chunkTile : tileChunksLoop) {
         chunkIdx = chunkTile.first.first;
         tileIdx = chunkTile.first.second;
