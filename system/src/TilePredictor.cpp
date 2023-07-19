@@ -17,9 +17,9 @@
 #include <thread>
 #include <utility>
 
-#include "Util.h"
 #include <gflags/gflags.h>
 #include <glog/logging.h>
+#include "Util.h"
 
 DEFINE_bool(predLR, true,
             "true: use linear regression, false: perfect predictor");
@@ -82,13 +82,13 @@ void TilePredictor::getViewportSquares(
     // viewport has two squares due to overlapping over y = 0.
     SquareCoordinates vpPart1 = {
         std::make_pair(x3, y2),
-        std::make_pair(x4, // @suppress("Invalid arguments")
+        std::make_pair(x4,  // @suppress("Invalid arguments")
                        y2),
         std::make_pair(x3, 0), std::make_pair(x4, 0)};
 
     SquareCoordinates vpPart2 = {
         std::make_pair(x1, 180),
-        std::make_pair(x2, // @suppress("Invalid arguments")
+        std::make_pair(x2,  // @suppress("Invalid arguments")
                        180),
         std::make_pair(x1, y1), std::make_pair(x2, y1)};
     vpSquares = {vpPart1, vpPart2};
@@ -192,7 +192,6 @@ void TilePredictor::sortTileSetByArea(
 void TilePredictor::getUrgetTilesList(
     std::map<float, std::vector<uint16_t>> &urgentTiles,
     std::vector<std::pair<float, float>> &predictedCorr) {
-
   // this should return the high quality based on model
   // flare then use similar method to background.
   // utility return the utility matrix for the next .5 seconds.
@@ -212,8 +211,8 @@ void TilePredictor::getUrgetTilesList(
     }
     urgentTiles.insert(std::make_pair(0, allTiles));
   } else {
-    int yawDir = 0;   // positive: right
-    int pitchDir = 0; // positive: up
+    int yawDir = 0;    // positive: right
+    int pitchDir = 0;  // positive: up
     for (int idx = 1; idx < (int)predictedCorr.size(); idx++) {
       predictedCorr[idx].first - predictedCorr[idx - 1].first >= 0 ? yawDir++
                                                                    : yawDir--;
@@ -229,14 +228,14 @@ void TilePredictor::getUrgetTilesList(
 
     // find the maximum  predicted user displacement.
     for (int frameIdx = 1; frameIdx < (int)predictedCorr.size(); frameIdx++) {
-      if (yawDir >= 0) { // right
+      if (yawDir >= 0) {  // right
         yawMaxDisp +=
             predictedCorr[frameIdx].first < predictedCorr[frameIdx - 1].first
                 ? (predictedCorr[frameIdx].first + 360) -
                       predictedCorr[frameIdx - 1].first
                 : predictedCorr[frameIdx].first -
                       predictedCorr[frameIdx - 1].first;
-      } else { // left
+      } else {  // left
         yawMaxDisp +=
             predictedCorr[frameIdx].first > predictedCorr[frameIdx - 1].first
                 ? ((predictedCorr[frameIdx - 1].first + 360) -
@@ -245,14 +244,14 @@ void TilePredictor::getUrgetTilesList(
                       predictedCorr[frameIdx].first;
       }
 
-      if (pitchDir >= 0) { // up
+      if (pitchDir >= 0) {  // up
         pitchMaxDisp +=
             predictedCorr[frameIdx].second < predictedCorr[frameIdx - 1].second
                 ? ((predictedCorr[frameIdx].second + 180) -
                    predictedCorr[frameIdx - 1].second)
                 : (predictedCorr[frameIdx].second -
                    predictedCorr[frameIdx - 1].second);
-      } else { // down
+      } else {  // down
         pitchMaxDisp +=
             predictedCorr[frameIdx].second > predictedCorr[frameIdx - 1].second
                 ? ((predictedCorr[frameIdx - 1].second + 180) -
@@ -268,18 +267,18 @@ void TilePredictor::getUrgetTilesList(
     float yawCorrLq = -1;
     float pitchCorrLq = -1;
 
-    if (yawDir > 0) { // right
+    if (yawDir > 0) {  // right
       yawCorrLq = predictedCorr[0].first + (yawMaxDisp / 2.0);
       yawCorrLq = yawCorrLq > 360 ? yawCorrLq - 360 : yawCorrLq;
-    } else { // left
+    } else {  // left
       yawCorrLq = predictedCorr[0].first - (yawMaxDisp / 2.0);
       yawCorrLq = yawCorrLq < 0 ? yawCorrLq + 360 : yawCorrLq;
     }
 
-    if (pitchDir > 0) { // up
+    if (pitchDir > 0) {  // up
       pitchCorrLq = predictedCorr[0].second + (pitchMaxDisp / 2.0);
       pitchCorrLq = pitchCorrLq > 180 ? pitchCorrLq - 180 : pitchCorrLq;
-    } else { // down
+    } else {  // down
       pitchCorrLq = predictedCorr[0].second - (pitchMaxDisp / 2.0);
       pitchCorrLq = pitchCorrLq < 0 ? pitchCorrLq + 180 : pitchCorrLq;
     }
@@ -287,9 +286,9 @@ void TilePredictor::getUrgetTilesList(
     int vpLqDimYaw = int((100 + yawMaxDisp) * 1);
     int vpLqDimPitch = int((100 + pitchMaxDisp * 1));
     std::pair<float, float> viewportCenterLq(yawCorrLq, pitchCorrLq);
-    std::pair<int, int> viewportDimentionLq(vpLqDimYaw > 360 ? 360 : vpLqDimYaw,
-                                            vpLqDimPitch > 180 ? 180
-                                                               : vpLqDimPitch);
+    std::pair<int, int> viewportDimentionLq(
+        vpLqDimYaw > 360 ? 360 : vpLqDimYaw,
+        vpLqDimPitch > 180 ? 180 : vpLqDimPitch);
     sortTileSetByArea(urgentTiles, viewportCenterLq, viewportDimentionLq);
   }
 }
@@ -297,7 +296,6 @@ void TilePredictor::getUrgetTilesList(
 void TilePredictor::getUrgetTilesListsTemp(
     std::map<std::string, std::map<float, std::vector<uint16_t>>> &urgentTiles,
     std::vector<std::pair<float, float>> &predictedCorr) {
-
   // this should return the high quality based on model
   // flare then use similar method to background.
   // utility return the utility matrix for the next .5 seconds.
@@ -308,7 +306,7 @@ void TilePredictor::getUrgetTilesListsTemp(
 
   while (frameId_ == 0)
     ;
-  float highQwindow = 13; // half second 25FPS/2;
+  float highQwindow = 13;  // half second 25FPS/2;
 
   if (predictedCorr.size() == 0) {
     // low quality tiles = all tiles
@@ -326,8 +324,8 @@ void TilePredictor::getUrgetTilesListsTemp(
     sortTileSetByArea(tileRanksByArea, vpCorr, vpResolution);
     urgentTiles.insert(std::make_pair("HQ", tileRanksByArea));
   } else {
-    int yawDir = 0;   // positive: right
-    int pitchDir = 0; // positive: up
+    int yawDir = 0;    // positive: right
+    int pitchDir = 0;  // positive: up
     for (int idx = 1; idx < (int)predictedCorr.size(); idx++) {
       predictedCorr[idx].first - predictedCorr[idx - 1].first >= 0 ? yawDir++
                                                                    : yawDir--;
@@ -348,14 +346,14 @@ void TilePredictor::getUrgetTilesListsTemp(
 
     // find the maximum  predicted user displacement.
     for (int frameIdx = 1; frameIdx < (int)predictedCorr.size(); frameIdx++) {
-      if (yawDir >= 0) { // right
+      if (yawDir >= 0) {  // right
         yawMaxDisp +=
             predictedCorr[frameIdx].first < predictedCorr[frameIdx - 1].first
                 ? (predictedCorr[frameIdx].first + 360) -
                       predictedCorr[frameIdx - 1].first
                 : predictedCorr[frameIdx].first -
                       predictedCorr[frameIdx - 1].first;
-      } else { // left
+      } else {  // left
         yawMaxDisp +=
             predictedCorr[frameIdx].first > predictedCorr[frameIdx - 1].first
                 ? ((predictedCorr[frameIdx - 1].first + 360) -
@@ -364,14 +362,14 @@ void TilePredictor::getUrgetTilesListsTemp(
                       predictedCorr[frameIdx].first;
       }
 
-      if (pitchDir >= 0) { // up
+      if (pitchDir >= 0) {  // up
         pitchMaxDisp +=
             predictedCorr[frameIdx].second < predictedCorr[frameIdx - 1].second
                 ? ((predictedCorr[frameIdx].second + 180) -
                    predictedCorr[frameIdx - 1].second)
                 : (predictedCorr[frameIdx].second -
                    predictedCorr[frameIdx - 1].second);
-      } else { // down
+      } else {  // down
         pitchMaxDisp +=
             predictedCorr[frameIdx].second > predictedCorr[frameIdx - 1].second
                 ? ((predictedCorr[frameIdx - 1].second + 180) -
@@ -396,13 +394,13 @@ void TilePredictor::getUrgetTilesListsTemp(
     float yawCorrHq = -1;
     float pitchCorrHq = -1;
 
-    if (yawDir > 0) { // right
+    if (yawDir > 0) {  // right
       yawCorrLq = predictedCorr[0].first + (yawMaxDisp / 2.0);
       yawCorrLq = yawCorrLq > 360 ? yawCorrLq - 360 : yawCorrLq;
 
       yawCorrHq = predictedCorr[0].first + (yawMaxDispHq / 2.0);
       yawCorrHq = yawCorrHq > 360 ? yawCorrHq - 360 : yawCorrHq;
-    } else { // left
+    } else {  // left
       yawCorrLq = predictedCorr[0].first - (yawMaxDisp / 2.0);
       yawCorrLq = yawCorrLq < 0 ? yawCorrLq + 360 : yawCorrLq;
 
@@ -410,13 +408,13 @@ void TilePredictor::getUrgetTilesListsTemp(
       yawCorrHq = yawCorrHq < 0 ? yawCorrHq + 360 : yawCorrHq;
     }
 
-    if (pitchDir > 0) { // up
+    if (pitchDir > 0) {  // up
       pitchCorrLq = predictedCorr[0].second + (pitchMaxDisp / 2.0);
       pitchCorrLq = pitchCorrLq > 180 ? pitchCorrLq - 180 : pitchCorrLq;
 
       pitchCorrHq = predictedCorr[0].second + (pitchMaxDispHq / 2.0);
       pitchCorrHq = pitchCorrHq > 180 ? pitchCorrHq - 180 : pitchCorrHq;
-    } else { // down
+    } else {  // down
       pitchCorrLq = predictedCorr[0].second - (pitchMaxDisp / 2.0);
       pitchCorrLq = pitchCorrLq < 0 ? pitchCorrLq + 180 : pitchCorrLq;
 
@@ -427,9 +425,9 @@ void TilePredictor::getUrgetTilesListsTemp(
     int vpLqDimYaw = int((100 + yawMaxDisp) * 1.2);
     int vpLqDimPitch = int((100 + pitchMaxDisp * 1.2));
     std::pair<float, float> viewportCenterLq(yawCorrLq, pitchCorrLq);
-    std::pair<int, int> viewportDimentionLq(vpLqDimYaw > 360 ? 360 : vpLqDimYaw,
-                                            vpLqDimPitch > 180 ? 180
-                                                               : vpLqDimPitch);
+    std::pair<int, int> viewportDimentionLq(
+        vpLqDimYaw > 360 ? 360 : vpLqDimYaw,
+        vpLqDimPitch > 180 ? 180 : vpLqDimPitch);
     std::map<float, std::vector<uint16_t>> tileRanksByAreaLq;
     sortTileSetByArea(tileRanksByAreaLq, viewportCenterLq, viewportDimentionLq);
     urgentTiles.insert(std::make_pair("LQ", tileRanksByAreaLq));
@@ -438,9 +436,9 @@ void TilePredictor::getUrgetTilesListsTemp(
     int vpHqDimPitch = int((100 + pitchMaxDispHq * 1.1));
 
     std::pair<float, float> viewportCenterHq(yawCorrHq, pitchCorrHq);
-    std::pair<int, int> viewportDimentionHq(vpHqDimYaw > 360 ? 360 : vpHqDimYaw,
-                                            vpHqDimPitch > 180 ? 180
-                                                               : vpHqDimPitch);
+    std::pair<int, int> viewportDimentionHq(
+        vpHqDimYaw > 360 ? 360 : vpHqDimYaw,
+        vpHqDimPitch > 180 ? 180 : vpHqDimPitch);
     std::map<float, std::vector<uint16_t>> tileRanksByAreaHq;
     sortTileSetByArea(tileRanksByAreaHq, viewportCenterHq, viewportDimentionHq);
     urgentTiles.insert(std::make_pair("HQ", tileRanksByAreaHq));
@@ -532,7 +530,7 @@ TilePredictor::getPredictedTilesFlareLR(
   }
   uint16_t frameId = frameId_;
 
-  for (uint16_t idx = 0; idx < predictionWindow_; idx++) { // per frame
+  for (uint16_t idx = 0; idx < predictionWindow_; idx++) {  // per frame
     if (frameId >= 1475) {
       break;
     }
@@ -558,7 +556,7 @@ TilePredictor::getPredictedTilesFlareLR(
     // Two classes: 0 (VP--> highest_class), and 1 (Edge)
     uint8_t tileClass = 0;
 
-    for (auto &vpResolution : vpResolutions) { // per vp-class
+    for (auto &vpResolution : vpResolutions) {  // per vp-class
       // find viewport squares.
       // std::vector<SquareCoordinates> vpSqrs;
       // getViewportSquares(vpSqrs, viewportCenter, vpResolution);
@@ -641,7 +639,7 @@ TilePredictor::getOverlappingAreaSizePerTile(std::pair<int, int> vpResolution) {
   std::map<uint16_t, std::map<float, std::vector<uint16_t>>> tileAreaPerFrame;
 
   uint16_t frameId = frameId_;
-  for (uint16_t idx = 0; idx < predictionWindow_; idx++) { // per frame
+  for (uint16_t idx = 0; idx < predictionWindow_; idx++) {  // per frame
     if (frameId >= 1475) {
       break;
     }
@@ -670,7 +668,6 @@ std::map<std::pair<int, uint16_t>, std::vector<float>>
 TilePredictor::buildUtilityMatrix(
     std::vector<std::pair<float, float>> &predictedCorr,
     std::vector<std::pair<int, int>> &vpResolutions, int chunkToCal) {
-
   // video join time as it only happens at the start of video sessions.
   while (frameId_ == 0)
     ;
@@ -682,7 +679,7 @@ TilePredictor::buildUtilityMatrix(
   // keep track of what is the frameId for utility at zero (base frame id)
   utilityMatrix.insert({{-1, -1}, {static_cast<float>(frameId)}});
 
-  for (uint8_t idx = 0; idx < predictionWindow_; idx++) { // per frame
+  for (uint8_t idx = 0; idx < predictionWindow_; idx++) {  // per frame
     if (frameId >= 1475) {
       break;
     }
@@ -698,7 +695,7 @@ TilePredictor::buildUtilityMatrix(
       viewportCenter = predictedCorr[idx];
     }
 
-    for (auto &vpResolution : vpResolutions) { // per vp-class
+    for (auto &vpResolution : vpResolutions) {  // per vp-class
       // find viewport squares.
 
       // key: fraction area of tile that overlaps with viewport.
@@ -716,7 +713,8 @@ TilePredictor::buildUtilityMatrix(
           std::pair<int, uint16_t> key{chunkId, tile};
           if (utilityMatrix.find(key) == utilityMatrix.end()) {
             std::vector<float> cumlativeTileUtility(
-                predictionWindow_, 0); // lookahead frames is predictionWindow_.
+                predictionWindow_,
+                0);  // lookahead frames is predictionWindow_.
             utilityMatrix.insert(std::make_pair(key, cumlativeTileUtility));
           }
           utilityMatrix.find(key)->second[idx] += (1 - tileSet.first);
@@ -755,7 +753,6 @@ TilePredictor::buildUtilityMatrix(
 
   // print all tiles along with their utility.
   if (VLOG_IS_ON(1)) {
-
     std::pair<int, uint16_t> tileToPrint{1, 30};
     for (auto &tileUtility : utilityMatrix) {
       if (tileUtility.first != tileToPrint) {

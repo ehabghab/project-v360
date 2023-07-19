@@ -12,6 +12,7 @@
 #include <boost/asio.hpp>
 #include <boost/functional/hash.hpp>
 #include <cstdint>
+#include <mutex>
 #include <unordered_set>
 
 #define PORT 7717
@@ -61,7 +62,7 @@ class Server {
 
   bool isTileSent(std::pair<int, uint16_t> tile, uint8_t quality);
 
-public:
+ public:
   Server(std::string videoPathDir);
   virtual ~Server();
 };

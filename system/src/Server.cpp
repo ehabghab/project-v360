@@ -26,9 +26,9 @@
 #include <thread>
 #include <vector>
 
+#include <gflags/gflags.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
-#include <gflags/gflags.h>
 DEFINE_bool(utilityAbr, true, "true : utility, false : flare");
 
 Server::Server(std::string videoPathDir) {
@@ -336,11 +336,10 @@ void Server::sender(Server *server, uint8_t socket) {
   }
 }
 
-std::string
-Server::getResponseHeader(std::string httpVersion, std::string statusCode,
-                          std::string acceptRange, int contentLength,
-                          std::string contentType, std::string tileIdx,
-                          std::string quality) {
+std::string Server::getResponseHeader(
+    std::string httpVersion, std::string statusCode, std::string acceptRange,
+    int contentLength, std::string contentType, std::string tileIdx,
+    std::string quality) {
   std::stringstream header;
 
   time_t now = time(0);
@@ -358,8 +357,8 @@ Server::getResponseHeader(std::string httpVersion, std::string statusCode,
   return header.str();
 }
 
-std::vector<std::string>
-Server::parseUtilityRequestIntoTiles(std::string request) {
+std::vector<std::string> Server::parseUtilityRequestIntoTiles(
+    std::string request) {
   // LOG(INFO) << "Request_server:" << request;
   std::vector<std::string> tempVec1;
   std::vector<std::string> tempVec2;
@@ -436,7 +435,6 @@ void start(std::string videoPathDir) {
 }
 
 int main(int argc, char **argv) {
-
   google::SetLogDestination(google::INFO, "server_log.txt");
   google::InitGoogleLogging(argv[0]);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
